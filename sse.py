@@ -119,11 +119,9 @@ def sse(beta, N, Nb, therm_cycles, mc_cycles, rng):
         M_new = int(n * 4 / 3)
         if M_new > M:
             cp_opstring = opstring.copy()
-            
             opstring = np.zeros(M_new, dtype=np.int64)
             opstring[:M] = cp_opstring
             
-            vertex_list = np.zeros(4 * M_new, dtype=np.int64) - 1
             M = M_new
             
     n_vals = np.zeros(mc_cycles)
@@ -225,6 +223,7 @@ def sse(beta, N, Nb, therm_cycles, mc_cycles, rng):
                 if rng.random() < 0.5:
                     spin[i] = - spin[i]
         
+        n = np.count_nonzero(opstring)
         n_vals[t] = n
         
     return n_vals

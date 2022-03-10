@@ -1,6 +1,8 @@
-import sys
+from ensurepip import bootstrap
 import numpy as np
 import matplotlib.pyplot as plt
+
+from sklearn.utils import resample
 
 from sse import sse
 
@@ -10,7 +12,8 @@ Nb = N
 
 # MC Cycles
 therm_cycles = int(1e3)
-mc_cycles = int(5e3)
+mc_cycles = int(1e3)
+bootstrap_cycles = 100
 n_sim = 20
 
 beta_vals = np.power(2.0, [-1, 0, 1, 2, 3, 4])
@@ -31,15 +34,19 @@ for i, beta in enumerate(beta_vals):
         n_vals_tmp[j, :] = sse(beta, N, Nb, therm_cycles, mc_cycles, rng)
 
         mean_n_tmp[j] = np.mean(n_vals_tmp[j, :])
-        
-        E = - n_vals_tmp[i, :] / (beta * N)
-        mean_E_tmp[j] = np.mean(E)
     
-    mean_E[i] = np.mean(mean_E_tmp)
-    std_E[i] = np.std(mean_E_tmp)
+    mean_n_bs = np.zeros((bootstrap_cycles, n_sim))
+    mean_E_bs = np.zeros((bootstrap_cycles, n_sim))
     
-    mean_n[i] = np.mean(mean_n_tmp)
-    std_n[i] = np.std(mean_n_tmp)
+    for bs_cycle in range(bootstrap_cycles):
+        mean_n_bs[bs_cycle, :] = resample(mean_n_tmp)
+        mean_E_bs[bs_cycle, :] = - mean_n_bs[bs_cycle, :] / (beta * N)
+    
+    mean_E[i] = np.mean(mean_E_bs)
+    std_E[i] = np.mean(np.std(mean_E_bs, axis=0))
+    
+    mean_n[i] = np.mean(mean_n_bs)
+    std_n[i] = np.mean(np.std(mean_n_bs, axis=0))
 
 for i, beta in enumerate(beta_vals):
     print(f"beta : {beta} | <E> = {mean_E[i]:.6f} | std_E = {std_E[i]:.6f} | <n> = {mean_n[i]:.2f} | std_n = {std_n[i]:.2f}")
