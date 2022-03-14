@@ -6,7 +6,7 @@ from sklearn.utils import resample
 from sse import sse
 
 # Number of atoms in the chain
-N = 2
+N = 128
 Nb = N
 
 # MC Cycles
@@ -35,7 +35,7 @@ for i, beta in enumerate(beta_vals):
         mean_n_bs[bs_cycle, :] = resample(n_vals[i, :])
         mean_E_bs[bs_cycle, :] = - mean_n_bs[bs_cycle, :] / (beta * N)
     
-    mean_E[i] = np.mean(mean_E_bs)
+    mean_E[i] = np.mean(mean_E_bs) + 0.25
     std_E[i] = np.mean(np.std(mean_E_bs, axis=1))
     
     mean_n[i] = np.mean(mean_n_bs)
@@ -43,5 +43,22 @@ for i, beta in enumerate(beta_vals):
 
 for i, beta in enumerate(beta_vals):
     print(f"beta : {beta} | <E> = {mean_E[i]:.6f} | std_E = {std_E[i]:.6f} | <n> = {mean_n[i]:.2f} | std_n = {std_n[i]:.2f}")
+
+if N in [2, 4, 128]:
+    olav_solution = np.loadtxt(f"results_olav/Olav_Heisenberg{N}.erg.txt")
+    
+    plt.figure(1)
+    plt.plot(beta_vals, mean_E, '*', label="My Solution")
+    plt.plot(olav_solution[:, 0], olav_solution[:, 1], '*', label="Olav")
+    plt.xlabel(r"$\beta$")
+    plt.ylabel(r"$\langle E \rangle$")
+    plt.legend()
+    
+    plt.figure(2)
+    plt.plot(beta_vals, np.abs(mean_E - olav_solution[:, 1]), 'x')
+    plt.xlabel(r"$\beta$")
+    plt.ylabel(r"Error = \left| E_{J} - E_{O} \right|")
+
+    plt.show()
 
 

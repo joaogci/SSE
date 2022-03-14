@@ -23,19 +23,15 @@ def create_vertex_list(M, N, opstring, bond_site):
     vertex_list = np.zeros(4 * M, dtype=np.int64) - 1
     vertex_init = np.zeros(N, dtype=np.int64) - 1
     vertex_last = np.zeros(N, dtype=np.int64) - 1
-
     for p in range(M):
         if opstring[p] == 0:
             continue
-        
         v0 = 4 * p
         bond = opstring[p] // 2 - 1
         i1 = bond_site[0, bond]
         i2 = bond_site[1, bond]
-        
         v1 = vertex_last[i1]
         v2 = vertex_last[i2]
-        
         if v1 != -1:
             vertex_list[v1] = v0
             vertex_list[v0] = v1
@@ -47,20 +43,18 @@ def create_vertex_list(M, N, opstring, bond_site):
             vertex_list[v0 + 1] = v2
         else:
             vertex_init[i2] = v0 + 1
-            
         vertex_last[i1] = v0 + 2
         vertex_last[i2] = v0 + 3
-
     for i in range(N):
         f = vertex_init[i]
         if f != -1:
             l = vertex_last[i]
             vertex_list[f] = l
             vertex_list[l] = f
-    
     return vertex_init, vertex_last, vertex_list
 
 def loop_update(M, N, opstring, spin, vertex_list, vertex_init, rng):
+    flipped = False
     for v0 in range(0, 4 * M, 2):
         if vertex_list[v0] < 0:
             continue
@@ -68,13 +62,13 @@ def loop_update(M, N, opstring, spin, vertex_list, vertex_init, rng):
         if rng.random() <= 0.5:
             # Transvese the loop, for all v in loop, set X[v]=-2
             # Flip the loop (change the operator types opstring[p=v/4] while loop is traversed)
+            flipped = True
             while True:
                 opstring[v_in//4] = opstring[v_in//4] ^ 1
                 vertex_list[v_in] = -2
                 v_out = v_in ^ 1
                 v_in = vertex_list[v_out]
                 vertex_list[v_out] = -2
-                
                 if v_in == v0:
                     break
         else: 
@@ -84,10 +78,8 @@ def loop_update(M, N, opstring, spin, vertex_list, vertex_init, rng):
                 v_out = v_in ^ 1
                 v_in = vertex_list[v_out]
                 vertex_list[v_out] = -1
-                
                 if v_in == v0:
                     break
-    
     for i in range(N):
         if vertex_init[i] != -1:
             if vertex_list[vertex_init[i]] == -2:
