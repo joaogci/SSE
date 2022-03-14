@@ -4,39 +4,55 @@
 
 #include "sse.h"
 
-int main(int argc, char **argv) {
+double mean(int *arr, int size) {
+    double mean = 0;
+    int i;
+    for (i = 0; i < size; i++) {
+        mean += arr[i];
+    }
+    return mean / size;
+}
 
-    int a;
-    printf("%d \n", a);
+
+int main(int argc, char **argv) {
+    int N = 2;
+    double beta;
+    double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
+
+    long therm_cycles = 1e5;
+    long mc_cycles = 1e6;
 
     struct sse_state *sse_state = malloc(sizeof(struct sse_state));
     struct vertex *vertex = malloc(sizeof(struct vertex));
 
-    uint64_t seed = (u_int64_t) time(NULL);
-    printf("seed: %u \n", seed);
-    init_system(4, &sse_state, seed);
+    int t;
+    int n_vals[mc_cycles];
 
-    printf("N = %d \n", sse_state->N);
-    printf("spin:\n [ ");
-    for (int i = 0; i < sse_state->N; i++) {
-        printf("%d, ", sse_state->spin[i]);
-    }
-    printf("] \n");
-    printf("bond_site : \n");
-    for (int b = 0; b < sse_state->N; b++) {
-        printf("bond %d: %d -> %d \n", b, sse_state->bond_site[b][0], sse_state->bond_site[b][1]);
-    }
-    printf("\n");
-    printf("M init = %d \n", sse_state->M);
-    printf("opstring: \n [ ");
-    for (int i = 0; i < sse_state->M; i++) {
-        printf("%d, ", sse_state->opstring[i]);
-    }
-    printf("]\n");
+    for (int i = 0; i < 6; i++) {
+        beta = beta_vals[i];
 
-    create_vertex_list(sse_state, &vertex);
+        init_system(N, beta, sse_state, vertex, (uint64_t) time(NULL));
 
-    free_memory(&sse_state);
+        for (t = 0; t < therm_cycles; t++) {
+            diag_update(sse_state, vertex);
+            create_vertex_list(sse_state, vertex);
+            loop_update(sse_state, vertex);
+            ajust_cutoff(sse_state, vertex);
+        }
+        
+        for (t = 0; t < mc_cycles; t++) {
+            diag_update(sse_state, vertex);
+            create_vertex_list(sse_state, vertex);
+            loop_update(sse_state, vertex);
+
+            n_vals[t] = sse_state->n;
+        }
+
+        printf("beta: %f | E_mean: %f | n_mean %f \n", beta, - mean(n_vals, mc_cycles) / (N * beta) + 0.25, mean(n_vals, mc_cycles));
+    }
+
+    free_state(&sse_state);
+    free_vertex(&vertex);
 
     return 0;
 }
