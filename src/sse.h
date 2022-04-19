@@ -51,8 +51,8 @@ void init_system(int N, double beta, struct sse_state *sse_state, struct vertex 
     sse_state->pre_computed_prob = sse_state->Nb * beta / 2.0;
     sse_state->n = 0;
 
-    sse_state->spin = malloc(N * sizeof(int));
-    sse_state->bond_site = malloc(N * sizeof(int*));
+    sse_state->spin = (int*) malloc(N * sizeof(int));
+    sse_state->bond_site = (int**) malloc(N * sizeof(int*));
     /*
      * TODO: add more boundary conditions
      *       random spin initialization
@@ -60,7 +60,7 @@ void init_system(int N, double beta, struct sse_state *sse_state, struct vertex 
      * Start with all spins up. 
      */
     for (i = 0; i < N; i++) {
-        sse_state->bond_site[i] = malloc(2 * sizeof(int));
+        sse_state->bond_site[i] = (int*) malloc(2 * sizeof(int));
 
         sse_state->bond_site[i][0] = i;
         sse_state->bond_site[i][1] = (i + 1) % N;
@@ -72,12 +72,12 @@ void init_system(int N, double beta, struct sse_state *sse_state, struct vertex 
     }
 
     sse_state->M = MAX(4, N / 4);
-    sse_state->opstring = malloc(sse_state->M * sizeof(int));
+    sse_state->opstring = (int*) malloc(sse_state->M * sizeof(int));
     memset(sse_state->opstring, 0, sse_state->M * sizeof(int));
 
-    vertex->init = malloc(sse_state->N * sizeof(int));
-    vertex->last = malloc(sse_state->N * sizeof(int));
-    vertex->list = malloc(4 * sse_state->M * sizeof(int));
+    vertex->init = (int*) malloc(sse_state->N * sizeof(int));
+    vertex->last = (int*) malloc(sse_state->N * sizeof(int));
+    vertex->list = (int*) malloc(4 * sse_state->M * sizeof(int));
 
     vertex->freed = false;
 }
@@ -87,7 +87,7 @@ void create_vertex_list(struct sse_state *sse_state, struct vertex *vertex) {
     int i1, i2, v1, v2;
 
     if (vertex->freed) {
-        vertex->list = malloc(4 * sse_state->M * sizeof(int));
+        vertex->list = (int*) malloc(4 * sse_state->M * sizeof(int));
 
         vertex->freed = false;
     }
@@ -214,7 +214,7 @@ void ajust_cutoff(struct sse_state *sse_state, struct vertex *vertex) {
         int opstring_cpy[sse_state->M];
         memcpy(opstring_cpy, sse_state->opstring, sse_state->M * sizeof(int));
         free(sse_state->opstring); 
-        sse_state->opstring = malloc(M_new * sizeof(int));
+        sse_state->opstring = (int*) malloc(M_new * sizeof(int));
         memset(sse_state->opstring, 0, M_new * sizeof(int));
         memcpy(sse_state->opstring, opstring_cpy, sse_state->M * sizeof(int));
 

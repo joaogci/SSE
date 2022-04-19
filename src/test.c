@@ -13,9 +13,8 @@ double mean(int *arr, int size) {
     return mean / size;
 }
 
-
 int main(int argc, char **argv) {
-    int N = 16;
+    int N = 2;
     double beta;
     double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
 
