@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     struct sse_state *sse_state = malloc(sizeof(struct sse_state));
     struct vertex *vertex = malloc(sizeof(struct vertex));
 
-    int t;
+    long t;
     int n_vals[mc_cycles];
     int n2_vals[mc_cycles];
 
