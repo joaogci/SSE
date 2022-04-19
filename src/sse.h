@@ -136,7 +136,7 @@ void create_vertex_list(struct sse_state *sse_state, struct vertex *vertex) {
     }
 }
 
-void diag_update(struct sse_state *sse_state, struct vertex *vertex) {
+void diag_update(struct sse_state *sse_state) {
     int p, b;
     for (p = 0; p < sse_state->M; p++) {
         if (sse_state->opstring[p] == 0) {

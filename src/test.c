@@ -34,14 +34,14 @@ int main(int argc, char **argv) {
         init_system(N, beta, sse_state, vertex, (uint64_t) time(NULL));
 
         for (t = 0; t < therm_cycles; t++) {
-            diag_update(sse_state, vertex);
+            diag_update(sse_state);
             create_vertex_list(sse_state, vertex);
             loop_update(sse_state, vertex);
             ajust_cutoff(sse_state, vertex);
         }
 
         for (t = 0; t < mc_cycles; t++) {
-            diag_update(sse_state, vertex);
+            diag_update(sse_state);
             create_vertex_list(sse_state, vertex);
             loop_update(sse_state, vertex);
 
