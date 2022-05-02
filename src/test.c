@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #include "sse.h"
 
@@ -14,9 +15,10 @@ double mean(int *arr, int size) {
 }
 
 int main(int argc, char **argv) {
-    int N = 2;
+    int N = 16;
     double beta;
     double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
+    int beta_len = sizeof(beta_vals) / sizeof(beta_vals[0]);
 
     long therm_cycles = 1e5;
     long mc_cycles = 1e6;
@@ -27,9 +29,25 @@ int main(int argc, char **argv) {
     long t;
     int n_vals[mc_cycles];
     int n2_vals[mc_cycles];
+    double n_mean[beta_len];
+    double n2_mean[beta_len];
+    double E_mean[beta_len];
+    double C_mean[beta_len];
+    double ms_mean[beta_len];
+    double m2s_mean[beta_len];
+    double m_mean[beta_len];
+    double m2_mean[beta_len];
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < beta_len; i++) {
         beta = beta_vals[i];
+        n_mean[i] = 0.0;
+        n2_mean[i] = 0.0;
+        E_mean[i] = 0.0;
+        C_mean[i] = 0.0;
+        ms_mean[i] = 0.0;
+        m2s_mean[i] = 0.0;
+        m_mean[i] = 0.0;
+        m2_mean[i] = 0.0;
 
         init_system(N, beta, sse_state, vertex, (uint64_t) time(NULL));
 
@@ -47,18 +65,79 @@ int main(int argc, char **argv) {
 
             n_vals[t] = sse_state->n;
             n2_vals[t] = sse_state->n * sse_state->n;
+            
+            // Sampling magnetization
+            double m = 0.0;
+            double m2 = 0.0;
+            double ms = 0.0;
+            double m2s = 0.0;
+            for (int j = 0; j < sse_state->N; j++) {
+                ms += pow(- 1.0, j) * sse_state->spin[j];
+                m += sse_state->spin[j];
+            }
+            m *= 0.5;
+            ms *= 0.5;
+
+            int b;
+            for (int p = 0; p < sse_state->M; p++) {
+                if (sse_state->opstring[p] % 2 == 1) {
+                    b = (sse_state->opstring[p] / 2) - 1;
+                    sse_state->spin[sse_state->bond_site[b][0]] = - sse_state->spin[sse_state->bond_site[b][0]];
+                    sse_state->spin[sse_state->bond_site[b][1]] = - sse_state->spin[sse_state->bond_site[b][1]];
+
+                    ms += 2 * pow(- 1.0, sse_state->bond_site[b][0]) * sse_state->spin[sse_state->bond_site[b][0]];
+                    m += 2 * sse_state->spin[sse_state->bond_site[b][0]];
+                }
+
+                if (sse_state->opstring[p] != 0) {
+                    m2s += ms * ms;
+                    m2 += m * m;
+                }
+            }
+            if (sse_state->n != 0) {
+                m2 /= (sse_state->n * sse_state->N * sse_state->N);
+                m /= (sse_state->n * sse_state->N);
+                m2s /= (sse_state->n * sse_state->N * sse_state->N);
+                ms /= (sse_state->n * sse_state->N);
+            }
+            else {
+                m2 /= (sse_state->N * sse_state->N);
+                m /= (sse_state->N);
+                m2s /= (sse_state->N * sse_state->N);
+                ms /= (sse_state->N);
+            }
+
+            m_mean[i] += m;
+            m2_mean[i] += m2;
+            ms_mean[i] += ms;
+            m2s_mean[i] += m2s;
         }
 
-        double n_mean = mean(n_vals, mc_cycles);
-        double n2_mean = mean(n2_vals, mc_cycles);
-        double E_mean = - n_mean / (N * beta) + 0.25;
-        double C_mean = (n2_mean - n_mean * (n_mean - 1)) / N;
+        n_mean[i] = mean(n_vals, mc_cycles);
+        n2_mean[i] = mean(n2_vals, mc_cycles);
+        E_mean[i] = - n_mean[i] / (N * beta) + 0.25;
+        C_mean[i] = (n2_mean[i] - n_mean[i] * n_mean[i] - n_mean[i]) / N;
+        m_mean[i] /= mc_cycles;
+        m2_mean[i] /= mc_cycles;
+        ms_mean[i] /= mc_cycles;
+        m2s_mean[i] /= mc_cycles;
 
-        printf("beta: %f | E_mean: %f | C_mean: %f | n_mean %f \n", beta, E_mean, C_mean, n_mean);
+        printf("beta: %f | E: %f | C: %f | m: %f | m2: %f | m_s: %f | m2_s: %f | n %f \n", beta, E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], n_mean[i]);
     }
 
     free_state(&sse_state);
     free_vertex(&vertex);
+
+    // Write to file
+    FILE *fp;
+    fp = fopen("1D_heisenberg_L16.csv", "w");
+
+    fprintf(fp, "beta,E,C,m,m2,m_s,m2_s,n\n");
+    for (int i = 0; i < beta_len; i++) {
+        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f\n", beta_vals[i], E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], n_mean[i]);
+    }
+
+    fclose(fp);
 
     return 0;
 }
