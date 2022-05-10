@@ -1,2 +1,3 @@
-test: test.c sse.h xorshiro256++.h
-	gcc-11 -o test -Wall -O3 test.c -lm
+test: test.c 
+	gcc-11 -o test -Wall -O3 test.c sse.c functions/hamiltonian.c functions/vtx_type.c  -lm
+
