@@ -165,6 +165,7 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
                 break;
             }
         }
+        
         j_out = 4 * p + le;
         j_in = sse_state->link[j_out];
         sse_state->link[j_out] = -2;
@@ -173,8 +174,6 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
             break;
         }
     }
-
-    printf("done \n");
 
     for (p = 0; p < sse_state->M; p++) {
         b = (sse_state->op_string[p] / 2) - 1;
