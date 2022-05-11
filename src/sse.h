@@ -37,21 +37,22 @@ struct sse_state {
     int *link;
     int *first;
     int *vtx;
+    struct vtx_type *vtx_type;
     bool freed;
 };
 
-extern struct vtx_type *vtx_type;
-extern struct heisenberg_system hberg_system;
-extern struct sse_state sse_state;
+// extern struct vtx_type *vtx_type;
+// extern struct heisenberg_system hberg_system;
+// extern struct sse_state sse_state;
 
-void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, int n_loops);
-void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon);
-void init_sse_state(uint64_t seed);
-void sample();
-void diag_update(double beta);
-void loop_update();
-void ajust_cutoff();
-void create_vtx_list();
-void free_memory();
+void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, int n_loops, struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system);
+void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+void sample(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+void ajust_cutoff(struct sse_state *sse_state);
+void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+void free_memory(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
 
 #endif // SSE_H
