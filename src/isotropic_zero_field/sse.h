@@ -57,6 +57,10 @@ void init_system(int d, int L, double beta, struct sse_state *sse_state, struct 
 
     sse_state->spin = (int*) malloc(sse_state->N * sizeof(int));
     sse_state->bond_site = (int**) malloc(sse_state->Nb * sizeof(int*));
+    for (i = 0; i < sse_state->Nb; i++) {
+        sse_state->bond_site[i] = (int*) malloc(2 * sizeof(int));
+    }
+
     /*
      * TODO: add more boundary conditions
      *       random spin initialization
@@ -65,16 +69,12 @@ void init_system(int d, int L, double beta, struct sse_state *sse_state, struct 
      */
     if (d == 1) {
         for (i = 0; i < L; i++) {
-            sse_state->bond_site[i] = (int*) malloc(2 * sizeof(int));
-
             sse_state->bond_site[i][0] = i;
             sse_state->bond_site[i][1] = (i + 1) % sse_state->N;
         }
     } else if (d == 2) {
         for (i = 0; i < L; i++) {
             for (j = 0; j < L; j++) {
-                sse_state->bond_site[j * L + i] = (int*) malloc(2 * sizeof(int));
-                
                 sse_state->bond_site[j * L + i][0] = j * L + i;
                 sse_state->bond_site[j * L + i][1] = j * L + (i + 1) % L;
 
