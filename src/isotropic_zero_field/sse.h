@@ -13,6 +13,8 @@
 
 
 struct sse_state {
+    int d;
+    int L;
     int N;
     int Nb;
     double beta;
@@ -38,40 +40,58 @@ struct vertex {
  * random spin configuration.
  * 
  */
-void init_system(int N, double beta, struct sse_state *sse_state, struct vertex *vertex, uint64_t seed) {
-    int i;
+void init_system(int d, int L, double beta, struct sse_state *sse_state, struct vertex *vertex, uint64_t seed) {
+    int i, j;
     // Initialize RNG
     for (i = 0; i < 4; i++) {
         s[i] = seed * i;
     }
 
-    sse_state->N = N;
-    sse_state->Nb = N;
+    sse_state->L = L;
+    sse_state->N = pow(L, d);
+    sse_state->d = d;
+    sse_state->Nb = sse_state->N * d;
     sse_state->beta = beta;
     sse_state->pre_computed_prob = sse_state->Nb * beta / 2.0;
     sse_state->n = 0;
 
-    sse_state->spin = (int*) malloc(N * sizeof(int));
-    sse_state->bond_site = (int**) malloc(N * sizeof(int*));
+    sse_state->spin = (int*) malloc(sse_state->N * sizeof(int));
+    sse_state->bond_site = (int**) malloc(sse_state->Nb * sizeof(int*));
     /*
      * TODO: add more boundary conditions
      *       random spin initialization
      * Init spins and lattice with PBC. Can change BC later.
      * Start with all spins up. 
      */
-    for (i = 0; i < N; i++) {
-        sse_state->bond_site[i] = (int*) malloc(2 * sizeof(int));
+    if (d == 1) {
+        for (i = 0; i < L; i++) {
+            sse_state->bond_site[i] = (int*) malloc(2 * sizeof(int));
 
-        sse_state->bond_site[i][0] = i;
-        sse_state->bond_site[i][1] = (i + 1) % N;
+            sse_state->bond_site[i][0] = i;
+            sse_state->bond_site[i][1] = (i + 1) % sse_state->N;
+        }
+    } else if (d == 2) {
+        for (i = 0; i < L; i++) {
+            for (j = 0; j < L; j++) {
+                sse_state->bond_site[j * L + i] = (int*) malloc(2 * sizeof(int));
+                
+                sse_state->bond_site[j * L + i][0] = j * L + i;
+                sse_state->bond_site[j * L + i][1] = j * L + (i + 1) % L;
 
+                sse_state->bond_site[(j * L + i) + sse_state->N][0] = j * L + i;
+                sse_state->bond_site[(j * L + i) + sse_state->N][1] = ((j + 1) % L) * L + i;
+            }
+        }
+    }
+
+    for (i = 0; i < sse_state->N; i++) {
         sse_state->spin[i] = 1;
         if (next_double() < 0.5) {
             sse_state->spin[i] = -1;
         }
     }
 
-    sse_state->M = MAX(4, N / 4);
+    sse_state->M = MAX(4, sse_state->N / 4);
     sse_state->opstring = (int*) malloc(sse_state->M * sizeof(int));
     memset(sse_state->opstring, 0, sse_state->M * sizeof(int));
 

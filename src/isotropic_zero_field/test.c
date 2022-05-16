@@ -15,7 +15,8 @@ double mean(int *arr, int size) {
 }
 
 int main(int argc, char **argv) {
-    int N = 16;
+    int d = 1;
+    int L = 16;
     double beta;
     double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
     int beta_len = sizeof(beta_vals) / sizeof(beta_vals[0]);
@@ -49,7 +50,7 @@ int main(int argc, char **argv) {
         m_mean[i] = 0.0;
         m2_mean[i] = 0.0;
 
-        init_system(N, beta, sse_state, vertex, (uint64_t) time(NULL));
+        init_system(d, L, beta, sse_state, vertex, (uint64_t) time(NULL));
 
         for (t = 0; t < therm_cycles; t++) {
             diag_update(sse_state);
@@ -115,8 +116,8 @@ int main(int argc, char **argv) {
 
         n_mean[i] = mean(n_vals, mc_cycles);
         n2_mean[i] = mean(n2_vals, mc_cycles);
-        E_mean[i] = - n_mean[i] / (N * beta) + 0.25;
-        C_mean[i] = (n2_mean[i] - n_mean[i] * n_mean[i] - n_mean[i]) / N;
+        E_mean[i] = - n_mean[i] / (sse_state->N * beta) + 0.25;
+        C_mean[i] = (n2_mean[i] - n_mean[i] * n_mean[i] - n_mean[i]) / sse_state->N;
         m_mean[i] /= mc_cycles;
         m2_mean[i] /= mc_cycles;
         ms_mean[i] /= mc_cycles;
@@ -129,15 +130,15 @@ int main(int argc, char **argv) {
     free_vertex(&vertex);
 
     // Write to file
-    FILE *fp;
-    fp = fopen("1D_heisenberg_L16.csv", "w");
+    // FILE *fp;
+    // fp = fopen("1D_heisenberg_L16.csv", "w");
 
-    fprintf(fp, "beta,E,C,m,m2,m_s,m2_s,n\n");
-    for (int i = 0; i < beta_len; i++) {
-        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f\n", beta_vals[i], E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], n_mean[i]);
-    }
+    // fprintf(fp, "beta,E,C,m,m2,m_s,m2_s,n\n");
+    // for (int i = 0; i < beta_len; i++) {
+    //     fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f\n", beta_vals[i], E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], n_mean[i]);
+    // }
 
-    fclose(fp);
+    // fclose(fp);
 
     return 0;
 }
