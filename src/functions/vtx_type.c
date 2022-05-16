@@ -31,20 +31,20 @@ struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C
     }
 
     double denom;
-    int new_vtx;
+    int new_vtx, new_vtx2;
     int li, le, le2;
     for (i = 0; i < N_DIAGRAMS; i++) {
         for (li = 0; li < N_LEGS; li++) {
             for (le = 0; le < N_LEGS; le++) {
                 new_vtx = vtx[i].new_vtx_type[li][le] - 1;
-                if (new_vtx > 0) {
+                if (new_vtx >= 0) {
                     vtx[i].prob_exit[li][le] = vtx[new_vtx].H;
 
                     denom = 0.0;
                     for (le2 = 0; le2 < N_LEGS; le2++) {
-                        new_vtx = vtx[i].new_vtx_type[li][le2] - 1;
-                        if (new_vtx > 0) {
-                            denom += vtx[new_vtx].H;
+                        new_vtx2 = vtx[i].new_vtx_type[li][le2] - 1;
+                        if (new_vtx2 >= 0) {
+                            denom += vtx[new_vtx2].H;
                         }
                     }
 
@@ -56,7 +56,7 @@ struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C
                 }
             }
         }
-    }    
+    }
 
     return vtx;
 }
@@ -171,7 +171,7 @@ void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type) {
                     }
                     else if (li == 3) {
                         if (le == 1)
-                            vtx[li - 1][le - 1] = 4;
+                            vtx[li - 1][le - 1] = 1;
                         else if (le == 4)
                             vtx[li - 1][le - 1] = 3;
                     }
