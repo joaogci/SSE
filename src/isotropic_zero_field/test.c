@@ -18,15 +18,15 @@ double mean(int *arr, int size) {
 
 int main(int argc, char **argv) {
     int d = 2;
-    int L = 4;
+    int L = 16;
     double beta;
     // double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
-    double beta_vals[10];
+    double beta_vals[21];
     // int beta_len = sizeof(beta_vals) / sizeof(beta_vals[0]);
-    int beta_len = 10;
+    int beta_len = 21;
 
     for (int i = 0; i < beta_len; i++) {
-        beta_vals[i] = 1 / ((5 - 0.05) * (i + 1) / beta_len);
+        beta_vals[i] = 1.0 / ((5.0 - 0.05) * i / (beta_len - 1));
     }
 
     long therm_cycles = 1e5;
