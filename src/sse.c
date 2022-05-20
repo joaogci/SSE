@@ -1,35 +1,39 @@
 #include "sse.h"
 
 void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, int n_loops, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
-    int n, t_idx;
+    int n, t_idx, loop;
     long t;
     double beta;
     double n_mean;
 
     for (t_idx = 0; t_idx < len_beta; t_idx++) {
         beta = beta_vals[t_idx];
+        reset_sse_state(hberg_system, sse_state);
 
         for (t = 0; t < therm_cycles; t++) {
             diag_update(beta, hberg_system, sse_state);
-            printf("diag_done! \n");
-            loop_update(hberg_system, sse_state);
-            printf("loop_done! \n");
+            for (loop = 0; loop < n_loops; loop++) {
+                loop_update(hberg_system, sse_state);
+            }
             ajust_cutoff(sse_state);
-            printf("ajust_done! \n");
         }
+
         n_mean = 0.0;
 
         for (n = 0; n < n_bins; n++) {
             for (t = 0; t < mc_cycles; t++) {
                 diag_update(beta, hberg_system, sse_state);
-                loop_update(hberg_system, sse_state);
-
+                for (loop = 0; loop < n_loops; loop++) {
+                    loop_update(hberg_system, sse_state);
+                }
                 sample(hberg_system, sse_state);
                 n_mean += sse_state->n;
             }
         }
 
-        printf("beta: %f; n_mean: %f \n", beta, n_mean/mc_cycles);
+        n_mean = n_mean / (mc_cycles * n_bins);
+        double E = - n_mean / (beta * hberg_system->N) + hberg_system->J * hberg_system->C;
+        printf("beta: %f; n_mean: %f; E: %f \n", beta, n_mean, E);
     }
 }
 
@@ -44,6 +48,7 @@ void init_heisenberg_system(int d, int N, double J, double delta, double h, doub
     
     hberg_system->J = J;
     hberg_system->h = h;
+    hberg_system->delta = delta;
     hberg_system->epsilon = epsilon;
     hberg_system->C = 0.25 * delta + 0.5 * h / J + epsilon;
     hberg_system->H = create_hamiltonian(J, delta, h, hberg_system->C);
@@ -79,6 +84,30 @@ void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struc
     sse_state->vtx = (int *) malloc(sse_state->M * sizeof(int));
 }
 
+void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
+    for (int i = 0; i < hberg_system->N; i++) {
+        hberg_system->spin[i] = 1;
+        if (next_double() < 0.5) {
+            hberg_system->spin[i] = -1;
+        }
+    }
+
+    sse_state->n = 0;
+    sse_state->M = MAX(4, hberg_system->N / 4);
+
+    free(sse_state->op_string);
+    sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
+    memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
+
+    if (!sse_state->freed) {
+        free(sse_state->link);
+        free(sse_state->vtx);
+    }
+    sse_state->link = (int *) malloc(4 * sse_state->M * sizeof(int));
+    sse_state->vtx = (int *) malloc(sse_state->M * sizeof(int));
+    sse_state->freed = false;    
+}
+
 void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
     int p, b;
     double prob;
@@ -101,7 +130,7 @@ void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse
                 }
             }
 
-            if (next_double() <= MIN(1.0, hberg_system->Nb * beta * prob / (sse_state->M - sse_state->n))) {
+            if (next_double() <= MIN(1.0, (hberg_system->Nb * beta * prob) / (sse_state->M - sse_state->n))) {
                 sse_state->op_string[p] = 2 * (b + 1);
                 sse_state->n++;
             }
@@ -135,56 +164,66 @@ void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse
 }
 
 void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
-    int j0, j_in, j_out;
+    int j0, j;
     int b, p, li, le, l;
     int i;
-    int new_vtx[sse_state->M];
-    
+    double r, cum_prob;
+    int vtx_type;
+
     create_vtx_list(hberg_system, sse_state);
-    memcpy(new_vtx, sse_state->vtx, sse_state->M);
 
-    if (sse_state->n != 0) {
-        do {
-            j0 = next() % (4 * sse_state->n);
-        } while (sse_state->link[j0] < 0);
+    if (sse_state->n == 0) {
+        for (i = 0; i < hberg_system->N; i++) {
+            if (sse_state->first[i] == -1 && next_double() <= 0.5) {
+                hberg_system->spin[i] = - hberg_system->spin[i];
+            }
+        }
+        return;
     }
-    else {
-        j0 = 0;
-    }
-    
-    j_in = j0;
+
+    do {
+        j0 = next() % (4 * sse_state->M);
+    } while (sse_state->link[j0] < 0 && sse_state->vtx[j0 / 4] == 0);
+
+    j = j0;
     while (true) {
-        sse_state->link[j_in] = -2;
+        p = j / 4;
+        li = j % 4;
 
-        p = j_in / 4;
-        li = (j_in % 4);
-
+        r = next_double();
+        cum_prob = 0.0;
+        vtx_type = sse_state->vtx[p] - 1;
         for (le = 0; le < 4; le++) {
-            if (next_double() <= sse_state->vtx_type[sse_state->vtx[p] - 1].prob_exit[li][le]) {
-                new_vtx[p] = sse_state->vtx_type[sse_state->vtx[p] - 1].new_vtx_type[li][le];
+            cum_prob += sse_state->vtx_type[vtx_type].prob_exit[li][le];
+            if (r <= cum_prob) {
+                sse_state->vtx[p] = sse_state->vtx_type[vtx_type].new_vtx_type[li][le];
                 break;
             }
         }
         
-        j_out = 4 * p + le;
-        j_in = sse_state->link[j_out];
-        sse_state->link[j_out] = -2;
-
-        if (j_in == j0) {
+        j = 4 * p + le;
+        if (j == j0) {
+            break;
+        }
+        
+        j = sse_state->link[j];
+        if (j == j0) {
             break;
         }
     }
 
     for (p = 0; p < sse_state->M; p++) {
-        b = (sse_state->op_string[p] / 2) - 1;
-        sse_state->op_string[p] = 2 * b + sse_state->vtx_type[new_vtx[p] - 1].type;
+        if (sse_state->vtx[p] != 0) {
+            b = (sse_state->op_string[p] / 2) - 1;
+            sse_state->op_string[p] = 2 * (b + 1) + sse_state->vtx_type[sse_state->vtx[p] - 1].type;
+        }
     }
 
     for (i = 0; i < hberg_system->N; i++) {
         if (sse_state->first[i] != -1) {
             p = sse_state->first[i] / 4;
             l = sse_state->first[i] % 4;
-            hberg_system->spin[i] = sse_state->vtx_type[new_vtx[p] - 1].spin[l];
+            hberg_system->spin[i] = sse_state->vtx_type[sse_state->vtx[p] - 1].spin[l];
         }
         else {
             if (next_double() <= 0.5) {
