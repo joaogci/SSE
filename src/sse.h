@@ -41,7 +41,6 @@ struct sse_state {
     bool freed;
 };
 
-
 void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, int n_loops, struct heisenberg_system *hberg_system, struct sse_state *sse_state);
 void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system);
 void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struct sse_state *sse_state);
