@@ -173,13 +173,13 @@ void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type) {
                         if (le == 1)
                             vtx[li - 1][le - 1] = 1;
                         else if (le == 4)
-                            vtx[li - 1][le - 1] = 3;
+                            vtx[li - 1][le - 1] = 5;
                     }
                     else if (li == 4) {
                         if (le == 2)
                             vtx[li - 1][le - 1] = 6;
                         else if (le == 3)
-                            vtx[li - 1][le - 1] = 3;
+                            vtx[li - 1][le - 1] = 5;
                     }
                 }
                 else if (vtx_type == 4) {

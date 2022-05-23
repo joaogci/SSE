@@ -1,10 +1,12 @@
 #include "sse.h"
 
-void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, int n_loops, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
+void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
     int n, t_idx, loop;
     long t;
     double beta;
-    double n_mean;
+    double n_mean_bins[n_bins];
+    double E_mean_bins[n_bins];
+    double E_mean, n_mean, E_std, n_std;
 
     for (t_idx = 0; t_idx < len_beta; t_idx++) {
         beta = beta_vals[t_idx];
@@ -12,28 +14,46 @@ void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cy
 
         for (t = 0; t < therm_cycles; t++) {
             diag_update(beta, hberg_system, sse_state);
-            for (loop = 0; loop < n_loops; loop++) {
+            for (loop = 0; loop < 2 * sse_state->n; loop++) {
                 loop_update(hberg_system, sse_state);
             }
             ajust_cutoff(sse_state);
         }
 
-        n_mean = 0.0;
-
         for (n = 0; n < n_bins; n++) {
+            n_mean_bins[n] = 0.0;
+
             for (t = 0; t < mc_cycles; t++) {
                 diag_update(beta, hberg_system, sse_state);
-                for (loop = 0; loop < n_loops; loop++) {
+                for (loop = 0; loop < 2 * sse_state->n; loop++) {
                     loop_update(hberg_system, sse_state);
                 }
                 sample(hberg_system, sse_state);
-                n_mean += sse_state->n;
+                n_mean_bins[n] += sse_state->n;
             }
+            n_mean_bins[n] /= mc_cycles;
+            E_mean_bins[n] = - n_mean_bins[n] / (beta * hberg_system->N) + hberg_system->J * hberg_system->C;
         }
 
-        n_mean = n_mean / (mc_cycles * n_bins);
-        double E = - n_mean / (beta * hberg_system->N) + hberg_system->J * hberg_system->C;
-        printf("beta: %f; n_mean: %f; E: %f \n", beta, n_mean, E);
+        n_mean = 0.0;
+        E_mean = 0.0;
+        for (n = 0; n < n_bins; n++) {
+            n_mean += n_mean_bins[n];
+            E_mean += E_mean_bins[n];
+        }
+        n_mean /= n_bins;
+        E_mean /= n_bins;
+
+        n_std = 0.0;
+        E_std = 0.0;
+        for (n = 0; n < n_bins; n++) {
+            n_std += pow(n_mean_bins[n] - n_mean, 2);
+            E_std += pow(E_mean_bins[n] - E_mean, 2);
+        }
+        n_std = sqrt(n_std / n_bins);
+        E_std = sqrt(E_std / n_bins);
+
+        printf("beta: %f; n_mean: %f +/- %f; E: %f +/- %f\n", beta, n_mean, n_std, E_mean, E_std);
     }
 }
 
@@ -79,9 +99,7 @@ void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struc
     sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
     memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
 
-    sse_state->link = (int *) malloc(4 * sse_state->M * sizeof(int));
     sse_state->first = (int *) malloc(hberg_system->N * sizeof(int));
-    sse_state->vtx = (int *) malloc(sse_state->M * sizeof(int));
 }
 
 void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
@@ -98,14 +116,6 @@ void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *s
     free(sse_state->op_string);
     sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
     memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
-
-    if (!sse_state->freed) {
-        free(sse_state->link);
-        free(sse_state->vtx);
-    }
-    sse_state->link = (int *) malloc(4 * sse_state->M * sizeof(int));
-    sse_state->vtx = (int *) malloc(sse_state->M * sizeof(int));
-    sse_state->freed = false;    
 }
 
 void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
@@ -120,13 +130,16 @@ void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse
             
             if (hberg_system->spin[hberg_system->bond[b][0]] != hberg_system->spin[hberg_system->bond[b][1]]) {
                 prob = hberg_system->H[1][1].value;
+                // printf("diff spins without op -> prob: %f \n", prob);
             }
             else if (hberg_system->spin[hberg_system->bond[b][0]] == hberg_system->spin[hberg_system->bond[b][1]]) {
                 if (hberg_system->spin[hberg_system->bond[b][1]] == 1) {
                     prob = hberg_system->H[0][0].value;
+                    // printf("equal spins (1) without op -> prob: %f \n", prob);
                 }
                 else {
                     prob = hberg_system->H[3][3].value;
+                    // printf("equal spins (-1) without op -> prob: %f \n", prob);
                 }
             }
 
@@ -140,13 +153,16 @@ void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse
 
             if (hberg_system->spin[hberg_system->bond[b][0]] != hberg_system->spin[hberg_system->bond[b][1]]) {
                 prob = hberg_system->H[1][1].value;
+                // printf("diff spins with op -> prob: %f \n", prob);
             }
             else if (hberg_system->spin[hberg_system->bond[b][0]] == hberg_system->spin[hberg_system->bond[b][1]]) {
                 if (hberg_system->spin[hberg_system->bond[b][1]] == 1) {
                     prob = hberg_system->H[0][0].value;
+                    // printf("equal spins (1) with op -> prob: %f \n", prob);
                 }
                 else {
                     prob = hberg_system->H[3][3].value;
+                    // printf("equal spins (-1) with op -> prob: %f \n", prob);
                 }
             }
 
@@ -165,12 +181,12 @@ void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse
 
 void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
     int j0, j;
-    int b, p, li, le, l;
+    int p, li, le, l;
     int i;
     double r, cum_prob;
     int vtx_type;
-
-    create_vtx_list(hberg_system, sse_state);
+    int red_op_string[sse_state->n];
+    int trans_op_string[sse_state->n];
 
     if (sse_state->n == 0) {
         for (i = 0; i < hberg_system->N; i++) {
@@ -180,10 +196,13 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
         }
         return;
     }
+    
+    sse_state->vtx = (int *) malloc(sse_state->n * sizeof(int));
+    sse_state->link = (int *) malloc(4 * sse_state->n * sizeof(int)); 
+    
+    create_vtx_list(hberg_system, sse_state, red_op_string, trans_op_string);
 
-    do {
-        j0 = next() % (4 * sse_state->M);
-    } while (sse_state->link[j0] < 0 && sse_state->vtx[j0 / 4] == 0);
+    j0 = next() % (4 * sse_state->n);
 
     j = j0;
     while (true) {
@@ -194,11 +213,13 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
         cum_prob = 0.0;
         vtx_type = sse_state->vtx[p] - 1;
         for (le = 0; le < 4; le++) {
-            cum_prob += sse_state->vtx_type[vtx_type].prob_exit[li][le];
-            if (r <= cum_prob) {
-                sse_state->vtx[p] = sse_state->vtx_type[vtx_type].new_vtx_type[li][le];
-                break;
-            }
+            if (sse_state->vtx_type[vtx_type].prob_exit[li][le] != 0) {
+                cum_prob += sse_state->vtx_type[vtx_type].prob_exit[li][le];
+                if (r <= cum_prob) {
+                    sse_state->vtx[p] = sse_state->vtx_type[vtx_type].new_vtx_type[li][le];
+                    break;
+                }
+            } 
         }
         
         j = 4 * p + le;
@@ -212,11 +233,8 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
         }
     }
 
-    for (p = 0; p < sse_state->M; p++) {
-        if (sse_state->vtx[p] != 0) {
-            b = (sse_state->op_string[p] / 2) - 1;
-            sse_state->op_string[p] = 2 * (b + 1) + sse_state->vtx_type[sse_state->vtx[p] - 1].type;
-        }
+    for (p = 0; p < sse_state->n; p++) {
+        sse_state->op_string[trans_op_string[p]] = 2 * (red_op_string[p] / 2) + sse_state->vtx_type[sse_state->vtx[p] - 1].type;
     }
 
     for (i = 0; i < hberg_system->N; i++) {
@@ -231,6 +249,9 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
             }
         }
     }
+
+    free(sse_state->vtx);
+    free(sse_state->link);
 }
 
 /*
@@ -258,54 +279,47 @@ void ajust_cutoff(struct sse_state *sse_state) {
         memcpy(sse_state->op_string, opstring_cpy, sse_state->M * sizeof(int));
 
         sse_state->M = M_new;
-
-        free(sse_state->link);
-        free(sse_state->vtx);
-        sse_state->freed = true;
     }
 }
 
-void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
+void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state, int *red_op_string, int *trans_op_string) {
     int p, i, v0, b;
     int i1, i2, v1, v2;
     int last[hberg_system->N];
     int l[4];
-
-    if (sse_state->freed) {
-        sse_state->link = (int *) malloc(4 * sse_state->M * sizeof(int));
-        sse_state->vtx = (int *) malloc(sse_state->M * sizeof(int));
-
-        sse_state->freed = false;
-    }
+    int p_red;
 
     memset(last, -1, hberg_system->N * sizeof(int));
     memset(sse_state->first, -1, hberg_system->N * sizeof(int));
-    memset(sse_state->link, -1, 4 * sse_state->M * sizeof(int));
-    memset(sse_state->vtx, 0, sse_state->M * sizeof(int));
-
+    memset(sse_state->link, -1, 4 * sse_state->n * sizeof(int));
+    memset(sse_state->vtx, 0, sse_state->n * sizeof(int));
+    memset(red_op_string, 0, sse_state->n * sizeof(int));
+    memset(trans_op_string, 0, sse_state->n * sizeof(int));
+    
+    p_red = 0;
     for (p = 0; p < sse_state->M; p++) {
-        if (sse_state->op_string[p] == 0) {
-            continue;
+        if (sse_state->op_string[p] != 0) {
+            red_op_string[p_red] = sse_state->op_string[p];
+            trans_op_string[p_red] = p;
+            p_red++;
         }
+    }
 
-        b = (sse_state->op_string[p] / 2) - 1;
+    for (p = 0; p < sse_state->n; p++) {
+        b = (red_op_string[p] / 2) - 1;
         v0 = 4 * p;
 
-        if (sse_state->op_string[p] % 2 != 0) {
-            hberg_system->spin[hberg_system->bond[b][0]] = - hberg_system->spin[hberg_system->bond[b][0]];
-            hberg_system->spin[hberg_system->bond[b][1]] = - hberg_system->spin[hberg_system->bond[b][1]];
+        i1 = hberg_system->bond[b][0];
+        i2 = hberg_system->bond[b][1];
 
-            l[0] = - hberg_system->spin[hberg_system->bond[b][1]];
-            l[1] = - hberg_system->spin[hberg_system->bond[b][0]];
-            l[2] = hberg_system->spin[hberg_system->bond[b][1]];
-            l[3] = hberg_system->spin[hberg_system->bond[b][0]];
+        l[0] = hberg_system->spin[i1];
+        l[1] = hberg_system->spin[i2];
+        if (red_op_string[p] % 2 != 0) {
+            hberg_system->spin[i1] = - hberg_system->spin[i1];
+            hberg_system->spin[i2] = - hberg_system->spin[i2];
         }
-        else if (sse_state->op_string[p] % 2 == 0) {
-            l[0] = hberg_system->spin[hberg_system->bond[b][1]];
-            l[1] = hberg_system->spin[hberg_system->bond[b][0]];
-            l[2] = hberg_system->spin[hberg_system->bond[b][1]];
-            l[3] = hberg_system->spin[hberg_system->bond[b][0]];
-        }
+        l[2] = hberg_system->spin[i1];
+        l[3] = hberg_system->spin[i2];
 
         if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == -1) {
             sse_state->vtx[p] = 1;
@@ -325,9 +339,6 @@ void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *s
         else if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == 1) {
             sse_state->vtx[p] = 6;
         }
-
-        i1 = hberg_system->bond[b][0];
-        i2 = hberg_system->bond[b][1];
 
         v1 = last[i1];
         v2 = last[i2];
