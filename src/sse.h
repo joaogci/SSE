@@ -47,9 +47,11 @@ void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struc
 void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
 void sample(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
 void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse_state *sse_state);
+double prob(int b, struct heisenberg_system *hberg_system);
 void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
 void ajust_cutoff(struct sse_state *sse_state);
 void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state, int *red_op_string, int *trans_op_string);
+void write_to_file();
 void free_memory(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
 
 #endif // SSE_H

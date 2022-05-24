@@ -30,16 +30,17 @@ struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C
         spin_leg(vtx[i].spin, i + 1);
     }
 
-    double denom;
+    double denom, cum_prob;
     int new_vtx, new_vtx2;
     int li, le, le2;
     for (i = 0; i < N_DIAGRAMS; i++) {
         for (li = 0; li < N_LEGS; li++) {
+            cum_prob = 0.0;
+
             for (le = 0; le < N_LEGS; le++) {
                 new_vtx = vtx[i].new_vtx_type[li][le] - 1;
-                if (new_vtx >= 0) {
-                    vtx[i].prob_exit[li][le] = vtx[new_vtx].H;
 
+                if (new_vtx >= 0) {
                     denom = 0.0;
                     for (le2 = 0; le2 < N_LEGS; le2++) {
                         new_vtx2 = vtx[i].new_vtx_type[li][le2] - 1;
@@ -48,7 +49,8 @@ struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C
                         }
                     }
 
-                    vtx[i].prob_exit[li][le] /= denom;
+                    cum_prob += vtx[new_vtx].H / denom;
+                    vtx[i].prob_exit[li][le] = cum_prob;
                 }
                 else 
                 {
