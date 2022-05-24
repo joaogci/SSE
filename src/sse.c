@@ -72,7 +72,7 @@ void normalize(int t_idx, long mc_cycles, struct heisenberg_system *hberg_system
 }
 
 void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system) {
-    int i; 
+    int i;
 
     hberg_system->d = d;
     hberg_system->N = N;
@@ -263,11 +263,12 @@ void write_to_file(char *filename, struct sampled_quantities *samples) {
     FILE *fp;
     fp = fopen(filename, "w");
 
-    fprintf(fp, "beta,n,n_std,E,E_std,C,C_std\n");
+    fprintf(fp, "beta,n,n2,n_std,E,E_std,C,C_std\n");
     for (t_idx = 0; t_idx < samples->betas; t_idx++) {
-        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f\n", 
+        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f\n", 
         samples->beta_vals[t_idx], 
-        samples->n_mean[t_idx], 
+        samples->n_mean[t_idx],
+        samples->n2_mean[t_idx], 
         samples->n_std[t_idx],
         samples->E_mean[t_idx],
         samples->E_std[t_idx],
@@ -397,6 +398,38 @@ double prob(int b, struct heisenberg_system *hberg_system) {
 }
 
 void free_memory(struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples) {
+    int i;
 
+    for (i = 0; i < 4; i++) {
+        free(hberg_system->H[i]);
+    }
+    for (i = 0; i < hberg_system->N; i++) {
+        free(hberg_system->bond[i]);
+    }
+    free(hberg_system->H);
+    free(hberg_system->bond);
+    free(hberg_system->spin);
+
+    free(sse_state->first);
+    free(sse_state->vtx_type);
+    free(sse_state->op_string);
+
+    for (i = 0; i < samples->betas; i++) {
+        free(samples->n_bins[i]);
+        free(samples->n2_bins[i]);
+        free(samples->E_bins[i]);
+        free(samples->C_bins[i]);
+    }
+    free(samples->n_bins);
+    free(samples->n2_bins);
+    free(samples->E_bins);
+    free(samples->C_bins);
+    free(samples->n_mean);
+    free(samples->n_std);
+    free(samples->n2_mean);
+    free(samples->E_mean);
+    free(samples->E_std);
+    free(samples->C_mean);
+    free(samples->C_std);
 }
 
