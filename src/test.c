@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
 
     simulate_sse(beta_vals, len_beta, therm_cycles, mc_cycles, n_bins, hberg_system, sse_state, samples);
 
+    write_to_file("1D_heisenberg_N2.csv", samples);
+
     free_memory(hberg_system, sse_state, samples);
     free(hberg_system);
     free(sse_state);
