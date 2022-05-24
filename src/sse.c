@@ -1,5 +1,4 @@
 #include "sse.h"
-#include <time.h>
 
 void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples) {
     int n, t_idx, loop;
@@ -35,141 +34,6 @@ void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cy
         
         printf("beta: %f; n_mean: %f +/- %f; E: %f +/- %f\n", beta, samples->n_mean[t_idx], samples->n_std[t_idx], samples->E_mean[t_idx], samples->E_std[t_idx]);
     }
-}
-
-void sample(int n, int t_idx, struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples) {
-    samples->n_bins[t_idx][n] += sse_state->n;
-    samples->n2_bins[t_idx][n] += sse_state->n * sse_state->n;
-}
-
-void normalize(int t_idx, long mc_cycles, struct heisenberg_system *hberg_system, struct sampled_quantities *samples) {
-    int n;
-
-    for (n = 0; n < samples->bins; n++) {
-        samples->n_bins[t_idx][n] /= mc_cycles;
-        samples->n2_bins[t_idx][n] /= mc_cycles;
-        samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * hberg_system->N) + hberg_system->J * hberg_system->C;
-        samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] - samples->n_bins[t_idx][n]) / hberg_system->N;
-        
-        samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
-        samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
-        samples->E_mean[t_idx] += samples->E_bins[t_idx][n];
-        samples->C_mean[t_idx] += samples->C_bins[t_idx][n];
-    }
-    samples->n_mean[t_idx] /= samples->bins;
-    samples->n2_mean[t_idx] /= samples->bins;
-    samples->E_mean[t_idx] /= samples->bins;
-    samples->C_mean[t_idx] /= samples->bins;
-
-    for (n = 0; n < samples->bins; n++) {
-        samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
-        samples->E_std[t_idx] += pow(samples->E_bins[t_idx][n] - samples->E_mean[t_idx], 2.0);
-        samples->C_std[t_idx] += pow(samples->C_bins[t_idx][n] - samples->C_mean[t_idx], 2.0);
-    }
-    samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
-    samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
-    samples->C_std[t_idx] = sqrt(samples->C_std[t_idx] / samples->bins);
-}
-
-void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system) {
-    int i;
-
-    hberg_system->d = d;
-    hberg_system->N = N;
-    hberg_system->Nb = N * d;         // For PBC
-    
-    hberg_system->J = J;
-    hberg_system->h = h;
-    hberg_system->delta = delta;
-    hberg_system->epsilon = epsilon;
-    hberg_system->C = 0.25 * delta + 0.5 * h / J + epsilon;
-    hberg_system->H = create_hamiltonian(J, delta, h, hberg_system->C);
-
-    hberg_system->spin = (int *) malloc(N * sizeof(int));
-    hberg_system->bond = (int **) malloc(N * sizeof(int *));
-    for (i = 0; i < N; i++) {
-        hberg_system->bond[i] = (int*) malloc(2 * sizeof(int));
-
-        hberg_system->bond[i][0] = i;
-        hberg_system->bond[i][1] = (i + 1) % N;
-
-        hberg_system->spin[i] = 1;
-        if (next_double() < 0.5) {
-            hberg_system->spin[i] = -1;
-        }
-    }
-}
-
-void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
-    for (int i = 0; i < 4; i++) {
-        s[i] = seed * i;
-    }
-    sse_state->vtx_type = create_vtx_type_list(hberg_system->J, hberg_system->delta, hberg_system->h, hberg_system->C);
-
-    sse_state->n = 0;
-    sse_state->M = MAX(4, hberg_system->N / 4);
-    sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
-    memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
-
-    sse_state->first = (int *) malloc(hberg_system->N * sizeof(int));
-}
-
-void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_quantities *samples) {
-    int i;
-
-    samples->bins = n_bins;
-    samples->betas = len_beta;
-    samples->beta_vals = beta_vals;
-
-    samples->n_bins = (double **) malloc(len_beta * sizeof(double *));
-    samples->n2_bins = (double **) malloc(len_beta * sizeof(double *));
-    samples->E_bins = (double **) malloc(len_beta * sizeof(double *));
-    samples->C_bins = (double **) malloc(len_beta * sizeof(double *));
-    for (i = 0; i < len_beta; i++) {
-        samples->n_bins[i] = (double *) malloc(n_bins * sizeof(double));
-        samples->n2_bins[i] = (double *) malloc(n_bins * sizeof(double));
-        samples->E_bins[i] = (double *) malloc(n_bins * sizeof(double));
-        samples->C_bins[i] = (double *) malloc(n_bins * sizeof(double));
-
-        memset(samples->n_bins[i], 0.0, n_bins * sizeof(double));
-        memset(samples->n2_bins[i], 0.0, n_bins * sizeof(double));
-        memset(samples->E_bins[i], 0.0, n_bins * sizeof(double));
-        memset(samples->C_bins[i], 0.0, n_bins * sizeof(double));
-    }
-
-    samples->n_mean = (double *) malloc(len_beta *sizeof(double));
-    samples->n_std = (double *) malloc(len_beta *sizeof(double));
-    samples->n2_mean = (double *) malloc(len_beta *sizeof(double));
-
-    samples->E_mean = (double *) malloc(len_beta *sizeof(double));
-    samples->E_std = (double *) malloc(len_beta *sizeof(double));
-
-    samples->C_mean = (double *) malloc(len_beta *sizeof(double));
-    samples->C_std = (double *) malloc(len_beta *sizeof(double));
-
-    memset(samples->n_mean, 0.0, len_beta *sizeof(double));
-    memset(samples->n_std, 0.0, len_beta *sizeof(double));
-    memset(samples->n2_mean, 0.0, len_beta *sizeof(double));
-    memset(samples->E_mean, 0.0, len_beta *sizeof(double));
-    memset(samples->E_std, 0.0, len_beta *sizeof(double));
-    memset(samples->C_mean, 0.0, len_beta *sizeof(double));
-    memset(samples->C_std, 0.0, len_beta *sizeof(double));
-}
-
-void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
-    for (int i = 0; i < hberg_system->N; i++) {
-        hberg_system->spin[i] = 1;
-        if (next_double() < 0.5) {
-            hberg_system->spin[i] = -1;
-        }
-    }
-
-    sse_state->n = 0;
-    sse_state->M = MAX(4, hberg_system->N / 4);
-
-    free(sse_state->op_string);
-    sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
-    memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
 }
 
 void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
@@ -256,6 +120,41 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
     free(sse_state->vtx);
     free(sse_state->link);
 }
+
+void sample(int n, int t_idx, struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples) {
+    samples->n_bins[t_idx][n] += sse_state->n;
+    samples->n2_bins[t_idx][n] += sse_state->n * sse_state->n;
+}
+
+void normalize(int t_idx, long mc_cycles, struct heisenberg_system *hberg_system, struct sampled_quantities *samples) {
+    int n;
+
+    for (n = 0; n < samples->bins; n++) {
+        samples->n_bins[t_idx][n] /= mc_cycles;
+        samples->n2_bins[t_idx][n] /= mc_cycles;
+        samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * hberg_system->N) + hberg_system->J * hberg_system->C;
+        samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] - samples->n_bins[t_idx][n]) / hberg_system->N;
+        
+        samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
+        samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
+        samples->E_mean[t_idx] += samples->E_bins[t_idx][n];
+        samples->C_mean[t_idx] += samples->C_bins[t_idx][n];
+    }
+    samples->n_mean[t_idx] /= samples->bins;
+    samples->n2_mean[t_idx] /= samples->bins;
+    samples->E_mean[t_idx] /= samples->bins;
+    samples->C_mean[t_idx] /= samples->bins;
+
+    for (n = 0; n < samples->bins; n++) {
+        samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
+        samples->E_std[t_idx] += pow(samples->E_bins[t_idx][n] - samples->E_mean[t_idx], 2.0);
+        samples->C_std[t_idx] += pow(samples->C_bins[t_idx][n] - samples->C_mean[t_idx], 2.0);
+    }
+    samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
+    samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
+    samples->C_std[t_idx] = sqrt(samples->C_std[t_idx] / samples->bins);
+}
+
 
 void write_to_file(char *filename, struct sampled_quantities *samples) {
     int t_idx;
@@ -397,6 +296,107 @@ double prob(int b, struct heisenberg_system *hberg_system) {
     return 0.0;
 }
 
+void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system) {
+    int i;
+
+    hberg_system->d = d;
+    hberg_system->N = N;
+    hberg_system->Nb = N * d;         // For PBC
+    
+    hberg_system->J = J;
+    hberg_system->h = h;
+    hberg_system->delta = delta;
+    hberg_system->epsilon = epsilon;
+    hberg_system->C = 0.25 * delta + 0.5 * h / J + epsilon;
+    hberg_system->H = create_hamiltonian(J, delta, h, hberg_system->C);
+
+    hberg_system->spin = (int *) malloc(N * sizeof(int));
+    hberg_system->bond = (int **) malloc(N * sizeof(int *));
+    for (i = 0; i < N; i++) {
+        hberg_system->bond[i] = (int*) malloc(2 * sizeof(int));
+
+        hberg_system->bond[i][0] = i;
+        hberg_system->bond[i][1] = (i + 1) % N;
+
+        hberg_system->spin[i] = 1;
+        if (next_double() < 0.5) {
+            hberg_system->spin[i] = -1;
+        }
+    }
+}
+
+void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
+    for (int i = 0; i < 4; i++) {
+        s[i] = seed * i;
+    }
+    sse_state->vtx_type = create_vtx_type_list(hberg_system->J, hberg_system->delta, hberg_system->h, hberg_system->C);
+
+    sse_state->n = 0;
+    sse_state->M = MAX(4, hberg_system->N / 4);
+    sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
+    memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
+
+    sse_state->first = (int *) malloc(hberg_system->N * sizeof(int));
+}
+
+void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_quantities *samples) {
+    int i;
+
+    samples->bins = n_bins;
+    samples->betas = len_beta;
+    samples->beta_vals = beta_vals;
+
+    samples->n_bins = (double **) malloc(len_beta * sizeof(double *));
+    samples->n2_bins = (double **) malloc(len_beta * sizeof(double *));
+    samples->E_bins = (double **) malloc(len_beta * sizeof(double *));
+    samples->C_bins = (double **) malloc(len_beta * sizeof(double *));
+    for (i = 0; i < len_beta; i++) {
+        samples->n_bins[i] = (double *) malloc(n_bins * sizeof(double));
+        samples->n2_bins[i] = (double *) malloc(n_bins * sizeof(double));
+        samples->E_bins[i] = (double *) malloc(n_bins * sizeof(double));
+        samples->C_bins[i] = (double *) malloc(n_bins * sizeof(double));
+
+        memset(samples->n_bins[i], 0.0, n_bins * sizeof(double));
+        memset(samples->n2_bins[i], 0.0, n_bins * sizeof(double));
+        memset(samples->E_bins[i], 0.0, n_bins * sizeof(double));
+        memset(samples->C_bins[i], 0.0, n_bins * sizeof(double));
+    }
+
+    samples->n_mean = (double *) malloc(len_beta *sizeof(double));
+    samples->n_std = (double *) malloc(len_beta *sizeof(double));
+    samples->n2_mean = (double *) malloc(len_beta *sizeof(double));
+
+    samples->E_mean = (double *) malloc(len_beta *sizeof(double));
+    samples->E_std = (double *) malloc(len_beta *sizeof(double));
+
+    samples->C_mean = (double *) malloc(len_beta *sizeof(double));
+    samples->C_std = (double *) malloc(len_beta *sizeof(double));
+
+    memset(samples->n_mean, 0.0, len_beta *sizeof(double));
+    memset(samples->n_std, 0.0, len_beta *sizeof(double));
+    memset(samples->n2_mean, 0.0, len_beta *sizeof(double));
+    memset(samples->E_mean, 0.0, len_beta *sizeof(double));
+    memset(samples->E_std, 0.0, len_beta *sizeof(double));
+    memset(samples->C_mean, 0.0, len_beta *sizeof(double));
+    memset(samples->C_std, 0.0, len_beta *sizeof(double));
+}
+
+void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *sse_state) {
+    for (int i = 0; i < hberg_system->N; i++) {
+        hberg_system->spin[i] = 1;
+        if (next_double() < 0.5) {
+            hberg_system->spin[i] = -1;
+        }
+    }
+
+    sse_state->n = 0;
+    sse_state->M = MAX(4, hberg_system->N / 4);
+
+    free(sse_state->op_string);
+    sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
+    memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
+}
+
 void free_memory(struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples) {
     int i;
 
@@ -432,4 +432,3 @@ void free_memory(struct heisenberg_system *hberg_system, struct sse_state *sse_s
     free(samples->C_mean);
     free(samples->C_std);
 }
-
