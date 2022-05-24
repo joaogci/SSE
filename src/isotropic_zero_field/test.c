@@ -17,20 +17,20 @@ double mean(int *arr, int size) {
 }
 
 int main(int argc, char **argv) {
-    int d = 2;
-    int L = 16;
+    int d = 1;
+    int L = 2;
     double beta;
-    // double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
-    double beta_vals[21];
+    double beta_vals[6] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
+    // double beta_vals[50];
     // int beta_len = sizeof(beta_vals) / sizeof(beta_vals[0]);
-    int beta_len = 21;
+    int beta_len = 6;
 
-    for (int i = 0; i < beta_len; i++) {
-        beta_vals[i] = 1.0 / ((5.0 - 0.05) * i / (beta_len - 1));
-    }
+    // for (int i = 0; i < beta_len; i++) {
+    //    beta_vals[i] = 1.0 / ((2.0 - 0.0) * (i + 1) / beta_len);
+    // }
 
-    long therm_cycles = 1e5;
-    long mc_cycles = 1e6;
+    long therm_cycles = 1e4;
+    long mc_cycles = 1e4;
 
     struct sse_state *sse_state = malloc(sizeof(struct sse_state));
     struct vertex *vertex = malloc(sizeof(struct vertex));
@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
     double m2_mean[beta_len];
 
     double sus_mean[beta_len];
+    double suss_mean[beta_len];
 
     for (int i = 0; i < beta_len; i++) {
         beta = beta_vals[i];
@@ -61,6 +62,7 @@ int main(int argc, char **argv) {
         m2_mean[i] = 0.0;
 
         sus_mean[i] = 0.0;
+        suss_mean[i] = 0.0;
 
         init_system(d, L, beta, sse_state, vertex, (uint64_t) time(NULL));
 
@@ -126,6 +128,7 @@ int main(int argc, char **argv) {
             m2s_mean[i] += m2s;
 
             sus_mean[i] += m2;
+            suss_mean[i] += m2s;
         }
 
         n_mean[i] = mean(n_vals, mc_cycles);
@@ -138,8 +141,9 @@ int main(int argc, char **argv) {
         m2s_mean[i] /= mc_cycles;
 
         sus_mean[i] = beta * sus_mean[i] / mc_cycles;
+        suss_mean[i] = beta * suss_mean[i] / mc_cycles;
 
-        printf("beta: %f | E: %f | C: %f | m: %f | m2: %f | m_s: %f | m2_s: %f | sus: %f | n %f \n", beta, E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], sus_mean[i], n_mean[i]);
+        printf("beta: %f | E: %f | C: %f | m: %f | m2: %f | m_s: %f | m2_s: %f | sus: %f | suss: %f | n %f \n", beta, E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], sus_mean[i], suss_mean[i], n_mean[i]);
     }
 
     free_state(&sse_state);
@@ -147,11 +151,11 @@ int main(int argc, char **argv) {
 
     // Write to file
     FILE *fp;
-    fp = fopen("2D_heisenberg_L4_more_T.csv", "w");
+    fp = fopen("2D_heisenberg_L16_more_T.csv", "w");
 
-    fprintf(fp, "beta,E,C,m,m2,m_s,m2_s,sus,n\n");
+    fprintf(fp, "beta,E,C,m,m2,m_s,m2_s,sus,suss,n\n");
     for (int i = 0; i < beta_len; i++) {
-        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f,%f\n", beta_vals[i], E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], sus_mean[i], n_mean[i]);
+        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", beta_vals[i], E_mean[i], C_mean[i], m_mean[i], m2_mean[i], ms_mean[i], m2s_mean[i], sus_mean[i], suss_mean[i], n_mean[i]);
     }
 
     fclose(fp);
