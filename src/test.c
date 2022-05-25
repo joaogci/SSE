@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     double h = 0.0;
     double epsilon = 0.01;
 
-    uint64_t seed = 10;//(u_int64_t) time(NULL);
+    uint64_t seed = (u_int64_t) time(NULL);
     long therm_cycles = 1e5;
     long mc_cycles = 1e5;
     int n_bins = 10;
