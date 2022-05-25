@@ -374,12 +374,13 @@ double prob(int b, struct heisenberg_system *hberg_system) {
     return 0.0;
 }
 
-void init_heisenberg_system(int d, int N, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system) {
-    int i;
+void init_heisenberg_system(int d, int L, double J, double delta, double h, double epsilon, struct heisenberg_system *hberg_system) {
+    int i, j;
 
     hberg_system->d = d;
-    hberg_system->N = N;
-    hberg_system->Nb = N * d;         // For PBC
+    hberg_system->L = L;
+    hberg_system->N = pow(L, d);
+    hberg_system->Nb = hberg_system->N * d;         // For PBC
     
     hberg_system->J = J;
     hberg_system->h = h;
@@ -388,14 +389,29 @@ void init_heisenberg_system(int d, int N, double J, double delta, double h, doub
     hberg_system->C = 0.25 * delta + 0.5 * h / J + epsilon;
     hberg_system->H = create_hamiltonian(J, delta, h, hberg_system->C);
 
-    hberg_system->spin = (int *) malloc(N * sizeof(int));
-    hberg_system->bond = (int **) malloc(N * sizeof(int *));
-    for (i = 0; i < N; i++) {
+    hberg_system->spin = (int *) malloc(hberg_system->N * sizeof(int));
+    hberg_system->bond = (int **) malloc(hberg_system->Nb * sizeof(int *));
+    for (i = 0; i < hberg_system->Nb; i++) {
         hberg_system->bond[i] = (int*) malloc(2 * sizeof(int));
+    }
+    if (d == 1) {
+        for (i = 0; i < L; i++) {
+            hberg_system->bond[i][0] = i;
+            hberg_system->bond[i][1] = (i + 1) % hberg_system->N;
+        }
+    } else if (d == 2) {
+        for (i = 0; i < L; i++) {
+            for (j = 0; j < L; j++) {
+                hberg_system->bond[j * L + i][0] = j * L + i;
+                hberg_system->bond[j * L + i][1] = j * L + (i + 1) % L;
 
-        hberg_system->bond[i][0] = i;
-        hberg_system->bond[i][1] = (i + 1) % N;
+                hberg_system->bond[(j * L + i) + hberg_system->N][0] = j * L + i;
+                hberg_system->bond[(j * L + i) + hberg_system->N][1] = ((j + 1) % L) * L + i;
+            }
+        }
+    }
 
+    for (i = 0; i < hberg_system->N; i++) {
         hberg_system->spin[i] = 1;
         if (next_double() < 0.5) {
             hberg_system->spin[i] = -1;

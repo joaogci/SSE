@@ -16,6 +16,7 @@
 
 struct heisenberg_system {
     int d;
+    int L;
     int N;
     int Nb;
 
