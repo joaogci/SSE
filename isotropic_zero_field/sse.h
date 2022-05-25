@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "../rng/xorshiro256++.h"
+#include "../src/rng/xorshiro256++.h"
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
