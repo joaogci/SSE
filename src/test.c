@@ -11,11 +11,11 @@ int main(int argc, char **argv) {
     double J = 1.0;
     double delta = 1.0;
     double h = 0.0;
-    double epsilon = 0.01;
+    double epsilon = 0.5;
 
-    uint64_t seed = 10;//(u_int64_t) time(NULL);
-    long therm_cycles = 1e5;
-    long mc_cycles = 1e5;
+    uint64_t seed = (u_int64_t) time(NULL);
+    long therm_cycles = 1e4;
+    long mc_cycles = 1e4;
     int n_bins = 10;
 
     double beta_vals[] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};

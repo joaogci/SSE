@@ -4,7 +4,7 @@ void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cy
     int n, t_idx, loop;
     long t;
     double beta;
-    
+
     init_samples(beta_vals, len_beta, n_bins, samples);
 
     for (t_idx = 0; t_idx < len_beta; t_idx++) {
@@ -13,24 +13,30 @@ void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cy
 
         for (t = 0; t < therm_cycles; t++) {
             diag_update(beta, hberg_system, sse_state);
+
             for (loop = 0; loop < sse_state->n_loops; loop++) {
                 loop_update(hberg_system, sse_state);
             }
-            ajust_cutoff(sse_state);
+
+            ajust_cutoff(sse_state, t % 1000 == 0);
         }
 
         for (n = 0; n < n_bins; n++) {
             for (t = 0; t < mc_cycles; t++) {
                 diag_update(beta, hberg_system, sse_state);
+
+                sse_state->loop_size = 0;
                 for (loop = 0; loop < sse_state->n_loops; loop++) {
                     loop_update(hberg_system, sse_state);
                 }
+
                 sample(n, t_idx, hberg_system, sse_state, samples);
             }
         }
+
         normalize(t_idx, mc_cycles, hberg_system, samples);
         
-        printf("beta: %f; n_mean: %f +/- %f; E: %f +/- %f\n", beta, samples->n_mean[t_idx], samples->n_std[t_idx], samples->E_mean[t_idx], samples->E_std[t_idx]);
+        printf("beta: %f; n_mean: %f +/- %f; E: %f +/- %f \n", beta, samples->n_mean[t_idx], samples->n_std[t_idx], samples->E_mean[t_idx], samples->E_std[t_idx]);
     }
 }
 
@@ -105,7 +111,6 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
         
         j = sse_state->link[j];
         if (j == j0) {
-            sse_state->loop_size++;
             break;
         }
     }
@@ -268,8 +273,7 @@ void write_to_file(char *filename, struct sampled_quantities *samples) {
     fclose(fp);
 }
 
-void ajust_cutoff(struct sse_state *sse_state) {
-    int tmp;
+void ajust_cutoff(struct sse_state *sse_state, bool adjust_loop) {
     int M_new = sse_state->n * 1.33;
 
     if (M_new > sse_state->M) {
@@ -283,9 +287,12 @@ void ajust_cutoff(struct sse_state *sse_state) {
         sse_state->M = M_new;
     }
 
-    tmp = sse_state->loop_size / (2 * sse_state->M);
-    sse_state->n_loops = tmp == 0 ? 1 : tmp;
-    sse_state->loop_size = 0;
+    if (adjust_loop) {
+        if (sse_state->loop_size > 1000) {
+            sse_state->n_loops = 2000 * sse_state->M * sse_state->n_loops / sse_state->loop_size;
+        }
+        sse_state->loop_size = 0;
+    }
 }
 
 void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state, int *red_op_string, int *trans_op_string) {

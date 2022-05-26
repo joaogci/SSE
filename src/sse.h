@@ -94,7 +94,7 @@ void diag_update(double beta, struct heisenberg_system *hberg_system, struct sse
 double prob(int b, struct heisenberg_system *hberg_system);
 
 void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_state);
-void ajust_cutoff(struct sse_state *sse_state);
+void ajust_cutoff(struct sse_state *sse_state, bool adjust_loop);
 
 void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state, int *red_op_string, int *trans_op_string);
 
