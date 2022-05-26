@@ -4,6 +4,7 @@
 testing_python
 results_olav
 some_results
+results
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
