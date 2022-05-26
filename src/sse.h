@@ -36,6 +36,8 @@ struct sse_state {
     int M;
     int n;
 
+    int n_loops;
+    int loop_size;
     int *link;
     int *first;
     int *vtx;

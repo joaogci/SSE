@@ -13,7 +13,7 @@ void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cy
 
         for (t = 0; t < therm_cycles; t++) {
             diag_update(beta, hberg_system, sse_state);
-            for (loop = 0; loop < 2 * sse_state->n; loop++) {
+            for (loop = 0; loop < sse_state->n_loops; loop++) {
                 loop_update(hberg_system, sse_state);
             }
             ajust_cutoff(sse_state);
@@ -22,7 +22,7 @@ void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cy
         for (n = 0; n < n_bins; n++) {
             for (t = 0; t < mc_cycles; t++) {
                 diag_update(beta, hberg_system, sse_state);
-                for (loop = 0; loop < 2 * sse_state->n; loop++) {
+                for (loop = 0; loop < sse_state->n_loops; loop++) {
                     loop_update(hberg_system, sse_state);
                 }
                 sample(n, t_idx, hberg_system, sse_state, samples);
@@ -67,6 +67,15 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
     int red_op_string[sse_state->n];
     int trans_op_string[sse_state->n];
 
+    if (sse_state->n == 0) {
+        for (i = 0; i < hberg_system->N; i++) {
+            if (next_double() <= 0.5) {
+                hberg_system->spin[i] = - hberg_system->spin[i];
+            }
+        }
+        return;
+    }
+
     sse_state->vtx = (int *) malloc(sse_state->n * sizeof(int));
     sse_state->link = (int *) malloc(4 * sse_state->n * sizeof(int)); 
     
@@ -77,6 +86,7 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
     while (true) {
         p = j / 4;
         li = j % 4;
+        sse_state->loop_size++;
 
         r = next_double();
         vtx_type = sse_state->vtx[p] - 1;
@@ -88,12 +98,14 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
         }
         
         j = 4 * p + le;
+        sse_state->loop_size++;
         if (j == j0) {
             break;
         }
         
         j = sse_state->link[j];
         if (j == j0) {
+            sse_state->loop_size++;
             break;
         }
     }
@@ -178,7 +190,7 @@ void normalize(int t_idx, long mc_cycles, struct heisenberg_system *hberg_system
         samples->m2_bins[t_idx][n] /= mc_cycles;
         samples->ms_bins[t_idx][n] /= mc_cycles;
         samples->m2s_bins[t_idx][n] /= mc_cycles;
-        samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n]);
+        samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] * samples->m_bins[t_idx][n]);
         
         samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
         samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
@@ -257,6 +269,7 @@ void write_to_file(char *filename, struct sampled_quantities *samples) {
 }
 
 void ajust_cutoff(struct sse_state *sse_state) {
+    int tmp;
     int M_new = sse_state->n * 1.33;
 
     if (M_new > sse_state->M) {
@@ -269,6 +282,10 @@ void ajust_cutoff(struct sse_state *sse_state) {
 
         sse_state->M = M_new;
     }
+
+    tmp = sse_state->loop_size / (2 * sse_state->M);
+    sse_state->n_loops = tmp == 0 ? 1 : tmp;
+    sse_state->loop_size = 0;
 }
 
 void create_vtx_list(struct heisenberg_system *hberg_system, struct sse_state *sse_state, int *red_op_string, int *trans_op_string) {
@@ -430,6 +447,8 @@ void init_sse_state(uint64_t seed, struct heisenberg_system *hberg_system, struc
     sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));
     memset(sse_state->op_string, 0, sse_state->M * sizeof(int));
 
+    sse_state->n_loops = MAX(4, hberg_system->N / 4);
+    sse_state->loop_size = 0;
     sse_state->first = (int *) malloc(hberg_system->N * sizeof(int));
 }
 
@@ -520,6 +539,8 @@ void reset_sse_state(struct heisenberg_system *hberg_system, struct sse_state *s
 
     sse_state->n = 0;
     sse_state->M = MAX(4, hberg_system->N / 4);
+    sse_state->loop_size = 0;
+    sse_state->n_loops = MAX(4, hberg_system->N / 4);
 
     free(sse_state->op_string);
     sse_state->op_string = (int *) malloc(sse_state->M * sizeof(int));

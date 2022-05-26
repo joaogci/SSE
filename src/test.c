@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     double h = 0.0;
     double epsilon = 0.01;
 
-    uint64_t seed = (u_int64_t) time(NULL);
+    uint64_t seed = 10;//(u_int64_t) time(NULL);
     long therm_cycles = 1e5;
     long mc_cycles = 1e5;
     int n_bins = 10;
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     init_heisenberg_system(d, N, J, delta, h, epsilon, hberg_system);
     init_sse_state(seed, hberg_system, sse_state);
 
-    simulate_sse(beta_vals, len_beta, therm_cycles, mc_cycles, n_bins, hberg_system, sse_state, samples);
+    simulate_sse(beta_vals, len_beta, mc_cycles, therm_cycles, n_bins, hberg_system, sse_state, samples);
 
     write_to_file("1D_heisenberg_N2.csv", samples);
 
