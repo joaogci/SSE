@@ -137,8 +137,8 @@ void loop_update(struct heisenberg_system *hberg_system, struct sse_state *sse_s
 }
 
 void sample(int n, int t_idx, struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples) {
-    int i, p, b;
-    int norm;
+    int i;//, p, b;
+    // int norm;
     double m = 0.0;
     double m2 = 0.0;
     double ms = 0.0;
@@ -153,28 +153,28 @@ void sample(int n, int t_idx, struct heisenberg_system *hberg_system, struct sse
     }
     m *= 0.5;
     ms *= 0.5;
+    m2 += m * m;
+    m2s += ms * ms;
 
-    for (p = 0; p < sse_state->M; p++) {
-        if (sse_state->op_string[p] % 2 == 1) {
-            b = (sse_state->op_string[p] / 2) - 1;
-            hberg_system->spin[hberg_system->bond[b][0]] = - hberg_system->spin[hberg_system->bond[b][0]];
-            hberg_system->spin[hberg_system->bond[b][1]] = - hberg_system->spin[hberg_system->bond[b][1]];
+    // for (p = 0; p < sse_state->M; p++) {
+    //     if (sse_state->op_string[p] % 2 == 1) {
+    //         b = (sse_state->op_string[p] / 2) - 1;
+    //         hberg_system->spin[hberg_system->bond[b][0]] = - hberg_system->spin[hberg_system->bond[b][0]];
+    //         hberg_system->spin[hberg_system->bond[b][1]] = - hberg_system->spin[hberg_system->bond[b][1]];
 
-            m += 2 * hberg_system->spin[hberg_system->bond[b][0]];
-            ms += 2 * pow(- 1.0, hberg_system->bond[b][0]) * hberg_system->spin[hberg_system->bond[b][0]];
-        }
+    //         ms += 2 * pow(- 1.0, hberg_system->bond[b][0]) * hberg_system->spin[hberg_system->bond[b][0]];
+    //     }
 
-        if (sse_state->op_string[p] != 0) {
-            m2 += m * m;
-            m2s += ms * ms;
-        }
-    }
+    //     if (sse_state->op_string[p] != 0) {
+    //         m2s += ms * ms;
+    //     }
+    // }
 
-    norm = sse_state->n > 0 ? sse_state->n : 1;
-    m /= (norm * hberg_system->N);
-    m2 /= (norm * hberg_system->N * hberg_system->N);
-    ms /= (norm * hberg_system->N);
-    m2s /= (norm * hberg_system->N * hberg_system->N);
+    // norm = sse_state->n > 0 ? sse_state->n : 1;
+    m /= hberg_system->N;
+    m2 /= hberg_system->N;
+    ms /= hberg_system->N;
+    m2s /= hberg_system->N;
 
     samples->m_bins[t_idx][n] += m;
     samples->m2_bins[t_idx][n] += m2;
