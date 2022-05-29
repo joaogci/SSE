@@ -7,15 +7,15 @@
 
 int main(int argc, char **argv) {
     int d = 2;
-    int L = 4;
+    int L = 8;
     double J = 1.0;
     double delta = 1.0;
     double h = 0.0;
     double epsilon = 0.05;
 
     uint64_t seed = (u_int64_t) time(NULL);
-    long therm_cycles = 1e5;
-    long mc_cycles = 1e5;
+    long therm_cycles = 1e4;
+    long mc_cycles = 1e4;
     int n_bins = 10;
 
     double beta_vals[] = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 
     simulate_sse(beta_vals, len_beta, mc_cycles, therm_cycles, n_bins, hberg_system, sse_state, samples);
 
-    write_to_file("2D_heisenberg_L4.csv", samples);
+    write_to_file("2D_heisenberg_L8.csv", samples);
 
     free_memory(hberg_system, sse_state, samples);
     free(hberg_system);

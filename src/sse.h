@@ -55,9 +55,13 @@ struct sampled_quantities {
     double **C_bins;
     double **m_bins;
     double **m2_bins;
+    double **m4_bins;
     double **ms_bins;
     double **m2s_bins;
+    double **m4s_bins;
     double **m_sus_bins;
+    double **binder_bins;
+    double **binders_bins;
 
     double *n_mean;
     double *n2_mean;
@@ -72,12 +76,21 @@ struct sampled_quantities {
     double *m_std;
     double *m2_mean;
     double *m2_std;
+    double *m4_mean;
+    double *m4_std;
     double *ms_mean;
     double *ms_std;
     double *m2s_mean;
     double *m2s_std;
+    double *m4s_mean;
+    double *m4s_std;
     double *m_sus_mean;
     double *m_sus_std;
+
+    double *binder_mean;
+    double *binder_std;
+    double *binders_mean;
+    double *binders_std;
 };
 
 void simulate_sse(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, int n_bins, struct heisenberg_system *hberg_system, struct sse_state *sse_state, struct sampled_quantities *samples);
