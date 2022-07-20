@@ -54,82 +54,84 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     samples->m4s_bins[t_idx][n] += m4s;
 }
 
-void normalize(int t_idx, long mc_cycles, heisenberg_system *system, sampled_quantities *samples) 
+void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, double C) 
 {
-    for (int n = 0; n < samples->bins; n++) {
-        samples->n_bins[t_idx][n] /= mc_cycles;
-        samples->n2_bins[t_idx][n] /= mc_cycles;
-        samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * system->N) + system->J * system->C;
-        samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] - samples->n_bins[t_idx][n]) / system->N;
-        
-        samples->m_bins[t_idx][n] /= mc_cycles;
-        samples->m2_bins[t_idx][n] /= mc_cycles;
-        samples->m4_bins[t_idx][n] /= mc_cycles;
-        samples->ms_bins[t_idx][n] /= mc_cycles;
-        samples->m2s_bins[t_idx][n] /= mc_cycles;
-        samples->m4s_bins[t_idx][n] /= mc_cycles;
-        samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] * samples->m_bins[t_idx][n]);
-        samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) / (3 * samples->m2_bins[t_idx][n]);
-        samples->binders_bins[t_idx][n] = 1 - (samples->m4s_bins[t_idx][n]) / (3 * samples->m2s_bins[t_idx][n]);
+    for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
+        for (int n = 0; n < samples->bins; n++) {
+            samples->n_bins[t_idx][n] /= mc_cycles;
+            samples->n2_bins[t_idx][n] /= mc_cycles;
+            samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * N) + J * C;
+            samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] - samples->n_bins[t_idx][n]) / N;
+            
+            samples->m_bins[t_idx][n] /= mc_cycles;
+            samples->m2_bins[t_idx][n] /= mc_cycles;
+            samples->m4_bins[t_idx][n] /= mc_cycles;
+            samples->ms_bins[t_idx][n] /= mc_cycles;
+            samples->m2s_bins[t_idx][n] /= mc_cycles;
+            samples->m4s_bins[t_idx][n] /= mc_cycles;
+            samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] * samples->m_bins[t_idx][n]);
+            samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) / (3 * samples->m2_bins[t_idx][n]);
+            samples->binders_bins[t_idx][n] = 1 - (samples->m4s_bins[t_idx][n]) / (3 * samples->m2s_bins[t_idx][n]);
 
-        samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
-        samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
-        samples->E_mean[t_idx] += samples->E_bins[t_idx][n];
-        samples->C_mean[t_idx] += samples->C_bins[t_idx][n];
+            samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
+            samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
+            samples->E_mean[t_idx] += samples->E_bins[t_idx][n];
+            samples->C_mean[t_idx] += samples->C_bins[t_idx][n];
 
-        samples->m_mean[t_idx] += samples->m_bins[t_idx][n];
-        samples->m2_mean[t_idx] += samples->m2_bins[t_idx][n];
-        samples->m4_mean[t_idx] += samples->m4_bins[t_idx][n];
-        samples->ms_mean[t_idx] += samples->ms_bins[t_idx][n];
-        samples->m2s_mean[t_idx] += samples->m2s_bins[t_idx][n];
-        samples->m4s_mean[t_idx] += samples->m4s_bins[t_idx][n];
-        samples->m_sus_mean[t_idx] += samples->m_sus_bins[t_idx][n];
-        samples->binder_mean[t_idx] += samples->binder_bins[t_idx][n];
-        samples->binders_mean[t_idx] += samples->binders_bins[t_idx][n];
+            samples->m_mean[t_idx] += samples->m_bins[t_idx][n];
+            samples->m2_mean[t_idx] += samples->m2_bins[t_idx][n];
+            samples->m4_mean[t_idx] += samples->m4_bins[t_idx][n];
+            samples->ms_mean[t_idx] += samples->ms_bins[t_idx][n];
+            samples->m2s_mean[t_idx] += samples->m2s_bins[t_idx][n];
+            samples->m4s_mean[t_idx] += samples->m4s_bins[t_idx][n];
+            samples->m_sus_mean[t_idx] += samples->m_sus_bins[t_idx][n];
+            samples->binder_mean[t_idx] += samples->binder_bins[t_idx][n];
+            samples->binders_mean[t_idx] += samples->binders_bins[t_idx][n];
+        }
+        samples->n_mean[t_idx] /= samples->bins;
+        samples->n2_mean[t_idx] /= samples->bins;
+        samples->E_mean[t_idx] /= samples->bins;
+        samples->C_mean[t_idx] /= samples->bins;
+
+        samples->m_mean[t_idx] /= samples->bins;
+        samples->m2_mean[t_idx] /= samples->bins;
+        samples->m4_mean[t_idx] /= samples->bins;
+        samples->ms_mean[t_idx] /= samples->bins;
+        samples->m2s_mean[t_idx] /= samples->bins;
+        samples->m4s_mean[t_idx] /= samples->bins;
+        samples->m_sus_mean[t_idx] /= samples->bins;
+        samples->binder_mean[t_idx] /= samples->bins;
+        samples->binders_mean[t_idx] /= samples->bins;
+
+        for (int n = 0; n < samples->bins; n++) {
+            samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
+            samples->E_std[t_idx] += pow(samples->E_bins[t_idx][n] - samples->E_mean[t_idx], 2.0);
+            samples->C_std[t_idx] += pow(samples->C_bins[t_idx][n] - samples->C_mean[t_idx], 2.0);
+
+            samples->m_std[t_idx] += pow(samples->m_bins[t_idx][n] - samples->m_mean[t_idx], 2.0);
+            samples->m2_std[t_idx] += pow(samples->m2_bins[t_idx][n] - samples->m2_mean[t_idx], 2.0);
+            samples->m4_std[t_idx] += pow(samples->m4_bins[t_idx][n] - samples->m4_mean[t_idx], 2.0);
+            samples->ms_std[t_idx] += pow(samples->ms_bins[t_idx][n] - samples->ms_mean[t_idx], 2.0);
+            samples->m2s_std[t_idx] += pow(samples->m2s_bins[t_idx][n] - samples->m2s_mean[t_idx], 2.0);
+            samples->m4s_std[t_idx] += pow(samples->m4s_bins[t_idx][n] - samples->m4s_mean[t_idx], 2.0);
+            samples->m_sus_std[t_idx] += pow(samples->m_sus_bins[t_idx][n] - samples->m_sus_mean[t_idx], 2.0);
+            samples->binder_std[t_idx] += pow(samples->binder_bins[t_idx][n] - samples->binder_mean[t_idx], 2.0);
+            samples->binders_std[t_idx] += pow(samples->binders_bins[t_idx][n] - samples->binders_mean[t_idx], 2.0);
+        }
+        samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
+        samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
+        samples->C_std[t_idx] = sqrt(samples->C_std[t_idx] / samples->bins);
+
+        samples->m_std[t_idx] = sqrt(samples->m_std[t_idx] / samples->bins);
+        samples->m2_std[t_idx] = sqrt(samples->m2_std[t_idx] / samples->bins);
+        samples->m4_std[t_idx] = sqrt(samples->m4_std[t_idx] / samples->bins);
+        samples->ms_std[t_idx] = sqrt(samples->ms_std[t_idx] / samples->bins);
+        samples->m2s_std[t_idx] = sqrt(samples->m2s_std[t_idx] / samples->bins);
+        samples->m4s_std[t_idx] = sqrt(samples->m4s_std[t_idx] / samples->bins);
+        samples->m_sus_std[t_idx] = sqrt(samples->m_sus_std[t_idx] / samples->bins);
+        samples->binder_std[t_idx] = sqrt(samples->binder_std[t_idx] / samples->bins);
+        samples->binders_std[t_idx] = sqrt(samples->binders_std[t_idx] / samples->bins);
     }
-    samples->n_mean[t_idx] /= samples->bins;
-    samples->n2_mean[t_idx] /= samples->bins;
-    samples->E_mean[t_idx] /= samples->bins;
-    samples->C_mean[t_idx] /= samples->bins;
-
-    samples->m_mean[t_idx] /= samples->bins;
-    samples->m2_mean[t_idx] /= samples->bins;
-    samples->m4_mean[t_idx] /= samples->bins;
-    samples->ms_mean[t_idx] /= samples->bins;
-    samples->m2s_mean[t_idx] /= samples->bins;
-    samples->m4s_mean[t_idx] /= samples->bins;
-    samples->m_sus_mean[t_idx] /= samples->bins;
-    samples->binder_mean[t_idx] /= samples->bins;
-    samples->binders_mean[t_idx] /= samples->bins;
-
-    for (int n = 0; n < samples->bins; n++) {
-        samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
-        samples->E_std[t_idx] += pow(samples->E_bins[t_idx][n] - samples->E_mean[t_idx], 2.0);
-        samples->C_std[t_idx] += pow(samples->C_bins[t_idx][n] - samples->C_mean[t_idx], 2.0);
-
-        samples->m_std[t_idx] += pow(samples->m_bins[t_idx][n] - samples->m_mean[t_idx], 2.0);
-        samples->m2_std[t_idx] += pow(samples->m2_bins[t_idx][n] - samples->m2_mean[t_idx], 2.0);
-        samples->m4_std[t_idx] += pow(samples->m4_bins[t_idx][n] - samples->m4_mean[t_idx], 2.0);
-        samples->ms_std[t_idx] += pow(samples->ms_bins[t_idx][n] - samples->ms_mean[t_idx], 2.0);
-        samples->m2s_std[t_idx] += pow(samples->m2s_bins[t_idx][n] - samples->m2s_mean[t_idx], 2.0);
-        samples->m4s_std[t_idx] += pow(samples->m4s_bins[t_idx][n] - samples->m4s_mean[t_idx], 2.0);
-        samples->m_sus_std[t_idx] += pow(samples->m_sus_bins[t_idx][n] - samples->m_sus_mean[t_idx], 2.0);
-        samples->binder_std[t_idx] += pow(samples->binder_bins[t_idx][n] - samples->binder_mean[t_idx], 2.0);
-        samples->binders_std[t_idx] += pow(samples->binders_bins[t_idx][n] - samples->binders_mean[t_idx], 2.0);
-    }
-    samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
-    samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
-    samples->C_std[t_idx] = sqrt(samples->C_std[t_idx] / samples->bins);
-
-    samples->m_std[t_idx] = sqrt(samples->m_std[t_idx] / samples->bins);
-    samples->m2_std[t_idx] = sqrt(samples->m2_std[t_idx] / samples->bins);
-    samples->m4_std[t_idx] = sqrt(samples->m4_std[t_idx] / samples->bins);
-    samples->ms_std[t_idx] = sqrt(samples->ms_std[t_idx] / samples->bins);
-    samples->m2s_std[t_idx] = sqrt(samples->m2s_std[t_idx] / samples->bins);
-    samples->m4s_std[t_idx] = sqrt(samples->m4s_std[t_idx] / samples->bins);
-    samples->m_sus_std[t_idx] = sqrt(samples->m_sus_std[t_idx] / samples->bins);
-    samples->binder_std[t_idx] = sqrt(samples->binder_std[t_idx] / samples->bins);
-    samples->binders_std[t_idx] = sqrt(samples->binders_std[t_idx] / samples->bins);
 }
 
 void write_to_file(char *filename, sampled_quantities *samples) 

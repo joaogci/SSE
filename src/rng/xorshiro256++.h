@@ -28,6 +28,7 @@ static inline uint64_t rotl(const uint64_t x, int k) {
 
 
 static uint64_t s[4];
+#pragma omp threadprivate(s)
 
 static inline uint64_t next(void) {
 	const uint64_t result = rotl(s[0] + s[3], 23) + s[0];
