@@ -6,7 +6,7 @@
 #define N_LEGS      4
 #define N_DIAGRAMS  6
 
-struct vtx_type
+typedef struct vtx_type
 {
     int indx;
     int type;
@@ -14,9 +14,10 @@ struct vtx_type
     int new_vtx_type[4][4];
     double prob_exit[4][4];
     double H;
-};
+} vtx_element;
 
-struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C);
+vtx_element *create_vtx_type_list(double J, double delta, double h, double C);
+
 void spin_leg(int spin[N_LEGS], int vtx_type);
 void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type);
 

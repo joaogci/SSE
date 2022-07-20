@@ -1,9 +1,11 @@
 #include "hamiltonian.h"
 
-struct H_term **create_hamiltonian(double J, double delta, double h, double C) {
-    struct H_term **H = (struct H_term **) malloc(4 * sizeof(struct H_term *));
+H_mat_term **create_hamiltonian(double J, double delta, double h, double C) 
+{
+    H_mat_term **H = (H_mat_term **) malloc(4 * sizeof(H_mat_term *));
+
     for (int i = 0; i < 4; i++) {
-        H[i] = (struct H_term *) malloc(4 * sizeof(struct H_term));
+        H[i] = (H_mat_term *) malloc(4 * sizeof(H_mat_term));
     }
 
     H[0][0].value = C - 0.25 * delta + 0.5 * h / J;

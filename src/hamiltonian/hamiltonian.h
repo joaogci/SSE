@@ -3,15 +3,16 @@
 
 #include <stdlib.h>
 
-struct H_term {
+typedef struct H_term
+{
     double value;
     int si_p;
     int sj_p;
     int si_p_1;
     int sj_p_1;
-};
+} H_mat_term;
 
-struct H_term **create_hamiltonian(double J, double delta, double h, double C);
+H_mat_term **create_hamiltonian(double J, double delta, double h, double C);
 
 #endif // HAMILTONIAN_H
 

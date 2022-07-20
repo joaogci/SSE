@@ -1,10 +1,10 @@
 #include "vtx_type.h"
 
-struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C) {
-    int i;
-    struct vtx_type *vtx = (struct vtx_type *) malloc(6 * sizeof(struct vtx_type));
+vtx_element *create_vtx_type_list(double J, double delta, double h, double C) 
+{
+    vtx_element *vtx = (vtx_element *) malloc(6 * sizeof(vtx_element));
 
-    for (i = 0; i < N_DIAGRAMS; i++) {
+    for (int i = 0; i < N_DIAGRAMS; i++) {
         vtx[i].indx = i + 1;
         vtx[i].type = 0;
         if (i == 3 || i == 4) {
@@ -30,20 +30,17 @@ struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C
         spin_leg(vtx[i].spin, i + 1);
     }
 
-    double denom, cum_prob;
-    int new_vtx, new_vtx2;
-    int li, le, le2;
-    for (i = 0; i < N_DIAGRAMS; i++) {
-        for (li = 0; li < N_LEGS; li++) {
-            cum_prob = 0.0;
+    for (int i = 0; i < N_DIAGRAMS; i++) {
+        for (int li = 0; li < N_LEGS; li++) {
+            double cum_prob = 0.0;
 
-            for (le = 0; le < N_LEGS; le++) {
-                new_vtx = vtx[i].new_vtx_type[li][le] - 1;
+            for (int le = 0; le < N_LEGS; le++) {
+                int new_vtx = vtx[i].new_vtx_type[li][le] - 1;
 
                 if (new_vtx >= 0) {
-                    denom = 0.0;
-                    for (le2 = 0; le2 < N_LEGS; le2++) {
-                        new_vtx2 = vtx[i].new_vtx_type[li][le2] - 1;
+                    double denom = 0.0;
+                    for (int le2 = 0; le2 < N_LEGS; le2++) {
+                        int new_vtx2 = vtx[i].new_vtx_type[li][le2] - 1;
                         if (new_vtx2 >= 0) {
                             denom += vtx[new_vtx2].H;
                         }
@@ -63,7 +60,8 @@ struct vtx_type *create_vtx_type_list(double J, double delta, double h, double C
     return vtx;
 }
 
-void spin_leg(int spin[N_LEGS], int vtx_type) {
+void spin_leg(int spin[N_LEGS], int vtx_type) 
+{
     for (int l = 1; l <= N_LEGS; l++) {
         if (vtx_type == 1) {
             spin[l - 1] = -1;
@@ -98,7 +96,8 @@ void spin_leg(int spin[N_LEGS], int vtx_type) {
     }
 }
 
-void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type) {
+void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type) 
+{
     for (int li = 1; li <= N_LEGS; li++) {
         for (int le = 1; le <= N_LEGS; le++) {
             vtx[li - 1][le - 1] = 0;
