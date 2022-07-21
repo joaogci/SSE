@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 
+main
 *.csv
 testing_python
 results_olav
