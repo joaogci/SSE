@@ -134,45 +134,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, dou
     }
 }
 
-void write_to_file(char *filename, sampled_quantities *samples) 
-{
-    FILE *fp;
-    fp = fopen(filename, "w");
-
-    fprintf(fp, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,binder,binder_std,binders,binders_std\n");
-    for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
-        fprintf(fp, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", 
-        samples->beta_vals[t_idx], 
-        samples->n_mean[t_idx],
-        samples->n2_mean[t_idx], 
-        samples->n_std[t_idx],
-        samples->E_mean[t_idx],
-        samples->E_std[t_idx],
-        samples->C_mean[t_idx],
-        samples->C_std[t_idx],
-        samples->m_mean[t_idx],
-        samples->m_std[t_idx],
-        samples->m2_mean[t_idx],
-        samples->m2_std[t_idx],
-        samples->m4_mean[t_idx],
-        samples->m4_std[t_idx],
-        samples->ms_mean[t_idx],
-        samples->ms_std[t_idx],
-        samples->m2s_mean[t_idx],
-        samples->m2s_std[t_idx],
-        samples->m4s_mean[t_idx],
-        samples->m4s_std[t_idx],
-        samples->m_sus_mean[t_idx],
-        samples->m_sus_std[t_idx],
-        samples->binder_mean[t_idx],
-        samples->binder_std[t_idx],
-        samples->binders_mean[t_idx],
-        samples->binders_std[t_idx]);
-    }
-
-    fclose(fp);
-}
-
 void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_quantities *samples) 
 {
     samples->bins = n_bins;

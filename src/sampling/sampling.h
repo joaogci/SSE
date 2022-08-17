@@ -58,8 +58,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, sampled_quantitie
 void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples);
 void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, double C);
 
-void write_to_file(char *filename, sampled_quantities *samples);
-
 void free_samples(sampled_quantities *samples);
 
 #endif // SAMPLING_H
