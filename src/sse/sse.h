@@ -9,12 +9,22 @@
 #include <stdint.h>
 
 #include "../vtx/vtx_type.h"
-#include "../hamiltonian/hamiltonian.h"
 #include "../rng/xorshiro256++.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
+/* heisenberg_system
+    Holds information about the simulated system.
+    (int) d - dimension
+    (int) L - number of unit cells
+    (int) N - number of particles (pow(L, d))
+    (int) Nb - number of bonds 
+    (double) J - coupling constant
+    (double) delta - z-axis anisotropy strength
+    (double) h - z-axis magnetic field strength
+    (int *) spin - spin state (length N)
+    (int **) bond - lattice information (length Nb x 2) */
 typedef struct heisenberg_system 
 {
     int d;
@@ -26,13 +36,22 @@ typedef struct heisenberg_system
     double delta;
     double h;
     double epsilon;
-    double C;
-    H_mat_term **H;
 
     int *spin;
     int **bond;
 } heisenberg_system;
 
+/* sse_state
+    Information about the state of the SSE simulation
+    (int *) op_string - operator string (length M) 
+    (int) M - maximum expansion of the partiton function
+    (int) n - number of operators in the operator string
+    (int) n_loops - number of loops to construct each MCS
+    (int) loop_size - size of the loops
+    (int *) link - linked list for the loop construction (length 4*n)
+    (int *) first - first imaginary time which the spins appear (length N)
+    (int *) vtx - vertex type at each imaginery time (length n)
+    (vtx_element *) vtx_type - information about each vertex type (length 6) */
 typedef struct sse_state 
 {
     int *op_string;
@@ -45,8 +64,6 @@ typedef struct sse_state
     int *first;
     int *vtx;
     vtx_element *vtx_type;
-
-    uint64_t rng_state[4];
 } sse_state;
 
 void init_heisenberg_system(int d, int L, double J, double delta, double h, double epsilon, heisenberg_system *system);
