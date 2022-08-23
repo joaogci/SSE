@@ -5,7 +5,7 @@ LIBS = -lm
 PROGRAM = main
 
 $(PROGRAM): $(SOURCES) $(INCLUDES)
-	gcc-11 -o $(PROGRAM) $(SOURCES) $(FLAGS) $(LIBS)
+	gcc-12 -o $(PROGRAM) $(SOURCES) $(FLAGS) $(LIBS)
 
 clean: 
 	rm $(PROGRAM)
