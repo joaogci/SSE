@@ -9,15 +9,13 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state)
                 state->op_string[p] = 2 * (b + 1);
                 state->n++;
             }
-        }
-        else if (state->op_string[p] % 2 == 0) {
+        } else if (state->op_string[p] % 2 == 0) {
             int b = (state->op_string[p] / 2) - 1;
             if (next_double() <= MIN(1.0, (state->M - state->n + 1) / (beta * system->Nb * prob(b, system)))) {
                 state->op_string[p] = 0;
                 state->n--;
             }
-        }
-        else {
+        } else {
             int b = (state->op_string[p] / 2) - 1;
             system->spin[system->bond[b][0]] = - system->spin[system->bond[b][0]];
             system->spin[system->bond[b][1]] = - system->spin[system->bond[b][1]];
@@ -29,9 +27,7 @@ void loop_update(heisenberg_system *system, sse_state *state)
 {
     if (state->n == 0) {
         for (int i = 0; i < system->N; i++) {
-            if (next_double() <= 0.5) {
-                system->spin[i] = - system->spin[i];
-            }
+            if (next_double() <= 0.5) { system->spin[i] = - system->spin[i]; }
         }
         return;
     }
@@ -62,14 +58,10 @@ void loop_update(heisenberg_system *system, sse_state *state)
         
         j = 4 * p + le;
         state->loop_size++;
-        if (j == j0) {
-            break;
-        }
+        if (j == j0) { break; }
         
         j = state->link[j];
-        if (j == j0) {
-            break;
-        }
+        if (j == j0) { break; }
     }
 
     for (int p = 0; p < state->n; p++) {
@@ -82,11 +74,7 @@ void loop_update(heisenberg_system *system, sse_state *state)
             int l = state->first[i] % 4;
             system->spin[i] = state->vtx_type[state->vtx[p] - 1].spin[l];
         }
-        else {
-            if (next_double() <= 0.5) {
-                system->spin[i] = - system->spin[i];
-            }
-        }
+        else if (next_double() <= 0.5){ system->spin[i] = - system->spin[i]; }
     }
 
     free(state->vtx);
@@ -122,14 +110,16 @@ void init_heisenberg_system(int d, int L, double J, double delta, double h, doub
     system->d = d;
     system->L = L;
     system->N = pow(L, d);
-    system->Nb = system->N * d;         // For PBC
+    system->Nb = system->N * d; // For PBC
     
     system->J = J;
     system->h = h;
     system->delta = delta;
     system->epsilon = epsilon;
-    system->C = 0.25 * delta + 0.5 * h / J + epsilon;
-    system->H = create_hamiltonian(J, delta, h, system->C);
+
+    system->prob[0] = C + 0.25 * delta + epsilon; 
+    system->prob[1] = C - 0.25 * delta + hb + epsilon;
+    system->prob[2] = C - 0.25 * delta - hb + epsilon;
 
     system->spin = (int *) malloc(system->N * sizeof(int));
     system->bond = (int **) malloc(system->Nb * sizeof(int *));
@@ -155,18 +145,14 @@ void init_heisenberg_system(int d, int L, double J, double delta, double h, doub
 
     for (int i = 0; i < system->N; i++) {
         system->spin[i] = 1;
-        if (2 * i < system->N) {
-            system->spin[i] = -1;
-        }
+        if (2 * i < system->N) { system->spin[i] = -1; }
     }
 }
 
 void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state) 
 {
-    for (int i = 0; i < 4; i++) {
-        s[i] = seed * (i + 1);
-    }
-    state->vtx_type = create_vtx_type_list(system->J, system->delta, system->h, system->C);
+    for (int i = 0; i < 4; i++) { s[i] = seed * (i + 1); }
+    state->vtx_type = create_vtx_type_list(system->J, system->delta, system->h, system->epsilon);
 
     state->n = 0;
     state->M = MAX(4, system->N / 4);
@@ -178,14 +164,11 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
     state->first = (int *) malloc(system->N * sizeof(int));
 }
 
-
 void reset_sse_state(heisenberg_system *system, sse_state *state) 
 {
     for (int i = 0; i < system->N; i++) {
         system->spin[i] = 1;
-        if (next_double() < 0.5) {
-            system->spin[i] = -1;
-        }
+        if (next_double() < 0.5) { system->spin[i] = -1; }
     }
 
     state->n = 0;
@@ -236,20 +219,15 @@ void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_st
 
         if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == -1) {
             state->vtx[p] = 1;
-        }
-        else if (l[0] == -1 && l[1] == 1 && l[2] == -1 && l[3] == 1) {
+        } else if (l[0] == -1 && l[1] == 1 && l[2] == -1 && l[3] == 1) {
             state->vtx[p] = 2;
-        }
-        else if (l[0] == 1 && l[1] == -1 && l[2] == 1 && l[3] == -1) {
+        } else if (l[0] == 1 && l[1] == -1 && l[2] == 1 && l[3] == -1) {
             state->vtx[p] = 3;
-        }
-        else if (l[0] == -1 && l[1] == 1 && l[2] == 1 && l[3] == -1) {
+        } else if (l[0] == -1 && l[1] == 1 && l[2] == 1 && l[3] == -1) {
             state->vtx[p] = 4;
-        }
-        else if (l[0] == 1 && l[1] == -1 && l[2] == -1 && l[3] == 1) {
+        } else if (l[0] == 1 && l[1] == -1 && l[2] == -1 && l[3] == 1) {
             state->vtx[p] = 5;
-        }
-        else if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == 1) {
+        } else if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == 1) {
             state->vtx[p] = 6;
         }
 
@@ -285,14 +263,12 @@ void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_st
 double prob(int b, heisenberg_system *system) 
 {
     if (system->spin[system->bond[b][0]] != system->spin[system->bond[b][1]]) {
-        return system->H[1][1].value;
-    }
-    else if (system->spin[system->bond[b][0]] == system->spin[system->bond[b][1]]) {
+        return system->prob[0];
+    } else if (system->spin[system->bond[b][0]] == system->spin[system->bond[b][1]]) {
         if (system->spin[system->bond[b][1]] == 1) {
-            return system->H[0][0].value;
-        }
-        else {
-            return system->H[3][3].value;
+            return system->prob[1];
+        } else {
+            return system->prob[2];
         }
     }
 
@@ -301,13 +277,7 @@ double prob(int b, heisenberg_system *system)
 
 void free_memory(heisenberg_system *system, sse_state *state) 
 {
-    for (int i = 0; i < 4; i++) {
-        free(system->H[i]);
-    }
-    for (int i = 0; i < system->N; i++) {
-        free(system->bond[i]);
-    }
-    free(system->H);
+    for (int i = 0; i < system->N; i++) { free(system->bond[i]); }
     free(system->bond);
     free(system->spin);
 

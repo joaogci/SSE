@@ -14,6 +14,9 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
+#define C ( 0.25 * delta + hb )
+#define hb ( 0.5 * h / J )
+
 /* heisenberg_system
     Holds information about the simulated system.
     (int) d - dimension
@@ -24,7 +27,8 @@
     (double) delta - z-axis anisotropy strength
     (double) h - z-axis magnetic field strength
     (int *) spin - spin state (length N)
-    (int **) bond - lattice information (length Nb x 2) */
+    (int **) bond - lattice information (length Nb x 2) 
+    (double *) prob - pre-computed probabilities for digonal update (length 3) */
 typedef struct heisenberg_system 
 {
     int d;
@@ -39,6 +43,7 @@ typedef struct heisenberg_system
 
     int *spin;
     int **bond;
+    double prob[3];
 } heisenberg_system;
 
 /* sse_state
