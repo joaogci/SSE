@@ -56,7 +56,7 @@ typedef struct sampled_quantities
 void init_samples(double *beta_vals, int len_beta, int n_bins, sampled_quantities *samples);
 
 void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples);
-void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, double C);
+void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, double delta, double h, double epsilon);
 
 void free_samples(sampled_quantities *samples);
 

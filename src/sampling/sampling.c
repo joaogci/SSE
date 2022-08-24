@@ -54,13 +54,14 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     samples->m4s_bins[t_idx][n] += m4s;
 }
 
-void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, double C) 
+void normalize(long mc_cycles, sampled_quantities *samples, int N, double J, double delta, double h, double epsilon) 
 {
+    // Here C: (0.25 * delta + 0.5 * h / J + epsilon) 
     for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
         for (int n = 0; n < samples->bins; n++) {
             samples->n_bins[t_idx][n] /= mc_cycles;
             samples->n2_bins[t_idx][n] /= mc_cycles;
-            samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * N) + J * C;
+            samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * N) + J * (0.25 * delta + 0.5 * h / J + epsilon);
             samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] - samples->n_bins[t_idx][n]) / N;
             
             samples->m_bins[t_idx][n] /= mc_cycles;
