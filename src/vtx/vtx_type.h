@@ -6,6 +6,8 @@
 #define N_LEGS      4
 #define N_DIAGRAMS  6
 
+/* HEAT_BATH
+    If equals 1 use heat-bath algorithm, else use the directed loop algorithm. */
 #define HEAT_BATH   1
 
 /* vtx_type
@@ -26,7 +28,7 @@ typedef struct vtx_type
     double H;
 } vtx_element;
 
-vtx_element *create_vtx_type_list(double J, double delta, double h);
+vtx_element *create_vtx_type_list(double J, double delta, double h, double epsilon);
 
 void spin_leg(int spin[N_LEGS], int vtx_type);
 void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type);
