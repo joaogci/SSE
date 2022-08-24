@@ -12,11 +12,11 @@ vtx_element *create_vtx_type_list(double J, double delta, double h, double epsil
         // Here: C = (0.25 * delta + 0.5 * h / J + epsilon)
         if (vtx[i].type == 0) {
             if (vtx[i].indx == 6) {
-                vtx[i].H = (0.25 * delta + 0.5 * h / J + epsilon) - 0.25 * delta + 0.5 * h / J;
+                vtx[i].H = C + epsilon - 0.25 * delta + 0.5 * h / J;
             } else if (vtx[i].indx == 1) {
-                vtx[i].H = (0.25 * delta + 0.5 * h / J + epsilon) - 0.25 * delta - 0.5 * h / J;
+                vtx[i].H = C + epsilon - 0.25 * delta - 0.5 * h / J;
             } else {
-                vtx[i].H = (0.25 * delta + 0.5 * h / J + epsilon) + 0.25 * delta;
+                vtx[i].H = C + epsilon + 0.25 * delta;
             }
         }
         else {

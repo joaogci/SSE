@@ -4,11 +4,14 @@
 #include <stdlib.h>
 
 #define N_LEGS      4
-#define N_DIAGRAMS  6
+#define N_DIAGRAMS 6
 
 /* HEAT_BATH
     If equals 1 use heat-bath algorithm, else use the directed loop algorithm. */
-#define HEAT_BATH   1
+#define HEAT_BATH 1
+
+#define C ( 0.25 * delta + hb )
+#define hb ( 0.5 * h / J )
 
 /* vtx_type
     Information about each vertex type (1 - 6).
