@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#define N_LEGS      4
+#define N_LEGS 4
 #define N_DIAGRAMS 6
 
 /* HEAT_BATH
