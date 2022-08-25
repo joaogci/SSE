@@ -32,13 +32,6 @@ void loop_update(heisenberg_system *system, sse_state *state)
         return;
     }
 
-    state->vtx = (int *) malloc(state->n * sizeof(int));
-    state->link = (int *) malloc(4 * state->n * sizeof(int)); 
-    
-    int red_op_string[state->n];
-    int trans_op_string[state->n];
-    create_vtx_list(system, state, red_op_string, trans_op_string);
-
     int j0 = next() % (4 * state->n);
     int j = j0;
     while (true) {
@@ -63,7 +56,7 @@ void loop_update(heisenberg_system *system, sse_state *state)
     }
 
     for (int p = 0; p < state->n; p++) {
-        state->op_string[trans_op_string[p]] = 2 * (red_op_string[p] / 2) + state->vtx_type[state->vtx[p]].type;
+        state->op_string[state->trans_op_string[p]] = 2 * (state->red_op_string[p] / 2) + state->vtx_type[state->vtx[p]].type;
     }
 
     for (int i = 0; i < system->N; i++) {
@@ -74,9 +67,6 @@ void loop_update(heisenberg_system *system, sse_state *state)
         }
         else if (next_double() <= 0.5){ system->spin[i] = - system->spin[i]; }
     }
-
-    free(state->vtx);
-    free(state->link);
 }
 
 void ajust_cutoff(sse_state *state, bool adjust_loop) 
@@ -174,28 +164,39 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
     memset(state->op_string, 0, state->M * sizeof(int));
 }
 
-void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_string, int *trans_op_string) 
+void create_vtx_list(heisenberg_system *system, sse_state *state) 
 {
+    if (state->vtx != NULL) {
+        free(state->vtx);
+        free(state->link);
+        free(state->red_op_string);
+        free(state->trans_op_string);
+    }
+    state->vtx = (int *) malloc(state->n * sizeof(int));
+    state->link = (int *) malloc(4 * state->n * sizeof(int)); 
+    state->red_op_string = (int *) malloc(state->n * sizeof(int));
+    state->trans_op_string = (int *) malloc(state->n * sizeof(int));
+    
     int last[system->N];
     memset(last, -1, system->N * sizeof(int));
     memset(state->first, -1, system->N * sizeof(int));
     memset(state->link, -1, 4 * state->n * sizeof(int));
     memset(state->vtx, -1, state->n * sizeof(int));
-    memset(red_op_string, 0, state->n * sizeof(int));
-    memset(trans_op_string, 0, state->n * sizeof(int));
+    memset(state->red_op_string, 0, state->n * sizeof(int));
+    memset(state->trans_op_string, 0, state->n * sizeof(int));
     
     int p_red = 0;
     for (int p = 0; p < state->M; p++) {
         if (state->op_string[p] != 0) {
-            red_op_string[p_red] = state->op_string[p];
-            trans_op_string[p_red] = p;
+            state->red_op_string[p_red] = state->op_string[p];
+            state->trans_op_string[p_red] = p;
             p_red++;
         }
     }
 
     int l[4];
     for (int p = 0; p < state->n; p++) {
-        int b = (red_op_string[p] / 2) - 1;
+        int b = (state->red_op_string[p] / 2) - 1;
         int v0 = 4 * p;
 
         int i1 = system->bond[b][0];
@@ -203,7 +204,7 @@ void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_st
 
         l[0] = system->spin[i1];
         l[1] = system->spin[i2];
-        if (red_op_string[p] % 2 != 0) {
+        if (state->red_op_string[p] % 2 != 0) {
             system->spin[i1] = - system->spin[i1];
             system->spin[i2] = - system->spin[i2];
         }
@@ -270,4 +271,9 @@ void free_memory(heisenberg_system *system, sse_state *state)
     free(state->first);
     free(state->vtx_type);
     free(state->op_string);
+
+    free(state->vtx);
+    free(state->link);
+    free(state->red_op_string);
+    free(state->trans_op_string);
 }

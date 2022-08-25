@@ -56,7 +56,9 @@ typedef struct heisenberg_system
     (int *) link - linked list for the loop construction (length 4*n)
     (int *) first - first imaginary time which the spins appear (length N)
     (int *) vtx - vertex type at each imaginery time (length n)
-    (vtx_element *) vtx_type - information about each vertex type (length 6) */
+    (vtx_element *) vtx_type - information about each vertex type (length 6) 
+    (int *) red_op_string - reduced operator string (length n)
+    (int *) trans_op_string - translation between the reduced and normal operator string (length n) */
 typedef struct sse_state 
 {
     int *op_string;
@@ -69,6 +71,9 @@ typedef struct sse_state
     int *first;
     int *vtx;
     vtx_element *vtx_type;
+
+    int* red_op_string;
+    int* trans_op_string;
 } sse_state;
 
 void init_heisenberg_system(int d, int L, double J, double delta, double h, double epsilon, heisenberg_system *system);
@@ -80,7 +85,7 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state);
 void loop_update(heisenberg_system *system, sse_state *state);
 void ajust_cutoff(sse_state *state, bool adjust_loop);
 
-void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_string, int *trans_op_string);
+void create_vtx_list(heisenberg_system *system, sse_state *state);
 double prob(int b, struct heisenberg_system *system);
 
 void free_memory(heisenberg_system *system, sse_state *state);

@@ -44,6 +44,7 @@ void simulate(int start_bin, int end_bin, int t_id)
         for (long t = 0; t < therm_cycles; t++) {
             diag_update(beta, system, state);
 
+            create_vtx_list(system, state);
             for (int loop = 0; loop < state->n_loops; loop++) {
                 loop_update(system, state);
             }
@@ -55,6 +56,7 @@ void simulate(int start_bin, int end_bin, int t_id)
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state);
 
+                create_vtx_list(system, state);
                 for (int loop = 0; loop < state->n_loops; loop++) {
                     loop_update(system, state);
                 }
