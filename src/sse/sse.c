@@ -47,7 +47,7 @@ void loop_update(heisenberg_system *system, sse_state *state)
         state->loop_size++;
 
         double r = next_double();
-        int vtx_type = state->vtx[p] - 1;
+        int vtx_type = state->vtx[p];
         int le;
         for (le = 0; le < 4; le++) {
             if (r <= state->vtx_type[vtx_type].prob_exit[li][le]) {
@@ -65,14 +65,14 @@ void loop_update(heisenberg_system *system, sse_state *state)
     }
 
     for (int p = 0; p < state->n; p++) {
-        state->op_string[trans_op_string[p]] = 2 * (red_op_string[p] / 2) + state->vtx_type[state->vtx[p] - 1].type;
+        state->op_string[trans_op_string[p]] = 2 * (red_op_string[p] / 2) + state->vtx_type[state->vtx[p]].type;
     }
 
     for (int i = 0; i < system->N; i++) {
         if (state->first[i] != -1) {
             int p = state->first[i] / 4;
             int l = state->first[i] % 4;
-            system->spin[i] = state->vtx_type[state->vtx[p] - 1].spin[l];
+            system->spin[i] = state->vtx_type[state->vtx[p]].spin[l];
         }
         else if (next_double() <= 0.5){ system->spin[i] = - system->spin[i]; }
     }
@@ -80,7 +80,6 @@ void loop_update(heisenberg_system *system, sse_state *state)
     free(state->vtx);
     free(state->link);
 }
-
 
 void ajust_cutoff(sse_state *state, bool adjust_loop) 
 {
@@ -98,9 +97,7 @@ void ajust_cutoff(sse_state *state, bool adjust_loop)
     }
 
     if (adjust_loop) {
-        if (state->loop_size > 1000) {
-            state->n_loops = 2000 * state->M * state->n_loops / state->loop_size;
-        }
+        if (state->loop_size > 1000) { state->n_loops = 2000 * state->M * state->n_loops / state->loop_size; }
         state->loop_size = 0;
     }
 }
@@ -117,9 +114,9 @@ void init_heisenberg_system(int d, int L, double J, double delta, double h, doub
     system->delta = delta;
     system->epsilon = epsilon;
 
-    system->prob[0] = C + 0.25 * delta + epsilon; 
-    system->prob[1] = C - 0.25 * delta + hb + epsilon;
-    system->prob[2] = C - 0.25 * delta - hb + epsilon;
+    system->prob[0] = C + epsilon + 0.25 * delta; 
+    system->prob[1] = C + epsilon - 0.25 * delta + hb;
+    system->prob[2] = C + epsilon - 0.25 * delta - hb;
 
     system->spin = (int *) malloc(system->N * sizeof(int));
     system->bond = (int **) malloc(system->Nb * sizeof(int *));
@@ -187,7 +184,7 @@ void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_st
     memset(last, -1, system->N * sizeof(int));
     memset(state->first, -1, system->N * sizeof(int));
     memset(state->link, -1, 4 * state->n * sizeof(int));
-    memset(state->vtx, 0, state->n * sizeof(int));
+    memset(state->vtx, -1, state->n * sizeof(int));
     memset(red_op_string, 0, state->n * sizeof(int));
     memset(trans_op_string, 0, state->n * sizeof(int));
     
@@ -217,18 +214,11 @@ void create_vtx_list(heisenberg_system *system, sse_state *state, int *red_op_st
         l[2] = system->spin[i1];
         l[3] = system->spin[i2];
 
-        if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == -1) {
-            state->vtx[p] = 1;
-        } else if (l[0] == -1 && l[1] == 1 && l[2] == -1 && l[3] == 1) {
-            state->vtx[p] = 2;
-        } else if (l[0] == 1 && l[1] == -1 && l[2] == 1 && l[3] == -1) {
-            state->vtx[p] = 3;
-        } else if (l[0] == -1 && l[1] == 1 && l[2] == 1 && l[3] == -1) {
-            state->vtx[p] = 4;
-        } else if (l[0] == 1 && l[1] == -1 && l[2] == -1 && l[3] == 1) {
-            state->vtx[p] = 5;
-        } else if (l[0] == l[1] && l[1] == l[2] && l[2] == l[3] && l[3] == 1) {
-            state->vtx[p] = 6;
+        for (int i = 0; i < N_DIAGRAMS; i++) {
+            if (l[0] == state->vtx_type[i].spin[0] && 
+            l[1] == state->vtx_type[i].spin[1] && 
+            l[2] == state->vtx_type[i].spin[2] && 
+            l[3] == state->vtx_type[i].spin[3]) { state->vtx[p] = state->vtx_type[i].indx; }
         }
 
         int v1 = last[i1];
@@ -284,5 +274,4 @@ void free_memory(heisenberg_system *system, sse_state *state)
     free(state->first);
     free(state->vtx_type);
     free(state->op_string);
-
 }
