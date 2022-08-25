@@ -47,16 +47,14 @@ void loop_update(heisenberg_system *system, sse_state *state)
         state->loop_size++;
 
         double r = next_double();
-        int vtx_type = state->vtx[p];
-        int le;
-        for (le = 0; le < 4; le++) {
-            if (r <= state->vtx_type[vtx_type].prob_exit[li][le]) {
-                state->vtx[p] = state->vtx_type[vtx_type].new_vtx_type[li][le];
+        for (int le = 0; le < 4; le++) {
+            if (r <= state->vtx_type[state->vtx[p]].prob_exit[li][le]) {
+                state->vtx[p] = state->vtx_type[state->vtx[p]].new_vtx_type[li][le];
+                j = 4 * p + le;
                 break;
             }
         }
         
-        j = 4 * p + le;
         state->loop_size++;
         if (j == j0) { break; }
         
@@ -120,9 +118,7 @@ void init_heisenberg_system(int d, int L, double J, double delta, double h, doub
 
     system->spin = (int *) malloc(system->N * sizeof(int));
     system->bond = (int **) malloc(system->Nb * sizeof(int *));
-    for (int i = 0; i < system->Nb; i++) {
-        system->bond[i] = (int*) malloc(2 * sizeof(int));
-    }
+    for (int i = 0; i < system->Nb; i++) { system->bond[i] = (int*) malloc(2 * sizeof(int)); }
     if (d == 1) {
         for (int i = 0; i < L; i++) {
             system->bond[i][0] = i;
