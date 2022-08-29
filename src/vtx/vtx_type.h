@@ -11,7 +11,7 @@
 #define HEAT_BATH 1
 
 #define C ( 0.25 * delta + hb )
-#define hb ( 0.5 * h / J )
+#define hb ( 0.25 * h / J )
 
 /* vtx_type
     Information about each vertex type (1 - 6).
