@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 
+comparison_with_old_version
 main
 *.csv
 testing_python
