@@ -43,7 +43,6 @@ void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, doub
             (*beta_vals) = (double *) malloc((*len_beta) * sizeof(double));
             for (int i = 0; i < (*len_beta); i++) {
                 (*beta_vals)[i] = 1.0 / ((Tf - Ti) * (i + 1) / (*len_beta));
-                printf("%f \n", ((Tf - Ti) * (i + 1) / (*len_beta)));
             }
         }
     } else {
