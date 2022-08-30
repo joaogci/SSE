@@ -89,7 +89,7 @@ void simulate(int start_bin, int end_bin, int t_id)
 
 int main(int argc, char **argv)
 {
-    if (argc == 1) {
+    if (argc != 3) {
         printf("Please provide the input and outut file names for the program to work. \n");
         printf("Usage: ./%s n_threads input_name.txt output_name.csv", argv[0]);
         exit(1);
