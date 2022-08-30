@@ -7,8 +7,11 @@
 #include "sampling/sampling.h"
 #include "io/io.h"
 
-// #define SEED (u_int64_t) time(NULL)
+#ifndef TESTING
+#define SEED (u_int64_t) time(NULL)
+#else
 #define SEED (u_int64_t) 2
+#endif
 
 int d;
 int L;
