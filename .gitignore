@@ -8,6 +8,7 @@ testing_python
 results_olav
 some_results
 results
+src/vtx/tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
