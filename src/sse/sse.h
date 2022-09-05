@@ -15,7 +15,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define C ( 0.25 * delta + hb )
-#define hb ( 0.25 * h / J )
+#define hb ( h / (2 * d * J) )
 
 /* heisenberg_system
     Holds information about the simulated system.
