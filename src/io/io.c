@@ -4,11 +4,11 @@
 
 void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, double *h, double *epsilon, long *therm_cycles, long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
-    FILE *input_file;
     char buffer[BUFFER_SIZE];
     int count = 0;
     double Ti, Tf;
 
+    FILE *input_file;
     input_file = fopen(file_name, "r");
 
     if (input_file != NULL) {
@@ -53,10 +53,37 @@ void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, doub
     fclose(input_file);
 }
 
+void read_vtx_info(char *file_name, vtx_element **vtx) 
+{
+    FILE *vtx_file;
+    vtx_file = fopen(file_name, "r");
+
+    if (vtx_file != NULL) {
+        for (int i = 0; i < N_DIAGRAMS; i++) {
+            fscanf(vtx_file, "%d \n", &((*vtx)[i].indx));
+            fscanf(vtx_file, "%d \n", &((*vtx)[i].type));
+            fscanf(vtx_file, "%lf \n", &((*vtx)[i].H));
+            fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].spin[0]), &((*vtx)[i].spin[1]), &((*vtx)[i].spin[2]), &((*vtx)[i].spin[3]));
+            
+            for (int l = 0; l < N_LEGS; l++) {
+                fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].new_vtx_type[l][0]), &((*vtx)[i].new_vtx_type[l][1]), &((*vtx)[i].new_vtx_type[l][2]), &((*vtx)[i].new_vtx_type[l][3]));
+            }
+
+            for (int l = 0; l < N_LEGS; l++) {
+                fscanf(vtx_file, "%lf %lf %lf %lf \n", &((*vtx)[i].prob_exit[l][0]), &((*vtx)[i].prob_exit[l][1]), &((*vtx)[i].prob_exit[l][2]), &((*vtx)[i].prob_exit[l][3]));
+            }
+        }
+    } else {
+        printf("Error opening the %s file. \n", file_name);
+        exit(1);
+    }
+
+    fclose(vtx_file);
+}
+
 void write_outputs(char *file_name, sampled_quantities *samples) 
 {
     FILE *output_file;
-
     output_file = fopen(file_name, "w");
 
     if (output_file != NULL) {

@@ -135,7 +135,8 @@ void init_heisenberg_system(int d, int L, double J, double delta, double h, doub
 void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state) 
 {
     for (int i = 0; i < 4; i++) { s[i] = seed * (i + 1); }
-    state->vtx_type = create_vtx_type_list(system->J, system->delta, system->h, system->epsilon);
+    // state->vtx_type = create_vtx_type_list(system->J, system->delta, system->h, system->epsilon);
+    state->vtx_type = (vtx_element *) malloc(N_DIAGRAMS * sizeof(vtx_element));
 
     state->n = 0;
     state->M = MAX(4, system->N / 4);

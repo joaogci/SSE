@@ -30,13 +30,14 @@ int len_beta;
 
 sampled_quantities *samples;
 
-void simulate(int start_bin, int end_bin, int t_id)
+void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 {
     heisenberg_system *system = (heisenberg_system *) malloc(sizeof(heisenberg_system));
     sse_state *state = (sse_state *) malloc(sizeof(sse_state));
 
     init_heisenberg_system(d, L, J, delta, h, epsilon, system);
     init_sse_state(SEED * t_id, system, state);
+    read_vtx_info(vtx_file, &(state->vtx_type));
 
     for (int t_idx = 0; t_idx < len_beta; t_idx++) {
         clock_t start_clock = clock();
@@ -89,9 +90,9 @@ void simulate(int start_bin, int end_bin, int t_id)
 
 int main(int argc, char **argv)
 {
-    if (argc != 3) {
+    if (argc != 5) {
         printf("Please provide the input and outut file names for the program to work. \n");
-        printf("Usage: ./%s n_threads input_name.txt output_name.csv", argv[0]);
+        printf("Usage: %s n_threads input_name.txt vtx_name.txt output_name.csv", argv[0]);
         exit(1);
     }
     read_inputs(argv[2], &d, &L, &J, &delta, &h, &epsilon, &therm_cycles, &mc_cycles, &n_bins, &beta_vals, &len_beta);
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
         int start = (t_id * n_bins) / team_size;
         int end = ((t_id + 1) * n_bins) / team_size; 
 
-        simulate(start, end, t_id + 1);
+        simulate(start, end, t_id + 1, argv[3]);
     }
     clock_t end_clock = clock();
     double cpu_time_used = ((double) (end_clock - start_clock)) / CLOCKS_PER_SEC;
@@ -128,7 +129,7 @@ int main(int argc, char **argv)
     printf(" -- Writing simulation results to file -- \n");
 
     normalize(mc_cycles, samples, pow(L, d), J, delta, h, epsilon);
-    write_outputs(argv[3], samples);
+    write_outputs(argv[4], samples);
     
     printf(" -- Results written with success -- \n");
 

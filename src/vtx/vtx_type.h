@@ -6,13 +6,6 @@
 #define N_LEGS 4
 #define N_DIAGRAMS 6
 
-/* HEAT_BATH
-    If equals 1 use heat-bath algorithm, else use the directed loop algorithm. */
-#define HEAT_BATH 1
-
-#define C ( 0.25 * delta + hb )
-#define hb ( 0.25 * h / J )
-
 /* vtx_type
     Information about each vertex type (1 - 6).
     (int) indx - index of the vertex (1 - 6)
@@ -30,10 +23,5 @@ typedef struct vtx_type
     double prob_exit[N_LEGS][N_LEGS];
     double H;
 } vtx_element;
-
-vtx_element *create_vtx_type_list(double J, double delta, double h, double epsilon);
-
-void spin_leg(int spin[N_LEGS], int vtx_type);
-void new_vtx(int vtx[N_LEGS][N_LEGS], int vtx_type);
 
 #endif // VTX_TYPE_H
