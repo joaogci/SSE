@@ -208,7 +208,8 @@ for i in range(N_DIAGRAMS):
                     cum_prob += vtx[new_i]["H"] / denom
                     vtx[i]["transition_prob"][e, x] = cum_prob
 
-with open("tmp/vtx.txt", "w") as f:
+vtx_name = "vtx_J" + str(J) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
+with open("src/vtx/tmp/" + vtx_name, "w") as f:
     for i in range(N_DIAGRAMS):
         f.write(str(i) + "\n")
         f.write(str(vtx[i]["type"]) + "\n")
