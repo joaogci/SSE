@@ -209,6 +209,8 @@ for i in range(N_DIAGRAMS):
                     vtx[i]["transition_prob"][e, x] = cum_prob
 
 vtx_name = "vtx_J" + str(J) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
+print(vtx_name)
+
 with open("src/vtx/tmp/" + vtx_name, "w") as f:
     for i in range(N_DIAGRAMS):
         f.write(str(i) + "\n")
