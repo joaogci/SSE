@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 
-FILENAME = "input.txt"
+FILENAME = str(sys.argv[1])
 N_LEGS = 4
 N_DIAGRAMS = 6
 
