@@ -1,0 +1,11 @@
+# d, L, J, delta, h, epsilon
+1, 8, 1.0, 1.0, 0.0, 0.05
+
+# therm_cycles, mc_cycles, n_bins
+10000, 1000000, 10
+
+test_temps
+# len_beta
+10
+# temp_range
+0.05, 4.0
