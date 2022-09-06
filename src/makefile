@@ -9,5 +9,6 @@ $(PROGRAM): $(SOURCES) $(INCLUDES)
 
 test: $(SOURCES) $(INCLUDES)
 	gcc-12 -o $(PROGRAM) $(SOURCES) $(FLAGS) $(LIBS) -DTESTING
+
 clean: 
 	rm $(PROGRAM)

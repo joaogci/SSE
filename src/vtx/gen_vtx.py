@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 
 FILENAME = str(sys.argv[1])
 N_LEGS = 4
@@ -18,6 +19,12 @@ delta = float(line[3])
 h = float(line[4])
 epsilon = float(line[5])
 C = 0.25 * delta + h / (2 * d * J) + epsilon
+
+vtx_name = "vtx_J" + str(J) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
+print(vtx_name)
+
+if os.path.exists("src/vtx/tmp" + vtx_name):
+    exit(0)
 
 vtx = list()
 
@@ -207,9 +214,6 @@ for i in range(N_DIAGRAMS):
                 if vtx[new_i]["H"] != 0:
                     cum_prob += vtx[new_i]["H"] / denom
                     vtx[i]["transition_prob"][e, x] = cum_prob
-
-vtx_name = "vtx_J" + str(J) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
-print(vtx_name)
 
 with open("src/vtx/tmp/" + vtx_name, "w") as f:
     for i in range(N_DIAGRAMS):

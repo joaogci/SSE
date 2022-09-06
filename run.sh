@@ -29,7 +29,7 @@ while getopts ci:hn:o:t opts; do
         (i) input_name=$OPTARG;;
         (h) usage;;
         (n) n_threads=$OPTARG;;
-        (t) tesst="test";;
+        (t) test="test";;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
         (*) usage
     esac
