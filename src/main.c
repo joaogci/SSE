@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     printf("Simulation finished in %.5lfs \n", cpu_time_used / n_threads);
     printf(" -- Writing simulation results to file -- \n");
 
-    normalize(mc_cycles, samples, pow(L, d), J, delta, h, epsilon);
+    normalize(mc_cycles, samples, pow(L, d), d, J, delta, h, epsilon);
     write_outputs(argv[4], samples);
     
     printf(" -- Results written with success -- \n");
