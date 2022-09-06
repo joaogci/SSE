@@ -5,13 +5,13 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state)
     for (int p = 0; p < state->M; p++) {
         if (state->op_string[p] == 0) {
             int b = next() % system->Nb;
-            if (next_double() <= MIN(1.0, (system->Nb * beta * prob(b, system)) / (state->M - state->n))) {
+            if (next_double() <= (system->Nb * beta * prob(b, system)) / (state->M - state->n)) {
                 state->op_string[p] = 2 * (b + 1);
                 state->n++;
             }
         } else if (state->op_string[p] % 2 == 0) {
             int b = (state->op_string[p] / 2) - 1;
-            if (next_double() <= MIN(1.0, (state->M - state->n + 1) / (beta * system->Nb * prob(b, system)))) {
+            if (next_double() <= (state->M - state->n + 1) / (beta * system->Nb * prob(b, system))) {
                 state->op_string[p] = 0;
                 state->n--;
             }
