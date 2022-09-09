@@ -6,6 +6,7 @@ usage() {
 
 Usage               : $PROGNAME [-i <input_name>] [-h] [-n <n_threads>] [-o <output_name>] [-t]
 
+-b                  : Use Heat Bath for transition probabilities (slower method)
 -c                  : Clear vtx tmp directory.
 -i <input_name>     : Relative path + name of input file for simulation.
 -h                  : Help. Shows this text.
@@ -22,9 +23,11 @@ output_name="output.csv"
 n_threads="4"
 test=""
 clear=0
+hb=0
 
-while getopts ci:hn:o:t opts; do
+while getopts bci:hn:o:t opts; do
     case $opts in 
+        (b) hb=1;;
         (c) clear=1;;
         (i) input_name=$OPTARG;;
         (h) usage;;
@@ -52,7 +55,7 @@ fi
 echo " ------ "
 
 echo "Generating vertex information."
-vtx_name=$(python3 src/vtx/gen_vtx.py $input_name)
+vtx_name=$(python3 src/vtx/new_gen_vtx.py $input_name $hb)
 echo "Saved to file $vtx_name"
 echo " ------ "
 
