@@ -55,7 +55,7 @@ fi
 echo " ------ "
 
 echo "Generating vertex information."
-vtx_name=$(python3 src/vtx/new_gen_vtx.py $input_name $hb)
+vtx_name=$(python3 src/vtx/gen_vtx.py $input_name $hb)
 echo "Saved to file $vtx_name"
 echo " ------ "
 
