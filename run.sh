@@ -41,7 +41,7 @@ done
 if [ $clear -eq 1 ]; then 
     echo " ------ "
     echo "Cleaning tmp directory."
-    rm -r src/vtx/tmp
+    rm -r src/vtx/tmp/*
 fi
 
 echo " ------ "
