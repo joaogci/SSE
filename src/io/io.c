@@ -53,13 +53,16 @@ void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, doub
     fclose(input_file);
 }
 
-void read_vtx_info(char *file_name, vtx_element **vtx) 
+void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams) 
 {
     FILE *vtx_file;
     vtx_file = fopen(file_name, "r");
 
     if (vtx_file != NULL) {
-        for (int i = 0; i < N_DIAGRAMS; i++) {
+        fscanf(vtx_file, "%d \n", n_diagrams);
+        (*vtx) = (vtx_element *) malloc((*n_diagrams) * sizeof(vtx_element));
+
+        for (int i = 0; i < (*n_diagrams); i++) {
             fscanf(vtx_file, "%d \n", &((*vtx)[i].indx));
             fscanf(vtx_file, "%d \n", &((*vtx)[i].type));
             fscanf(vtx_file, "%lf \n", &((*vtx)[i].H));

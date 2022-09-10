@@ -37,7 +37,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
     init_heisenberg_system(d, L, J, delta, h, epsilon, system);
     init_sse_state(SEED * t_id, system, state);
-    read_vtx_info(vtx_file, &(state->vtx_type));
+    read_vtx_info(vtx_file, &(state->vtx_type), &(state->n_diagrams));
 
     for (int t_idx = 0; t_idx < len_beta; t_idx++) {
         clock_t start_clock = clock();

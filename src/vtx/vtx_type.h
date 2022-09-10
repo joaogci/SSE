@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #define N_LEGS 4
-#define N_DIAGRAMS 6
 
 /* vtx_type
     Information about each vertex type (1 - 6).

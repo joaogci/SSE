@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import N_TOKENS
 import numpy as np
 import sys
 import os
@@ -125,8 +126,8 @@ for i in range(N_DIAGRAMS):
                 vtx[i]["new_vtx"][e, x] = new_i
 
 # Generate the transition probabilities
-# Heat Bath method (Solution A)
-if int(sys.argv[1]) == 1:
+if int(sys.argv[2]) == 1:
+    # Heat Bath method (Solution A)
     for i in range(N_DIAGRAMS):
         for e in range(N_LEGS):
             cum_prob = 0.0
@@ -150,9 +151,9 @@ else:
         A = np.zeros((N_LEGS, N_LEGS))
         b = np.zeros(N_LEGS)
         indx = vtx[i]["new_vtx"][0, :]
-
+        
         for e in range(N_LEGS):
-            b[e] = vtx[e]["H"] if indx[e] != -1 else -1
+            b[e] = vtx[indx[e]]["H"] if indx[e] != -1 else -1
         z = np.where(b == -1)[0][0]
         A[z, :] = -1
         A[:, z] = -1
@@ -173,12 +174,13 @@ else:
             
             A[key[1], key[0]] = b[key[1]]
             A[key[2], key[0]] = b[key[2]]
-    
+
         for e in range(N_LEGS):
             for x in range(N_LEGS):
                 if A[e, x] > 0.0:
-                    vtx[i]["prob"][e, x] = A[e, x] / b[e]
+                    vtx[indx[e]]["prob"][e, x] = A[e, x] / b[e]
 
+    for i in range(N_DIAGRAMS):
         for e in range(N_LEGS):
             cum_prob = 0.0
             for x in range(N_LEGS):
@@ -187,6 +189,9 @@ else:
                     vtx[i]["prob"][e, x] = cum_prob
 
 with open("src/vtx/tmp/" + vtx_name, "w") as f:
+    f.write(str(N_DIAGRAMS) + "\n")
+    f.write("\n")
+    
     for i in range(N_DIAGRAMS):
         f.write(str(i) + "\n")
         f.write(str(vtx[i]["type"]) + "\n")
