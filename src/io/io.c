@@ -128,3 +128,47 @@ void write_outputs(char *file_name, sampled_quantities *samples)
     fclose(output_file);
 }
 
+#ifdef M_AUTOCORRELATION 
+    void write_autocorrelation(char *file_name, autocorrelation *corr_series) 
+    {
+        FILE *output_file;
+        output_file = fopen(file_name, "w");
+
+        if (output_file != NULL) {
+            for (int t_idx = 0; t_idx < corr_series->betas; t_idx++) {
+                fprintf(output_file, "%lf\n", corr_series->beta_vals[t_idx]);
+
+                for (int n = 0; n < corr_series->n_bins; n++) {
+                    fprintf(output_file, "%d\n", n);
+
+                    long t;
+                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
+                        fprintf(output_file, "%lf,", corr_series->n_series[t_idx][n][t]);
+                    }
+                    fprintf(output_file, "%lf\n", corr_series->n_series[t_idx][n][t]);
+
+                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
+                        fprintf(output_file, "%lf,", corr_series->E_series[t_idx][n][t]);
+                    }
+                    fprintf(output_file, "%lf\n", corr_series->E_series[t_idx][n][t]);
+
+                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
+                        fprintf(output_file, "%lf,", corr_series->m_series[t_idx][n][t]);
+                    }
+                    fprintf(output_file, "%lf\n", corr_series->m_series[t_idx][n][t]);
+
+                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
+                        fprintf(output_file, "%lf,", corr_series->ms_series[t_idx][n][t]);
+                    }
+                    fprintf(output_file, "%lf\n", corr_series->ms_series[t_idx][n][t]);
+                }
+                fprintf(output_file, "\n");
+            }
+        } else {
+            printf("Error in opening the %s file. \n", file_name);
+            exit(1);
+        }
+
+        fclose(output_file);
+    }
+#endif

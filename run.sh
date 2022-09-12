@@ -4,7 +4,7 @@ PROGNAME=$0
 usage() {
     cat << EOF >&2
 
-Usage               : $PROGNAME [-b] [-i <input_name>] [-h] [-n <n_threads>] [-o <output_name>] [-t]
+Usage               : $PROGNAME [-b] [-i <input_name>] [-h] [-n <n_threads>] [-o <output_name>] [-s <series_name>] [-t]
 
 -b                  : Use Heat Bath for transition probabilities (slower method)
 -c                  : Clear vtx tmp directory.
@@ -12,6 +12,7 @@ Usage               : $PROGNAME [-b] [-i <input_name>] [-h] [-n <n_threads>] [-o
 -h                  : Help. Shows this text.
 -n <n_threads>      : Set number of threads for openMP.
 -o <output_name>    : Relative path + name of output file for simulation. csv file is more convinient.
+-s <series_name>    : Relative path + name of correlation series file for simluation. csv is more convinient.
 -t                  : Test mode.
 
 EOF
@@ -20,12 +21,13 @@ EOF
 
 input_name="input.txt"
 output_name="output.csv"
+series_name=""
 n_threads="4"
 test=""
 clear=0
 hb=0
 
-while getopts bci:hn:o:t opts; do
+while getopts bci:hn:o:s:t opts; do
     case $opts in 
         (b) hb=1;;
         (c) clear=1;;
@@ -33,6 +35,7 @@ while getopts bci:hn:o:t opts; do
         (h) usage;;
         (n) n_threads=$OPTARG;;
         (o) output_name=$OPTARG;;
+        (s) series_name=$OPTARG; series="series";;
         (t) test="test";;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
         (*) usage
@@ -62,12 +65,16 @@ echo " ------ "
 
 echo "Compiling program."
 cd src
-make $test
+if [[ "$series" == "series" ]]; then
+    make $series
+else
+    make $test
+fi
 echo " ------ "
 
 echo "Running the simulation."
 echo
-./main $n_threads ../$input_name vtx/tmp/$vtx_name ../$output_name 
+./main $n_threads ../$input_name vtx/tmp/$vtx_name ../$output_name ../$series_name 
 
 
 

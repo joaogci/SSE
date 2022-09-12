@@ -10,5 +10,8 @@ $(PROGRAM): $(SOURCES) $(INCLUDES)
 test: $(SOURCES) $(INCLUDES)
 	gcc-12 -o $(PROGRAM) $(SOURCES) $(FLAGS) $(LIBS) -DTESTING
 
+series: $(SOURCES) $(INCLUDEs) sampling/autocorrelation.h sampling/autocorrelation.c
+	gcc-12 -o $(PROGRAM) $(SOURCES) sampling/autocorrelation.c $(FLAGS) $(LIBS) -DM_AUTOCORRELATION
+
 clean: 
 	rm $(PROGRAM)

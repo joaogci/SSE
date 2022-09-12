@@ -7,6 +7,10 @@
 #include "sampling/sampling.h"
 #include "io/io.h"
 
+#ifdef M_AUTOCORRELATION
+    #include "sampling/autocorrelation.h"
+#endif
+
 #ifndef TESTING
 #define SEED (u_int64_t) time(NULL)
 #else
@@ -29,6 +33,9 @@ double *beta_vals;
 int len_beta;
 
 sampled_quantities *samples;
+#ifdef M_AUTOCORRELATION
+    autocorrelation *corr_series;
+#endif
 
 void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 {
@@ -66,6 +73,9 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                 }
 
                 sample(n, t_idx, system, state, samples);
+                #ifdef M_AUTOCORRELATION
+                    measure_autocorrelation(t_idx, n, t, system, state, corr_series);
+                #endif
             }
         }
 
@@ -90,16 +100,27 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
 int main(int argc, char **argv)
 {
-    if (argc != 5) {
-        printf("Please provide the input and outut file names for the program to work. \n");
-        printf("Usage: %s n_threads input_name.txt vtx_name.txt output_name.csv", argv[0]);
-        exit(1);
+    if (argc < 5) {
+        #ifndef M_AUTOCORRELATION
+                printf("Please provide the input and outut file names for the program to work. \n");
+                printf("Usage: %s n_threads input_name.txt vtx_name.txt output_name.csv", argv[0]);
+                exit(1);
+        #else 
+                printf("Please provide the input, outut and correlation series file names for the program to work. \n");
+                printf("Usage: %s n_threads input_name.txt vtx_name.txt output_name.csv corr_name.csv", argv[0]);
+                exit(1);
+        #endif
     }
+
     read_inputs(argv[2], &d, &L, &J, &delta, &h, &epsilon, &therm_cycles, &mc_cycles, &n_bins, &beta_vals, &len_beta);
     n_threads = atoi(argv[1]);
 
     samples = (sampled_quantities *) malloc(sizeof(sampled_quantities));
     init_samples(beta_vals, len_beta, n_bins, samples);
+    #ifdef M_AUTOCORRELATION
+        corr_series = (autocorrelation *) malloc(sizeof(autocorrelation));
+        init_autocorrelation(beta_vals, len_beta, mc_cycles, n_bins, corr_series);
+    #endif
 
     omp_set_num_threads(n_threads);
 
@@ -107,6 +128,9 @@ int main(int argc, char **argv)
     printf(" -- Starting SSE simulation of the Heisenberg model -- \n");
     printf("   d: %d | L: %d | J: %.2lf | delta: %.2lf | h: %.2lf | epsilon: %.2lf \n", d, L, J, delta, h, epsilon);
     printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", n_threads, therm_cycles, mc_cycles, n_bins);
+    #ifdef M_AUTOCORRELATION
+        printf("    Measuring time series \n");
+    #endif
     printf("   Simulation started at: %s ", ctime(&t));
     printf("\n");
 
@@ -133,8 +157,17 @@ int main(int argc, char **argv)
     
     printf(" -- Results written with success -- \n");
 
+    #ifdef M_AUTOCORRELATION
+        write_autocorrelation(argv[5], corr_series);
+        printf(" -- Correlation series written with success -- \n");
+    #endif    
+
     free_samples(samples);
     free(samples);
+    #ifdef M_AUTOCORRELATION
+        free_autocorrelation(corr_series);
+        free(corr_series);
+    #endif
 
     return 0;
 }
