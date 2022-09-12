@@ -4,7 +4,7 @@ PROGNAME=$0
 usage() {
     cat << EOF >&2
 
-Usage               : $PROGNAME [-i <input_name>] [-h] [-n <n_threads>] [-o <output_name>] [-t]
+Usage               : $PROGNAME [-b] [-i <input_name>] [-h] [-n <n_threads>] [-o <output_name>] [-t]
 
 -b                  : Use Heat Bath for transition probabilities (slower method)
 -c                  : Clear vtx tmp directory.
@@ -32,6 +32,7 @@ while getopts bci:hn:o:t opts; do
         (i) input_name=$OPTARG;;
         (h) usage;;
         (n) n_threads=$OPTARG;;
+        (o) output_name=$OPTARG;;
         (t) test="test";;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
         (*) usage
