@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 
+isotropic_zero_field
 comparison_with_old_version
 main
 *.csv
