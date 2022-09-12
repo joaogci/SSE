@@ -8,10 +8,10 @@ Usage               : $PROGNAME [-b] [-i <input_name>] [-h] [-n <n_threads>] [-o
 
 -b                  : Use Heat Bath for transition probabilities (slower method)
 -c                  : Clear vtx tmp directory.
--i <input_name>     : Relative path + name of input file for simulation.
+-i <input_name>     : Relative path + name of input file for simulation. Default value: "input.txt"
 -h                  : Help. Shows this text.
--n <n_threads>      : Set number of threads for openMP.
--o <output_name>    : Relative path + name of output file for simulation. csv file is more convinient.
+-n <n_threads>      : Set number of threads for openMP. Default value: "4"
+-o <output_name>    : Relative path + name of output file for simulation. csv file is more convinient. Default value: "output.csv"
 -s <series_name>    : Relative path + name of correlation series file for simluation. csv is more convinient.
 -t                  : Test mode.
 
