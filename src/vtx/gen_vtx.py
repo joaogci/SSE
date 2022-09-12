@@ -26,9 +26,6 @@ C = 0.25 * delta + hb + epsilon
 vtx_name = "vtx_J" + str(J) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
 print(vtx_name)
 
-if os.path.exists("src/vtx/tmp" + vtx_name):
-    exit(0)
-
 def Sp(state):
     if state[1] < state[0]:
         return 1.0
