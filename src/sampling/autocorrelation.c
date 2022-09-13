@@ -1,6 +1,6 @@
 #include "autocorrelation.h"
 
-void measure_autocorrelation(int t_idx, int n, int t, heisenberg_system *system, sse_state *state, autocorrelation *corr_series) 
+void measure_autocorrelation(int t_idx, int t, heisenberg_system *system, sse_state *state, autocorrelation *corr_series) 
 {
     double m = 0.0;
     double ms = 0.0;
@@ -26,53 +26,39 @@ void measure_autocorrelation(int t_idx, int n, int t, heisenberg_system *system,
     m /= system->N;
     ms /= (norm * system->N);
 
-    corr_series->n_series[t_idx][n][t] = state->n;
-    corr_series->E_series[t_idx][n][t] = - state->n / (corr_series->beta_vals[t_idx] * system->N) + system->J * (0.25 * system->delta + system->h / (2 * system->d * system->J)) + system->epsilon;
-    corr_series->m_series[t_idx][n][t] = m;
-    corr_series->ms_series[t_idx][n][t] = ms;
+    corr_series->n_series[t_idx][t] = state->n;
+    corr_series->E_series[t_idx][t] = - state->n / (corr_series->beta_vals[t_idx] * system->N) + system->J * (0.25 * system->delta + system->h / (2 * system->d * system->J)) + system->epsilon;
+    corr_series->m_series[t_idx][t] = m;
+    corr_series->ms_series[t_idx][t] = ms;
 }
 
-void init_autocorrelation(double *beta_vals, int len_beta, long mc_cycles, int n_bins, autocorrelation *corr_series)
+void init_autocorrelation(double *beta_vals, int len_beta, long mc_cycles, long therm_cycles, autocorrelation *corr_series)
 {
-    corr_series->n_bins = n_bins;
     corr_series->mc_cycles = mc_cycles;
+    corr_series->therm_cycles = therm_cycles;
     corr_series->beta_vals = beta_vals;
     corr_series->betas = len_beta;
 
-    corr_series->n_series = (double ***) malloc(len_beta * sizeof(double **));
-    corr_series->E_series = (double ***) malloc(len_beta * sizeof(double **));
-    corr_series->m_series = (double ***) malloc(len_beta * sizeof(double **));
-    corr_series->ms_series = (double ***) malloc(len_beta * sizeof(double **));
+    corr_series->n_series = (double **) malloc(len_beta * sizeof(double *));
+    corr_series->E_series = (double **) malloc(len_beta * sizeof(double *));
+    corr_series->m_series = (double **) malloc(len_beta * sizeof(double *));
+    corr_series->ms_series = (double **) malloc(len_beta * sizeof(double *));
     for (int i = 0; i < len_beta; i++) {
-        corr_series->n_series[i] = (double **) malloc(n_bins * sizeof(double *));
-        corr_series->E_series[i] = (double **) malloc(n_bins * sizeof(double *));
-        corr_series->m_series[i] = (double **) malloc(n_bins * sizeof(double *));
-        corr_series->ms_series[i] = (double **) malloc(n_bins * sizeof(double *));
+        corr_series->n_series[i] = (double *) malloc((mc_cycles + therm_cycles) * sizeof(double));
+        corr_series->E_series[i] = (double *) malloc((mc_cycles + therm_cycles) * sizeof(double));
+        corr_series->m_series[i] = (double *) malloc((mc_cycles + therm_cycles) * sizeof(double));
+        corr_series->ms_series[i] = (double *) malloc((mc_cycles + therm_cycles) * sizeof(double));
 
-        for (int j = 0; j < n_bins; j++) {
-            corr_series->n_series[i][j] = (double *) malloc(mc_cycles / n_bins * sizeof(double));
-            corr_series->E_series[i][j] = (double *) malloc(mc_cycles / n_bins * sizeof(double));
-            corr_series->m_series[i][j] = (double *) malloc(mc_cycles / n_bins * sizeof(double));
-            corr_series->ms_series[i][j] = (double *) malloc(mc_cycles / n_bins * sizeof(double));
-
-            memset(corr_series->n_series[i][j], 0.0, mc_cycles / n_bins * sizeof(double));
-            memset(corr_series->E_series[i][j], 0.0, mc_cycles / n_bins * sizeof(double));
-            memset(corr_series->m_series[i][j], 0.0, mc_cycles / n_bins * sizeof(double));
-            memset(corr_series->ms_series[i][j], 0.0, mc_cycles / n_bins * sizeof(double));
-        }
+        memset(corr_series->n_series[i], 0.0, (mc_cycles + therm_cycles) * sizeof(double));
+        memset(corr_series->E_series[i], 0.0, (mc_cycles + therm_cycles) * sizeof(double));
+        memset(corr_series->m_series[i], 0.0, (mc_cycles + therm_cycles) * sizeof(double));
+        memset(corr_series->ms_series[i], 0.0, (mc_cycles + therm_cycles) * sizeof(double));
     }
 }
 
 void free_autocorrelation(autocorrelation *corr_series)
 {
     for (int i = 0; i < corr_series->betas; i++) {
-        for (int j = 0; j < corr_series->n_bins; j++) {
-            free(corr_series->n_series[i][j]);
-            free(corr_series->E_series[i][j]);
-            free(corr_series->m_series[i][j]);
-            free(corr_series->ms_series[i][j]);
-        }
-
         free(corr_series->n_series[i]);
         free(corr_series->E_series[i]);
         free(corr_series->m_series[i]);

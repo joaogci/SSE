@@ -135,33 +135,33 @@ void write_outputs(char *file_name, sampled_quantities *samples)
         output_file = fopen(file_name, "w");
 
         if (output_file != NULL) {
+            fprintf(output_file, "%ld %ld\n", corr_series->therm_cycles, corr_series->mc_cycles);
+            fprintf(output_file, "\n");
+
             for (int t_idx = 0; t_idx < corr_series->betas; t_idx++) {
                 fprintf(output_file, "%lf\n", corr_series->beta_vals[t_idx]);
 
-                for (int n = 0; n < corr_series->n_bins; n++) {
-                    fprintf(output_file, "%d\n", n);
-
-                    long t;
-                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
-                        fprintf(output_file, "%lf,", corr_series->n_series[t_idx][n][t]);
-                    }
-                    fprintf(output_file, "%lf\n", corr_series->n_series[t_idx][n][t]);
-
-                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
-                        fprintf(output_file, "%lf,", corr_series->E_series[t_idx][n][t]);
-                    }
-                    fprintf(output_file, "%lf\n", corr_series->E_series[t_idx][n][t]);
-
-                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
-                        fprintf(output_file, "%lf,", corr_series->m_series[t_idx][n][t]);
-                    }
-                    fprintf(output_file, "%lf\n", corr_series->m_series[t_idx][n][t]);
-
-                    for (t = 0; t < corr_series->mc_cycles / corr_series->n_bins - 1; t++) {
-                        fprintf(output_file, "%lf,", corr_series->ms_series[t_idx][n][t]);
-                    }
-                    fprintf(output_file, "%lf\n", corr_series->ms_series[t_idx][n][t]);
+                long t;
+                for (t = 0; t < corr_series->mc_cycles + corr_series->therm_cycles - 1; t++) {
+                    fprintf(output_file, "%lf,", corr_series->n_series[t_idx][t]);
                 }
+                fprintf(output_file, "%lf\n", corr_series->n_series[t_idx][t]);
+
+                for (t = 0; t < corr_series->mc_cycles + corr_series->therm_cycles - 1; t++) {
+                    fprintf(output_file, "%lf,", corr_series->E_series[t_idx][t]);
+                }
+                fprintf(output_file, "%lf\n", corr_series->E_series[t_idx][t]);
+
+                for (t = 0; t < corr_series->mc_cycles + corr_series->therm_cycles - 1; t++) {
+                    fprintf(output_file, "%lf,", corr_series->m_series[t_idx][t]);
+                }
+                fprintf(output_file, "%lf\n", corr_series->m_series[t_idx][t]);
+
+                for (t = 0; t < corr_series->mc_cycles + corr_series->therm_cycles - 1; t++) {
+                    fprintf(output_file, "%lf,", corr_series->ms_series[t_idx][t]);
+                }
+                fprintf(output_file, "%lf\n", corr_series->ms_series[t_idx][t]);
+                
                 fprintf(output_file, "\n");
             }
         } else {
