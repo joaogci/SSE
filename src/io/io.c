@@ -135,7 +135,7 @@ void write_outputs(char *file_name, sampled_quantities *samples)
         output_file = fopen(file_name, "w");
 
         if (output_file != NULL) {
-            fprintf(output_file, "%ld %ld\n", corr_series->therm_cycles, corr_series->mc_cycles);
+            fprintf(output_file, "%ld,%ld\n", corr_series->therm_cycles, corr_series->mc_cycles);
             fprintf(output_file, "\n");
 
             for (int t_idx = 0; t_idx < corr_series->betas; t_idx++) {
