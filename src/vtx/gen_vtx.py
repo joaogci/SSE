@@ -1,7 +1,5 @@
-from lib2to3.pgen2.token import N_TOKENS
 import numpy as np
 import sys
-import os
 from itertools import product
 
 FILENAME = str(sys.argv[1])
