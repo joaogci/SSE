@@ -126,8 +126,8 @@ int main(int argc, char **argv)
     }
 
     #ifdef M_AUTOCORRELATION
-        if (n_threads != 1) {
-            printf("Please only use one thread. \n");
+        if (n_threads != 1 && n_bins != 1) {
+            printf("Please only use one thread and one bin.\n");
             exit(1);
         }
 
