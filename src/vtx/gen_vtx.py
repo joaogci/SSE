@@ -143,37 +143,38 @@ if int(sys.argv[2]) == 1:
 else:
     # General method (Solution B)
     for i in range(N_DIAGRAMS):
-        A = np.zeros((N_LEGS, N_LEGS))
-        b = np.zeros(N_LEGS)
-        indx = vtx[i]["new_vtx"][0, :]
-        
-        for e in range(N_LEGS):
-            b[e] = vtx[indx[e]]["H"] if indx[e] != -1 else -1
-        z = np.where(b == -1)[0][0]
-        A[z, :] = -1
-        A[:, z] = -1
-        
-        key = np.argsort(-b)
-        if b[key[0]] <= b[key[1]] + b[key[2]]:
-            A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]]) / 2
-            A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]]) / 2
-            A[key[1], key[2]] = (- b[key[0]] + b[key[1]] + b[key[2]]) / 2
+        for ent in range(N_LEGS):
+            A = np.zeros((N_LEGS, N_LEGS))
+            b = np.zeros(N_LEGS)
+            indx = vtx[i]["new_vtx"][ent, :]
             
-            A[key[1], key[0]] = (b[key[0]] + b[key[1]] - b[key[2]]) / 2
-            A[key[2], key[0]] = (b[key[0]] - b[key[1]] + b[key[2]]) / 2
-            A[key[2], key[1]] = (- b[key[0]] + b[key[1]] + b[key[2]]) / 2
-        else:
-            A[key[0], key[0]] = b[key[0]] - b[key[1]] - b[key[2]]
-            A[key[0], key[1]] = b[key[1]]
-            A[key[0], key[2]] = b[key[2]]
+            for e in range(N_LEGS):
+                b[e] = vtx[indx[e]]["H"] if indx[e] != -1 else -1
+            z = np.where(b == -1)[0][0]
+            A[z, :] = -1
+            A[:, z] = -1
             
-            A[key[1], key[0]] = b[key[1]]
-            A[key[2], key[0]] = b[key[2]]
+            key = np.argsort(-b)
+            if b[key[0]] <= b[key[1]] + b[key[2]]:
+                A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]]) / 2
+                A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]]) / 2
+                A[key[1], key[2]] = (- b[key[0]] + b[key[1]] + b[key[2]]) / 2
+                
+                A[key[1], key[0]] = (b[key[0]] + b[key[1]] - b[key[2]]) / 2
+                A[key[2], key[0]] = (b[key[0]] - b[key[1]] + b[key[2]]) / 2
+                A[key[2], key[1]] = (- b[key[0]] + b[key[1]] + b[key[2]]) / 2
+            else:
+                A[key[0], key[0]] = b[key[0]] - b[key[1]] - b[key[2]]
+                A[key[0], key[1]] = b[key[1]]
+                A[key[0], key[2]] = b[key[2]]
+                
+                A[key[1], key[0]] = b[key[1]]
+                A[key[2], key[0]] = b[key[2]]
 
-        for e in range(N_LEGS):
-            for x in range(N_LEGS):
-                if A[e, x] > 0.0:
-                    vtx[indx[e]]["prob"][e, x] = A[e, x] / b[e]
+            for e in range(N_LEGS):
+                for x in range(N_LEGS):
+                    if A[e, x] > 0.0:
+                        vtx[indx[e]]["prob"][e, x] = A[e, x] / b[e]
 
     for i in range(N_DIAGRAMS):
         for e in range(N_LEGS):
