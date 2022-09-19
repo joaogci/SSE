@@ -2,10 +2,14 @@
 
 Implementation of Stochastic Series Expansion (SSE) Monte Carlo method for the spin-1/2 XXZ model. This version uses the Directed Loops [1] method for the loop update.
 The Hamiltonian of the simulated system is given by
+
 $$ H = J \sum_{\langle i, j \rangle} \left[ \frac{1}{2} (S^+_i S^-_j + S^-_i S^+_j) + \Delta S^z_i S^z_j \right] - h \sum_i S^z_i $$
+
 where $ J $ is the coupling constant (if $ J > 0 $ the system is antiferromagnetic and if $J < 0$ the system is ferromagnetic), $\Delta$ is the magnetic anisotropy along the $ z $-direction and $h$ is an external magnetic field. 
 The SSE method is the power series expansion of the partition function 
+
 $$ Z = \text{Tr}\{e^{-\beta H}\} = \sum_{\alpha} \sum_{n=0}^{\infty} \frac{(-\beta)^n}{n!} \langle \alpha |H^n| \alpha \rangle $$
+
 where $\beta = 1 / T$.
 
 The implementation uses binnig for the estimation of the standard deviations of the sampled quantities. It is possible to run each bin in parallel mode, using openMP.
