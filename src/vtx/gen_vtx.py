@@ -184,7 +184,7 @@ else:
                     cum_prob += vtx[i]["prob"][e, x]
                     vtx[i]["prob"][e, x] = cum_prob
 
-with open("src/vtx/tmp/" + vtx_name, "w") as f:
+with open("tmp/" + vtx_name, "w") as f:
     f.write(str(N_DIAGRAMS) + "\n")
     f.write("\n")
     
