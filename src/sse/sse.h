@@ -14,7 +14,7 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#define C ( 0.25 * delta + hb )
+#define C ( 0.25 * fabs(delta) + hb )
 #define hb ( h / (2 * d * J) )
 
 /* heisenberg_system

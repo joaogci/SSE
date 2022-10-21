@@ -19,7 +19,7 @@ h = float(line[4])
 epsilon = float(line[5])
 
 hb = h / (2 * d * J)
-C = 0.25 * delta + hb + epsilon
+C = 0.25 * np.abs(delta) + hb + epsilon
 
 vtx_name = "vtx_J" + str(J) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
 print(vtx_name)
