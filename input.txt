@@ -1,5 +1,5 @@
-# d, L, J, delta, h, epsilon
-1, 8, 1.0, 1.0, 0.0, 0.05
+# d, L, S, delta, h, epsilon
+1, 8, 1/2, 1.0, 0.0, 0.05
 
 # therm_cycles, mc_cycles, n_bins
 10000, 1000000, 10
