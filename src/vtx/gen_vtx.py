@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from itertools import product
 
-SAVE_DIR = "./"
+SAVE_DIR = "tmp/"
 FILENAME = str(sys.argv[1])
 N_LEGS = 4
 
@@ -213,7 +213,7 @@ else:
                         vtx[i]["prob"][j][e, x] = cum_prob
 
 with open(SAVE_DIR + SAVE_FILENAME, "w") as f:
-    f.write(str(N_DIAGRAMS) + "\n")
+    f.write(str(N_DIAGRAMS) + " " + str(len(Sz)) + " " + str(N_LEGS) + "\n")
     f.write("\n")
     
     for i in range(N_DIAGRAMS):
