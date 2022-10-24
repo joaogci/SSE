@@ -90,7 +90,7 @@ vtx = list()
 # Select the valid vertices
 N_DIAGRAMS = 0
 for vertex in all_vertex_state:
-    term, allowed, vtx_type = H(vertex[0:2], vertex[2:])
+    term, allowed, vtx_type = H(vertex[2:], vertex[0:2])
 
     if allowed:
         allowed_vertex_state.append(list(vertex))
