@@ -17,10 +17,14 @@ typedef struct vtx_type
 {
     int indx;
     int type;
-    int spin[N_LEGS];
+    int *spin;
     int new_vtx_type[N_LEGS][N_LEGS];
     double prob_exit[N_LEGS][N_LEGS];
+    int ***new_vtx_type_;
+    double ***prob_exit_;
     double H;
 } vtx_element;
+
+void free_vtx_type(vtx_element* vtx_type, int n_legs, int n_updates);
 
 #endif // VTX_TYPE_H
