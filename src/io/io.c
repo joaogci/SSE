@@ -2,9 +2,10 @@
 
 #define BUFFER_SIZE 256
 
-void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, double *h, double *epsilon, long *therm_cycles, long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
+void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, double *h, double *epsilon, long *therm_cycles, long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
     char buffer[BUFFER_SIZE];
+    char S_eval[BUFFER_SIZE];
     int count = 0;
     double Ti, Tf;
 
@@ -23,7 +24,14 @@ void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, doub
             } else if (buffer[0] != '#' && buffer[0] != '\n') {
                 switch (count) {
                 case 0:
-                    sscanf(buffer, "%d, %d, %lf, %lf, %lf, %lf ", d, L, J, delta, h, epsilon);
+                    sscanf(buffer, "%d, %d, %s, %lf, %lf, %lf ", d, L, S_eval, delta, h, epsilon);
+                    for (int i = 0; i < sizeof(S_eval)/sizeof(S_eval[0]); i++) { 
+                        if (S_eval[i] == ',') {
+                            S_eval[i] = '\0'; 
+                            break;
+                        } 
+                    }
+                    (*S) = te_interp(S_eval, 0);
                     break;
                 case 1:
                     sscanf(buffer, "%ld, %ld, %d ", therm_cycles, mc_cycles, n_bins);
@@ -53,27 +61,41 @@ void read_inputs(char *file_name, int *d, int *L, double *J, double *delta, doub
     fclose(input_file);
 }
 
-void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams) 
+void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams, int *n_updates, int *n_legs) 
 {
     FILE *vtx_file;
     vtx_file = fopen(file_name, "r");
 
     if (vtx_file != NULL) {
-        fscanf(vtx_file, "%d \n", n_diagrams);
+        fscanf(vtx_file, "%d %d %d \n", n_diagrams, n_updates, n_legs);
         (*vtx) = (vtx_element *) malloc((*n_diagrams) * sizeof(vtx_element));
 
         for (int i = 0; i < (*n_diagrams); i++) {
+            (*vtx)[i].spin = (int *) malloc((*n_legs) * sizeof(int));
+            (*vtx)[i].new_vtx_type_ = (int ***) malloc((*n_updates) * sizeof(int**));
+            (*vtx)[i].prob_exit_ = (double ***) malloc((*n_updates) * sizeof(double**));
+            for (int j = 0; j < (*n_updates); j++) {
+                (*vtx)[i].new_vtx_type_[j] = (int **) malloc((*n_legs) * sizeof(int *));
+                (*vtx)[i].prob_exit_[j] = (double **) malloc((*n_legs) * sizeof(double *));
+                for (int l = 0; l < (*n_legs); l++) {
+                    (*vtx)[i].new_vtx_type_[j][l] = (int *) malloc((*n_legs) * sizeof(int));
+                    (*vtx)[i].prob_exit_[j][l] = (double *) malloc((*n_legs) * sizeof(double));
+                }
+            }
+
             fscanf(vtx_file, "%d \n", &((*vtx)[i].indx));
             fscanf(vtx_file, "%d \n", &((*vtx)[i].type));
             fscanf(vtx_file, "%lf \n", &((*vtx)[i].H));
             fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].spin[0]), &((*vtx)[i].spin[1]), &((*vtx)[i].spin[2]), &((*vtx)[i].spin[3]));
             
-            for (int l = 0; l < N_LEGS; l++) {
-                fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].new_vtx_type[l][0]), &((*vtx)[i].new_vtx_type[l][1]), &((*vtx)[i].new_vtx_type[l][2]), &((*vtx)[i].new_vtx_type[l][3]));
-            }
+            for (int j = 0; j < (*n_updates); j++) {
+                for (int l = 0; l < N_LEGS; l++) {
+                    fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].new_vtx_type_[j][l][0]), &((*vtx)[i].new_vtx_type_[j][l][1]), &((*vtx)[i].new_vtx_type_[j][l][2]), &((*vtx)[i].new_vtx_type_[j][l][3]));
+                }
 
-            for (int l = 0; l < N_LEGS; l++) {
-                fscanf(vtx_file, "%lf %lf %lf %lf \n", &((*vtx)[i].prob_exit[l][0]), &((*vtx)[i].prob_exit[l][1]), &((*vtx)[i].prob_exit[l][2]), &((*vtx)[i].prob_exit[l][3]));
+                for (int l = 0; l < N_LEGS; l++) {
+                    fscanf(vtx_file, "%lf %lf %lf %lf \n", &((*vtx)[i].prob_exit_[j][l][0]), &((*vtx)[i].prob_exit_[j][l][1]), &((*vtx)[i].prob_exit_[j][l][2]), &((*vtx)[i].prob_exit_[j][l][3]));
+                }
             }
         }
     } else {
