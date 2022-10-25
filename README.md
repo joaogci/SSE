@@ -5,7 +5,7 @@ The Hamiltonian of the simulated system is given by
 
 $$ H = J \sum_{\langle i, j \rangle} \left[ \frac{1}{2} (S^+_i S^-_j + S^-_i S^+_j) + \Delta S^z_i S^z_j \right] - h \sum_i S^z_i $$
 
-where $J$ is the coupling constant (if $J > 0$ the system is antiferromagnetic and if $J < 0$ the system is ferromagnetic), $\Delta$ is the magnetic anisotropy along the $z$-direction and $h$ is an external magnetic field. 
+where $J$ is the coupling constant, $\Delta$ is the magnetic anisotropy along the $z$-direction (if $J \Delta > 0$ the system is antiferromagnetic and if $J \Deta < 0$ the system is ferromagnetic) and $h$ is an external magnetic field. In the code, $J = 1$, then if $\Delta > 0$ the system is antiferromagnetic and if $\Delta $ the system is ferromagnetic. 
 The SSE method is the power series expansion of the partition function 
 
 $$ Z = \text{Tr}\{e^{-\beta H}\} = \sum_{\alpha} \sum_{n=0}^{\infty} \frac{(-\beta)^n}{n!} \langle \alpha |H^n| \alpha \rangle $$
@@ -31,8 +31,8 @@ $ pip3 install numpy
 
 To run a simulation you will need to use the `run.sh` script and an input file. This input file contains all of the information about the simulation and simualted system. This is the structure of the input file:
 ```
-# d, L, J, delta, h, epsilon
-1, 8, 1.0, 1.0, 0.0, 0.05
+# d, L, S, delta, h, epsilon
+1, 8, 1/2, 1.0, 0.0, 0.05
 
 # therm_cycles, mc_cycles, n_bins
 10000, 1000000, 10
@@ -43,7 +43,7 @@ To run a simulation you will need to use the `run.sh` script and an input file. 
 # temp_range
 0.05, 4.0
 ```
-The first line are the system parameters, `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `J`, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. It has to be a value larger or equal to 0. Simulations perform best for lower values of `epsilon`.
+The first line are the system parameters, `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S`, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. It has to be a value larger or equal to 0. Simulations perform best for lower values of `epsilon`.
 
 To use the test temperatures ( $\beta = \{0.5, 1.0, 2.0, 4.0, 8.0, 16.0\}$ ), you will need to "uncomment" the line  `test_tmps`. Else, you will have to specify how many temperature point (`len_beta`) you want to generate, equaly spaced, between the `temp_range` variables.
 
