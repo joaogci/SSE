@@ -1,7 +1,7 @@
-SOURCES = main.c sse/sse.c sampling/sampling.c io/io.c
+SOURCES = main.c sse/sse.c sampling/sampling.c io/io.c vtx/vtx_type.c
 INCLUDES = sse/sse.h sampling/sampling.h vtx/vtx_type.h rng/xorshiro256++.h io/io.h
-FLAGS = -fopenmp -O3 -Wall
-LIBS = -lm
+FLAGS = -fopenmp -O2
+LIBS = tinyexpr/tinyexpr.c -lm
 PROGRAM = main
 
 ifeq ($(OS),Windows_NT)
@@ -17,10 +17,10 @@ else
 endif
 
 $(PROGRAM): $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(SOURCES) $(FLAGS) $(LIBS)
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS)
 
 test: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(SOURCES) $(FLAGS) $(LIBS) -DTESTING
+	$(CC) -o $(PROGRAM) $(FLAGS) -Wall -Wshadow $(SOURCES) $(LIBS) -DTESTING
 
 series: $(SOURCES) $(INCLUDEs) sampling/autocorrelation.h sampling/autocorrelation.c
 	$(CC) -o $(PROGRAM) $(SOURCES) sampling/autocorrelation.c $(FLAGS) $(LIBS) -DM_AUTOCORRELATION
