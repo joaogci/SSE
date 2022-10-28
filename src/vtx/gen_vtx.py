@@ -15,12 +15,12 @@ d = int(line[0])
 L = int(line[1])
 N = L ** d
 
-S = float(eval(line[2]))
+S = float(eval(line[5]))
 Sz = [m for m in np.arange(- S, S + 1, 1)]
 
-delta = float(line[3])
-h = float(line[4])
-epsilon = float(line[5])
+delta = float(line[2])
+h = float(line[3])
+epsilon = float(line[4])
 
 hb = h / (2 * d)
 C = S**2 * np.abs(delta) + 2 * S * hb + epsilon
@@ -85,6 +85,8 @@ def H(state1, state2):
 all_vertex_state = list(product(Sz, repeat=N_LEGS))
 allowed_vertex_state = list()
 
+n_updates = 2 # +1 and -1 updates
+updates = [-1, +1]
 vtx = list()
 
 # Select the valid vertices
@@ -101,24 +103,21 @@ for vertex in all_vertex_state:
         vtx[N_DIAGRAMS]["spin"] = list(vertex)
         vtx[N_DIAGRAMS]["H"] = np.around(term, decimals=10)
         
-        vtx[N_DIAGRAMS]["new_vtx"] = list()
-        vtx[N_DIAGRAMS]["prob"] = list()
-        for j in range(len(Sz)):
-            vtx[N_DIAGRAMS]["new_vtx"].append(-1 + np.zeros((N_LEGS, N_LEGS), dtype=int))
-            vtx[N_DIAGRAMS]["prob"].append(np.zeros((N_LEGS, N_LEGS), dtype=float))
+        vtx[N_DIAGRAMS]["new_vtx"] = [-1 + np.zeros((N_LEGS, N_LEGS), dtype=int), -1 + np.zeros((N_LEGS, N_LEGS), dtype=int)]
+        vtx[N_DIAGRAMS]["prob"] = [np.zeros((N_LEGS, N_LEGS), dtype=float), np.zeros((N_LEGS, N_LEGS), dtype=float)]
         
         N_DIAGRAMS += 1
 
 # Create transition table
 for i in range(N_DIAGRAMS):
     for e in range(N_LEGS):
-        for j, m in enumerate(Sz):
-            if vtx[i]["spin"][e] == m:
+        for j, update in enumerate(updates):
+            if np.abs(vtx[i]["spin"][e] + update) > S:
                 continue
 
             for x in range(N_LEGS):
                 new_state = vtx[i]["spin"].copy()
-                new_state[e] = m
+                new_state[e] = vtx[i]["spin"][e] + update
                 
                 if e == x:
                     new_state[x] = vtx[i]["spin"][x]
@@ -138,7 +137,7 @@ for i in range(N_DIAGRAMS):
 if int(sys.argv[2]) == 1:
     # Heat Bath method (Solution A)
     for i in range(N_DIAGRAMS):
-        for j in range(len(vtx[i]["new_vtx"])):
+        for j in range(n_updates):
             for e in range(N_LEGS):
                 cum_prob = 0.0
                 for x in range(N_LEGS):
@@ -158,26 +157,26 @@ if int(sys.argv[2]) == 1:
 else:
     # General method (Solution B)
     for i in range(N_DIAGRAMS):
-        for j in range(len(vtx[i]["new_vtx"])):
+        for j in range(n_updates):
             for ent in range(N_LEGS):
                 A = np.zeros((N_LEGS, N_LEGS))
                 b = np.zeros(N_LEGS)
                 indx = vtx[i]["new_vtx"][j][ent, :]
                 
-                z = 0
                 for e in range(N_LEGS):
-                    b[e] = vtx[indx[e]]["H"] if indx[e] != -1 else 0.0
-                    z += 1 if indx[e] == -1 else 0
-                
+                    b[e] = vtx[indx[e]]["H"] if indx[e] != -1 else -1
+                z = np.where(b == -1)[0]
                 key = np.argsort(-b)
-                if z == 0:
-                    A[key[2], key[3]] = 1.0
-                    A[key[1], key[3]] = 0.0
-
-                    A[key[3], key[2]] = 1.0
-                    A[key[3], key[1]] = 0.0
+                b[z] = 0.0
                 
                 if b[key[0]] <= np.sum(b[key[1:]]):
+                    if len(z) == 0:
+                        A[key[2], key[3]] = 1.0
+                        A[key[1], key[3]] = 0.0
+
+                        A[key[3], key[2]] = 1.0
+                        A[key[3], key[1]] = 0.0
+                    
                     A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
                     A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
                     A[key[0], key[3]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
@@ -185,8 +184,8 @@ else:
 
                     A[key[1], key[0]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
                     A[key[2], key[0]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
-                    A[key[3], key[0]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
                     A[key[2], key[1]] = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0 - (A[key[2], key[3]] + A[key[1], key[3]])
+                    A[key[3], key[0]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
                 else:
                     A[key[0], key[0]] = b[key[0]] - b[key[1]] - b[key[2]] - b[key[3]]
 
@@ -202,9 +201,9 @@ else:
                     for x in range(N_LEGS):
                         if b[e] > 0.0:
                             vtx[indx[e]]["prob"][j][e, x] = A[e, x] / b[e]
-
+        
     for i in range(N_DIAGRAMS):
-        for j in range(len(vtx[i]["new_vtx"])):
+        for j in range(n_updates):
             for e in range(N_LEGS):
                 cum_prob = 0.0
                 for x in range(N_LEGS):
@@ -213,7 +212,7 @@ else:
                         vtx[i]["prob"][j][e, x] = cum_prob
 
 with open(SAVE_DIR + SAVE_FILENAME, "w") as f:
-    f.write(str(N_DIAGRAMS) + " " + str(len(Sz)) + " " + str(N_LEGS) + "\n")
+    f.write(str(N_DIAGRAMS) + " " + str(n_updates) + " " + str(N_LEGS) + "\n")
     f.write("\n")
     
     for i in range(N_DIAGRAMS):
@@ -225,7 +224,7 @@ with open(SAVE_DIR + SAVE_FILENAME, "w") as f:
             f.write(str(int(2 * vtx[i]["spin"][l])) + " ")
         f.write("\n")
         
-        for j in range(len(Sz)):
+        for j in range(n_updates):
             for e in range(N_LEGS):
                 for x in range(N_LEGS):
                     f.write(str(vtx[i]["new_vtx"][j][e, x]) + " ")
