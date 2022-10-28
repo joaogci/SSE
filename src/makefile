@@ -1,7 +1,7 @@
 SOURCES = main.c sse/sse.c sampling/sampling.c io/io.c vtx/vtx_type.c
 INCLUDES = sse/sse.h sampling/sampling.h vtx/vtx_type.h rng/xorshiro256++.h io/io.h
 FLAGS = -fopenmp -O2
-LIBS = tinyexpr/tinyexpr.c -lm
+LIBS = -lm
 PROGRAM = main
 
 ifeq ($(OS),Windows_NT)

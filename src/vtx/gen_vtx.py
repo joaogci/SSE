@@ -15,12 +15,12 @@ d = int(line[0])
 L = int(line[1])
 N = L ** d
 
-S = float(eval(line[5]))
+S = float(line[2])
 Sz = [m for m in np.arange(- S, S + 1, 1)]
 
-delta = float(line[2])
-h = float(line[3])
-epsilon = float(line[4])
+delta = float(line[3])
+h = float(line[4])
+epsilon = float(line[5])
 
 hb = h / (2 * d)
 C = S**2 * np.abs(delta) + 2 * S * hb + epsilon

@@ -5,7 +5,6 @@
 void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, double *h, double *epsilon, long *therm_cycles, long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
     char buffer[BUFFER_SIZE];
-    char S_eval[BUFFER_SIZE];
     int count = 0;
     double Ti, Tf;
 
@@ -24,14 +23,7 @@ void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, doub
             } else if (buffer[0] != '#' && buffer[0] != '\n') {
                 switch (count) {
                 case 0:
-                    sscanf(buffer, "%d, %d, %s, %lf, %lf, %lf ", d, L, S_eval, delta, h, epsilon);
-                    for (int i = 0; i < sizeof(S_eval)/sizeof(S_eval[0]); i++) { 
-                        if (S_eval[i] == ',') {
-                            S_eval[i] = '\0'; 
-                            break;
-                        } 
-                    }
-                    (*S) = te_interp(S_eval, 0);
+                    sscanf(buffer, "%d, %d, %lf, %lf, %lf, %lf", d, L, S, delta, h, epsilon);
                     break;
                 case 1:
                     sscanf(buffer, "%ld, %ld, %d ", therm_cycles, mc_cycles, n_bins);
