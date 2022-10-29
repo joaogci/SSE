@@ -15,7 +15,7 @@
 
 int d;
 int L;
-double J;
+double S;
 double delta;
 double h;
 double epsilon;
@@ -35,9 +35,10 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
     heisenberg_system *system = (heisenberg_system *) malloc(sizeof(heisenberg_system));
     sse_state *state = (sse_state *) malloc(sizeof(sse_state));
 
-    init_heisenberg_system(d, L, J, delta, h, epsilon, system);
+    init_heisenberg_system(d, L, S, delta, h, epsilon, system);
     init_sse_state(SEED * t_id, system, state);
-    read_vtx_info(vtx_file, &(state->vtx_type), &(state->n_diagrams));
+    read_vtx_info(vtx_file, &(state->vtx_type), &(state->n_diagrams), 
+        &(state->n_updates), &(state->n_legs));
 
     for (int t_idx = 0; t_idx < len_beta; t_idx++) {
         clock_t start_clock = clock();
@@ -47,7 +48,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
         for (long t = 0; t < therm_cycles; t++) {
             diag_update(beta, system, state);
-
+            
             create_vtx_list(system, state);
             for (int loop = 0; loop < state->n_loops; loop++) {
                 loop_update(system, state);
@@ -59,7 +60,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state);
-
+                
                 create_vtx_list(system, state);
                 for (int loop = 0; loop < state->n_loops; loop++) {
                     loop_update(system, state);
@@ -97,11 +98,13 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    read_inputs(argv[2], &d, &L, &J, &delta, &h, &epsilon, &therm_cycles, &mc_cycles, &n_bins, &beta_vals, &len_beta);
+    read_inputs(argv[2], &d, &L, &S, &delta, &h, &epsilon, &therm_cycles, 
+        &mc_cycles, &n_bins, &beta_vals, &len_beta);
     n_threads = atoi(argv[1]);
 
     if (n_bins < n_threads) {
-        printf("The number of bins (%d) should be equal or larger than the number of threads (%d).\n", n_bins, n_threads);
+        printf("The number of bins (%d) should be equal or larger than" 
+            " the number of threads (%d).\n", n_bins, n_threads);
         exit(1);
     }
 
@@ -112,8 +115,10 @@ int main(int argc, char **argv)
 
     time_t t = time(NULL);
     printf(" -- Starting SSE simulation of the Heisenberg model -- \n");
-    printf("   d: %d | L: %d | J: %.2lf | delta: %.2lf | h: %.2lf | epsilon: %.2lf \n", d, L, J, delta, h, epsilon);
-    printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", n_threads, therm_cycles, mc_cycles, n_bins);
+    printf("   d: %d | L: %d | S: %.1lf | delta: %.2lf | h: %.2lf | epsilon: %.2lf \n", 
+        d, L, S, delta, h, epsilon);
+    printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", 
+        n_threads, therm_cycles, mc_cycles, n_bins);
     printf("   Simulation started at: %s ", ctime(&t));
     printf("\n");
 
@@ -135,7 +140,7 @@ int main(int argc, char **argv)
     printf("Simulation finished in %.5lfs \n", cpu_time_used / n_threads);
     printf(" -- Writing simulation results to file -- \n");
 
-    normalize(mc_cycles, samples, pow(L, d), d, J, delta, h, epsilon);
+    normalize(mc_cycles, samples, pow(L, d), d, S, delta, h, epsilon);
     write_outputs(argv[4], samples);
     
     printf(" -- Results written with success -- \n");
