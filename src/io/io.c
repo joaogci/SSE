@@ -84,7 +84,8 @@ void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, doub
  */
 void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams) 
 {
-    int n_updates, n_legs;
+    int *n_updates = NULL;
+    int *n_legs = NULL;
     FILE *vtx_file;
     vtx_file = fopen(file_name, "r");
 
