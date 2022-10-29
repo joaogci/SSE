@@ -1,5 +1,16 @@
 #include "sampling.h"
 
+/* 
+ * function: sample 
+ *  samples the currect state in the simulation
+ * 
+ *  parameters:
+ *      (int) n: bin number
+ *      (int) t_idx: temperature index
+ *      (heisenberg_system *) system: system to sample from
+ *      (sse_state *) state: simulation state
+ *      (sampled_quantities *) samples: store the samples
+ */
 void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples) 
 {
     double m = 0.0;
@@ -24,10 +35,17 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     m4s += ms * ms * ms * ms;
 
     for (int p = 0; p < state->M; p++) {
-        if (state->op_string[p] % 2 == 1) {
-            int b = (state->op_string[p] / 2) - 1;
-            system->spin[system->bond[b][0]] = - system->spin[system->bond[b][0]];
-            system->spin[system->bond[b][1]] = - system->spin[system->bond[b][1]];
+        if (state->op_string[p] % 3 != 0) {
+            int b = (state->op_string[p] / 3) - 1;
+            int a = state->op_string[p] % 3;
+
+            if (a == 1) {
+                system->spin[system->bond[b][0]] += 2;
+                system->spin[system->bond[b][1]] += -2;
+            } else if (a == 2) {
+                system->spin[system->bond[b][0]] += -2;
+                system->spin[system->bond[b][1]] += 2;
+            }
 
             ms += 2 * pow(- 1.0, system->bond[b][0]) * system->spin[system->bond[b][0]];
         }
@@ -54,6 +72,20 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     samples->m4s_bins[t_idx][n] += m4s;
 }
 
+/* 
+ * function: normalize 
+ *  normalize the samples during the binning phase
+ * 
+ *  parameters:
+ *      (long) mc_cycles: MCS for sampling
+ *      (sampled_quantities *) samples: sampled quantities
+ *      (int) N: number of particles
+ *      (int) d: dimension of the system
+ *      (double) S: quantum spin number
+ *      (double) delta: anisotropy
+ *      (double) h: applied magnetic field
+ *      (double) epsilon: constant to the Hamiltonian
+ */
 void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double S, double delta, double h, double epsilon) 
 {
     for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
@@ -134,6 +166,16 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
     }
 }
 
+/* 
+ * function: init_samples
+ *  initializes and allocates memory for the samples quantities struct
+ * 
+ *  parameters:
+ *      (double *) beta_vals: array of the temperatures
+ *      (int) len_beta: number of temperatures
+ *      (int) n_bins: number of bins
+ *      (sampled_quantities *) samples: struct to inilialize 
+ */
 void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_quantities *samples) 
 {
     samples->bins = n_bins;
@@ -239,6 +281,13 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     memset(samples->binders_std, 0.0, len_beta * sizeof(double));
 }
 
+/*
+ * function: free_samples
+ *  frees the allocated memory in the sampled_quantities struct
+ * 
+ *  parameters:
+ *      (sampled_quantities *) samples: struct to free
+ */
 void free_samples(sampled_quantities *samples) 
 {
     for (int i = 0; i < samples->betas; i++) {
