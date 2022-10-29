@@ -2,6 +2,25 @@
 
 #define BUFFER_SIZE 256
 
+/*
+ * function: read_inputs
+ *  reads input file for the simulation and stores them in the 
+ * parameters of the function
+ *  
+ *  parameters:
+ *      (char *) file_name: file name
+ *      (int *) d: dimension
+ *      (int *) L: length of the system
+ *      (double *) S: spin quantum number
+ *      (double *) delta: anisotropy
+ *      (double *) h: applied magnetic field
+ *      (double *) epsilon: constant added to the Hamiltonian
+ *      (long *) therm_cycles: MCS for thermalization
+ *      (long *) mc_cycles: MCS for sampling
+ *      (int *) n_bins: number of sampling bins
+ *      (double **) beta_vals: array to store simulation temperatures
+ *      (int *) len_betas: number of temperatures 
+ */
 void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, double *h, double *epsilon, long *therm_cycles, long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
     char buffer[BUFFER_SIZE];
@@ -53,8 +72,19 @@ void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, doub
     fclose(input_file);
 }
 
-void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams, int *n_updates, int *n_legs) 
+/*
+ * function: read_vtx_info
+ *  reads vertex information for the simulation and 
+ * stores it in the parameters of the function
+ *  
+ *  parameters:
+ *      (char *) file_name: file name
+ *      (vtx_element **) d: dimension
+ *      (int *) n_diagrams: number of diagrams
+ */
+void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams) 
 {
+    int n_updates, n_legs;
     FILE *vtx_file;
     vtx_file = fopen(file_name, "r");
 
@@ -63,30 +93,18 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams, int *n_u
         (*vtx) = (vtx_element *) malloc((*n_diagrams) * sizeof(vtx_element));
 
         for (int i = 0; i < (*n_diagrams); i++) {
-            (*vtx)[i].spin = (int *) malloc((*n_legs) * sizeof(int));
-            (*vtx)[i].new_vtx_type_ = (int ***) malloc((*n_updates) * sizeof(int**));
-            (*vtx)[i].prob_exit_ = (double ***) malloc((*n_updates) * sizeof(double**));
-            for (int j = 0; j < (*n_updates); j++) {
-                (*vtx)[i].new_vtx_type_[j] = (int **) malloc((*n_legs) * sizeof(int *));
-                (*vtx)[i].prob_exit_[j] = (double **) malloc((*n_legs) * sizeof(double *));
-                for (int l = 0; l < (*n_legs); l++) {
-                    (*vtx)[i].new_vtx_type_[j][l] = (int *) malloc((*n_legs) * sizeof(int));
-                    (*vtx)[i].prob_exit_[j][l] = (double *) malloc((*n_legs) * sizeof(double));
-                }
-            }
-
             fscanf(vtx_file, "%d \n", &((*vtx)[i].indx));
             fscanf(vtx_file, "%d \n", &((*vtx)[i].type));
             fscanf(vtx_file, "%lf \n", &((*vtx)[i].H));
             fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].spin[0]), &((*vtx)[i].spin[1]), &((*vtx)[i].spin[2]), &((*vtx)[i].spin[3]));
             
-            for (int j = 0; j < (*n_updates); j++) {
+            for (int j = 0; j < N_UPDATES; j++) {
                 for (int l = 0; l < N_LEGS; l++) {
-                    fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].new_vtx_type_[j][l][0]), &((*vtx)[i].new_vtx_type_[j][l][1]), &((*vtx)[i].new_vtx_type_[j][l][2]), &((*vtx)[i].new_vtx_type_[j][l][3]));
+                    fscanf(vtx_file, "%d %d %d %d \n", &((*vtx)[i].new_vtx_type[j][l][0]), &((*vtx)[i].new_vtx_type[j][l][1]), &((*vtx)[i].new_vtx_type[j][l][2]), &((*vtx)[i].new_vtx_type[j][l][3]));
                 }
 
                 for (int l = 0; l < N_LEGS; l++) {
-                    fscanf(vtx_file, "%lf %lf %lf %lf \n", &((*vtx)[i].prob_exit_[j][l][0]), &((*vtx)[i].prob_exit_[j][l][1]), &((*vtx)[i].prob_exit_[j][l][2]), &((*vtx)[i].prob_exit_[j][l][3]));
+                    fscanf(vtx_file, "%lf %lf %lf %lf \n", &((*vtx)[i].prob_exit[j][l][0]), &((*vtx)[i].prob_exit[j][l][1]), &((*vtx)[i].prob_exit[j][l][2]), &((*vtx)[i].prob_exit[j][l][3]));
                 }
             }
         }
@@ -98,6 +116,15 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams, int *n_u
     fclose(vtx_file);
 }
 
+/*
+ * function: write_outputs
+ *  writes the simulation outputs to file
+ *  
+ *  parameters:
+ *      (char *) file_name: file name
+ *      (sampled_quantities *) samples: sampled quantities
+ * during the simulation
+ */
 void write_outputs(char *file_name, sampled_quantities *samples) 
 {
     FILE *output_file;
