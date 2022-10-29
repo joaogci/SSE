@@ -1,8 +1,8 @@
 # d, L, S, delta, h, epsilon
-1, 8, 1/2, 1.0, 0.0, 0.05
+1, 8, 0.5, 1.0, 0.0, 0.25
 
 # therm_cycles, mc_cycles, n_bins
-10000, 1000000, 10
+10000, 10000, 10
 
 test_temps
 # len_beta
