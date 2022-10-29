@@ -1,48 +1,105 @@
 #include "sse.h"
 
+/* 
+ * function: diag_update
+ *  diagonal update for the SSE MCS
+ *  inserts or removes a diagonal operator from the operator string
+ *   with some probablity
+ * 
+ *  paramters:
+ *      (double) beta: temperature
+ *      (heisenberg_system *) system: simulated system
+ *      (sse_state *) state: SSE state
+ */
 void diag_update(double beta, heisenberg_system *system, sse_state *state) 
 {
     for (int p = 0; p < state->M; p++) {
         if (state->op_string[p] == 0) {
+            // no operator -> insert
+
             int b = next() % system->Nb;
-            if (next_double() <= (system->Nb * beta * prob(b, system)) / (state->M - state->n)) {
-                state->op_string[p] = 2 * (b + 1);
+            if (next_double() <= (system->Nb * beta * prob(b, system, state)) / (state->M - state->n)) {
+                state->op_string[p] = 3 * (b + 1);
                 state->n++;
             }
-        } else if (state->op_string[p] % 2 == 0) {
-            int b = (state->op_string[p] / 2) - 1;
-            if (next_double() <= (state->M - state->n + 1) / (beta * system->Nb * prob(b, system))) {
+        } else if (state->op_string[p] % 3 == 0) {
+            // diagonal operator -> remove
+
+            int b = (state->op_string[p] / 3) - 1;
+            if (next_double() <= (state->M - state->n + 1) / (beta * system->Nb * prob(b, system, state))) {
                 state->op_string[p] = 0;
                 state->n--;
             }
         } else {
-            int b = (state->op_string[p] / 2) - 1;
-            system->spin[system->bond[b][0]] = - system->spin[system->bond[b][0]];
-            system->spin[system->bond[b][1]] = - system->spin[system->bond[b][1]];
+            // off-diagonal operator -> propagate
+
+            int b = (state->op_string[p] / 3) - 1;
+            int a = state->op_string[p] % 3;
+
+            if (a == 1) {
+                system->spin[system->bond[b][0]] += 2;
+                system->spin[system->bond[b][1]] += -2;
+            } else if (a == 2) {
+                system->spin[system->bond[b][0]] += -2;
+                system->spin[system->bond[b][1]] += 2;
+            }
         }
     }
 }
 
+/* 
+ * function: loop_update
+ *  loop update for the SSE MCS
+ *  creates a loop within the vertex list and updates the configuration
+ *  off-diagonal update
+ * 
+ *  parameters:
+ *      (heisenberg_system *) system: simulated system
+ *      (sse_state *) state: SSE state
+ */
 void loop_update(heisenberg_system *system, sse_state *state) 
 {
+    // if no operators just randomize the spins with 1/2 probability
     if (state->n == 0) {
         for (int i = 0; i < system->N; i++) {
-            if (next_double() <= 0.5) { system->spin[i] = - system->spin[i]; }
+            if (next_double() <= 0.5) {
+                int prev_state = system->spin[i];
+                do { system->spin[i] = system->Sz[next() % system->n_proj];
+                } while(system->spin[i] == prev_state);
+            }
         }
         return;
     }
 
-    int j0 = next() % (4 * state->n);
+    int j0 = next() % (4 * state->n); /* select the first in leg randomly */
     int j = j0;
+
+    // select first update randomly
+    int update = 2;
+    int update_idx = 1;
+    if (next_double() <= 0.5) { update = -2; update_idx = 0; }
+
+    // if the update is not allowed on the selected vertex, quit the loop update
+    if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) { 
+        return; 
+    }
+
+    // begin the loop 
     while (true) {
         int p = j / 4;
         int li = j % 4;
         state->loop_size++;
 
+        // select an exit leg
         double r = next_double();
         for (int le = 0; le < 4; le++) {
-            if (r <= state->vtx_type[state->vtx[p]].prob_exit[li][le]) {
-                state->vtx[p] = state->vtx_type[state->vtx[p]].new_vtx_type[li][le];
+            if (r <= state->vtx_type[state->vtx[p]].prob_exit[update_idx][li][le]) {
+                // the new update is given by (state_new[le] - state_old[le])
+                update = - state->vtx_type[state->vtx[p]].spin[le];
+                state->vtx[p] = state->vtx_type[state->vtx[p]].new_vtx_type[update_idx][li][le];
+                update += state->vtx_type[state->vtx[p]].spin[le];
+                update_idx = (update == -2) ? 0 : 1;
+
                 j = 4 * p + le;
                 break;
             }
@@ -51,24 +108,42 @@ void loop_update(heisenberg_system *system, sse_state *state)
         state->loop_size++;
         if (j == j0) { break; }
         
+        // go to linking vertex
         j = state->link[j];
         if (j == j0) { break; }
     }
 
+    // translate the updated vertex list to the string operator
     for (int p = 0; p < state->n; p++) {
-        state->op_string[state->trans_op_string[p]] = 2 * (state->red_op_string[p] / 2) + state->vtx_type[state->vtx[p]].type;
+        state->op_string[state->trans_op_string[p]] = 
+            3 * (state->red_op_string[p] / 3) 
+            + state->vtx_type[state->vtx[p]].type;
     }
 
+    // flip the update spins and flip randomly the non-updated ones
     for (int i = 0; i < system->N; i++) {
         if (state->first[i] != -1) {
             int p = state->first[i] / 4;
             int l = state->first[i] % 4;
             system->spin[i] = state->vtx_type[state->vtx[p]].spin[l];
         }
-        else if (next_double() <= 0.5){ system->spin[i] = - system->spin[i]; }
+        else if (next_double() <= 0.5) {
+            int prev_state = system->spin[i];
+            do { system->spin[i] = system->Sz[next() % system->n_proj]; 
+            } while(system->spin[i] == prev_state);
+        }
     }
 }
 
+/* 
+ * function: ajust_cutoff
+ *  dinamically adjusts the expansion cutoff during the thermalization
+ *   part of the simulation
+ * 
+ *  parameters:
+ *      (sse_state *) state: SSE state
+ *      (bool) adjust_loop
+ */
 void ajust_cutoff(sse_state *state, bool adjust_loop) 
 {
     int M_new = state->n * 1.33;
@@ -90,21 +165,35 @@ void ajust_cutoff(sse_state *state, bool adjust_loop)
     }
 }
 
-void init_heisenberg_system(int d, int L, double J, double delta, double h, double epsilon, heisenberg_system *system) 
+/* 
+ * function: init_heisenberg_system 
+ *  initializes the heisenberg_system struct
+ * 
+ *  parameters:
+ *      (int) d: dimension
+ *      (int) L: number of unit cells
+ *      (double) S: spin quantum number
+ *      (double) delta: z-axis anisotropy strength
+ *      (double) h: z-axis magnetic field strength
+ *      (double) epsilon: constant added to the Hamiltonian
+ *      (heisenberg_system *) system: system to be initialized
+ */
+void init_heisenberg_system(int d, int L, double S, double delta, double h, double epsilon, heisenberg_system *system) 
 {
     system->d = d;
     system->L = L;
     system->N = pow(L, d);
     system->Nb = system->N * d; // For PBC
+    system->S = S;
+    system->n_proj = 2.0 * S + 1.0;
+    system->Sz = (int *) malloc(system->n_proj * sizeof(int));
+    for (int i = 0; i < system->n_proj; i++) {
+        system->Sz[i] = - 2 * (S - i);
+    }
     
-    system->J = J;
     system->h = h;
     system->delta = delta;
     system->epsilon = epsilon;
-
-    system->prob[0] = C + epsilon + 0.25 * delta; 
-    system->prob[1] = C + epsilon - 0.25 * delta + hb;
-    system->prob[2] = C + epsilon - 0.25 * delta - hb;
 
     system->spin = (int *) malloc(system->N * sizeof(int));
     system->bond = (int **) malloc(system->Nb * sizeof(int *));
@@ -127,16 +216,22 @@ void init_heisenberg_system(int d, int L, double J, double delta, double h, doub
     }
 
     for (int i = 0; i < system->N; i++) {
-        system->spin[i] = 1;
-        if (2 * i < system->N) { system->spin[i] = -1; }
+        system->spin[i] = system->Sz[0];
     }
 }
 
+/* 
+ * function: init_sse_state 
+ *  initializes the sse_state struct
+ * 
+ *  parameters:
+ *      (uint64_t) seed: seed for the RNG
+ *      (heisenberg_system *) system: simulated system
+ *      (sse_state *) state: sse_state to be initialized
+ */
 void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state) 
 {
     for (int i = 0; i < 4; i++) { s[i] = seed * (i + 1); }
-    // state->vtx_type = create_vtx_type_list(system->J, system->delta, system->h, system->epsilon);
-    // state->vtx_type = (vtx_element *) malloc(N_DIAGRAMS * sizeof(vtx_element));
 
     state->n = 0;
     state->M = MAX(4, system->N / 4);
@@ -148,11 +243,19 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
     state->first = (int *) malloc(system->N * sizeof(int));
 }
 
+/* 
+ * function: reset_sse_state
+ *  resets the SSE state
+ *  deletes all of the operator string and spin states
+ * 
+ *  parameters:
+ *      (heisenberg_system *) system: simulated system
+ *      (sse_state *) state: SSE state
+ */
 void reset_sse_state(heisenberg_system *system, sse_state *state) 
 {
     for (int i = 0; i < system->N; i++) {
-        system->spin[i] = 1;
-        if (next_double() < 0.5) { system->spin[i] = -1; }
+        system->spin[i] = system->Sz[next() % system->n_proj];
     }
 
     state->n = 0;
@@ -165,6 +268,14 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
     memset(state->op_string, 0, state->M * sizeof(int));
 }
 
+/* 
+ * function: create_vtx_list
+ *  tranlates the operator string in to a doubly linked list of vertecies
+ * 
+ *  parameters:
+ *      (heisenberg_system *) system: simulated system
+ *      (sse_state *) state: SSE state
+ */
 void create_vtx_list(heisenberg_system *system, sse_state *state) 
 {
     if (state->vtx != NULL) {
@@ -186,6 +297,8 @@ void create_vtx_list(heisenberg_system *system, sse_state *state)
     memset(state->red_op_string, 0, state->n * sizeof(int));
     memset(state->trans_op_string, 0, state->n * sizeof(int));
     
+    // reduce the operator string to the times where it has an operator
+    // create a translatio between the full and reduced one
     int p_red = 0;
     for (int p = 0; p < state->M; p++) {
         if (state->op_string[p] != 0) {
@@ -195,9 +308,12 @@ void create_vtx_list(heisenberg_system *system, sse_state *state)
         }
     }
 
+    // create the vertex list
     int l[4];
     for (int p = 0; p < state->n; p++) {
-        int b = (state->red_op_string[p] / 2) - 1;
+        // propagate the system
+        int b = (state->red_op_string[p] / 3) - 1;
+        int a = state->red_op_string[p] % 3;
         int v0 = 4 * p;
 
         int i1 = system->bond[b][0];
@@ -205,20 +321,25 @@ void create_vtx_list(heisenberg_system *system, sse_state *state)
 
         l[0] = system->spin[i1];
         l[1] = system->spin[i2];
-        if (state->red_op_string[p] % 2 != 0) {
-            system->spin[i1] = - system->spin[i1];
-            system->spin[i2] = - system->spin[i2];
+        if (a == 1) {
+            system->spin[i1] += 2;
+            system->spin[i2] += -2;
+        } else if (a == 2) {
+            system->spin[i1] += -2;
+            system->spin[i2] += 2;
         }
         l[2] = system->spin[i1];
         l[3] = system->spin[i2];
 
+        // vertex at time p
         for (int i = 0; i < state->n_diagrams; i++) {
             if (l[0] == state->vtx_type[i].spin[0] && 
             l[1] == state->vtx_type[i].spin[1] && 
             l[2] == state->vtx_type[i].spin[2] && 
             l[3] == state->vtx_type[i].spin[3]) { state->vtx[p] = state->vtx_type[i].indx; }
         }
-
+        
+        // link the legs of the vertex
         int v1 = last[i1];
         int v2 = last[i2];
 
@@ -248,33 +369,51 @@ void create_vtx_list(heisenberg_system *system, sse_state *state)
     }
 }
 
-double prob(int b, heisenberg_system *system) 
+/* 
+ * function: prob
+ *  computes probability for diagonal updates
+ *  
+ *  parameters:
+ *      (int) b: bond for the insertion/removal of operator
+ *      (heisenberg_system *) system: system
+ *      (sse_state* ) state: SSE state
+ *  
+ *  returns:
+ *      (double) prob: probability for the update
+ */
+double prob(int b, heisenberg_system *system, sse_state *state) 
 {
-    if (system->spin[system->bond[b][0]] != system->spin[system->bond[b][1]]) {
-        return system->prob[0];
-    } else if (system->spin[system->bond[b][0]] == system->spin[system->bond[b][1]]) {
-        if (system->spin[system->bond[b][1]] == 1) {
-            return system->prob[1];
-        } else {
-            return system->prob[2];
+    for (int i = 0; i < state->n_diagrams; i++) {
+        if (state->vtx_type[i].type == 0 && state->vtx_type[i].spin[0] == system->spin[system->bond[b][0]] && state->vtx_type[i].spin[1] == system->spin[system->bond[b][1]]) {
+            return state->vtx_type[i].H;
         }
     }
 
     return 0.0;
 }
 
+/* 
+ * function: free_memory
+ *  frees allocated memory in the heisenberg_system and sse_state structs
+ * 
+ *  parameters:
+ *      (heisenberg_system *) system: heisenberg_system struct
+ *      (sse_state *) state: sse_state struct
+ */
 void free_memory(heisenberg_system *system, sse_state *state) 
 {
     for (int i = 0; i < system->N; i++) { free(system->bond[i]); }
     free(system->bond);
     free(system->spin);
+    free(system->Sz);
 
     free(state->first);
-    free(state->vtx_type);
     free(state->op_string);
 
     free(state->vtx);
     free(state->link);
     free(state->red_op_string);
     free(state->trans_op_string);
+
+    free(state->vtx_type);
 }
