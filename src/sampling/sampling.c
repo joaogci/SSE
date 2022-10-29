@@ -20,9 +20,11 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     double m2s = 0.0;
     double m4s = 0.0;
 
-    samples->n_bins[t_idx][n] += state->n;
-    samples->n2_bins[t_idx][n] += state->n * state->n;
+    samples->n_bins[t_idx][n] += state->n; /* sample n */
+    samples->n2_bins[t_idx][n] += state->n * state->n; /* sample n^2 */
 
+    // sample the magnetization
+    // sample the first state 
     for (int i = 0; i < system->N; i++) {
         m += system->spin[i];
         ms += pow(- 1.0, i) * system->spin[i];
@@ -34,6 +36,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     m2s += ms * ms;
     m4s += ms * ms * ms * ms;
 
+    // propagate the system to sample the staggered magnetization
     for (int p = 0; p < state->M; p++) {
         if (state->op_string[p] % 3 != 0) {
             int b = (state->op_string[p] / 3) - 1;
@@ -47,7 +50,8 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 system->spin[system->bond[b][1]] += 2;
             }
 
-            ms += 2 * pow(- 1.0, system->bond[b][0]) * system->spin[system->bond[b][0]];
+            ms += 2 * pow(- 1.0, system->bond[b][0]) 
+                * system->spin[system->bond[b][0]];
         }
 
         if (state->op_string[p] != 0) {
@@ -56,7 +60,8 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         }
     }
 
-    int norm = state->n > 0 ? state->n : 1;
+    int norm = state->n > 0 ? state->n : 1; /* normalization constant for ms */
+                                            /* should be n or 1 if n = 0 */
     m /= system->N;
     m2 /= system->N;
     m4 /= system->N;
@@ -92,8 +97,11 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         for (int n = 0; n < samples->bins; n++) {
             samples->n_bins[t_idx][n] /= mc_cycles;
             samples->n2_bins[t_idx][n] /= mc_cycles;
-            samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] / (samples->beta_vals[t_idx] * N) + C + epsilon;
-            samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] - samples->n_bins[t_idx][n]) / N;
+            samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] 
+                / (samples->beta_vals[t_idx] * N) + C + epsilon; /* remove the added constant to the Hamiltonian */
+            samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] 
+                - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] 
+                - samples->n_bins[t_idx][n]) / N;
             
             samples->m_bins[t_idx][n] /= mc_cycles;
             samples->m2_bins[t_idx][n] /= mc_cycles;
@@ -101,9 +109,13 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->ms_bins[t_idx][n] /= mc_cycles;
             samples->m2s_bins[t_idx][n] /= mc_cycles;
             samples->m4s_bins[t_idx][n] /= mc_cycles;
-            samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] * samples->m_bins[t_idx][n]);
-            samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) / (3 * samples->m2_bins[t_idx][n]);
-            samples->binders_bins[t_idx][n] = 1 - (samples->m4s_bins[t_idx][n]) / (3 * samples->m2s_bins[t_idx][n]);
+            samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] 
+                * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
+                * samples->m_bins[t_idx][n]);
+            samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) 
+                / (3 * samples->m2_bins[t_idx][n]);
+            samples->binders_bins[t_idx][n] = 1 - (samples->m4s_bins[t_idx][n]) 
+                / (3 * samples->m2s_bins[t_idx][n]);
 
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
             samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
