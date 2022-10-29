@@ -85,11 +85,12 @@ def H(state1, state2):
 all_vertex_state = list(product(Sz, repeat=N_LEGS))
 allowed_vertex_state = list()
 
+# Possible updates
 n_updates = 2 # +1 and -1 updates
 updates = [-1, +1]
 vtx = list()
 
-# Select the valid vertices
+# Select the allowed vertices
 N_DIAGRAMS = 0
 for vertex in all_vertex_state:
     term, allowed, vtx_type = H(vertex[2:], vertex[0:2])
@@ -133,84 +134,74 @@ for i in range(N_DIAGRAMS):
                 if new_state in allowed_vertex_state:
                     vtx[i]["new_vtx"][j][e, x] = allowed_vertex_state.index(new_state)
 
-# Generate the transition probabilities
-if int(sys.argv[2]) == 1:
-    # Heat Bath method (Solution A)
-    for i in range(N_DIAGRAMS):
+# Generate probablity table
+# General method (Solution B)
+for i in range(N_DIAGRAMS):
+    for li in range(N_LEGS):
         for j in range(n_updates):
-            for e in range(N_LEGS):
-                cum_prob = 0.0
-                for x in range(N_LEGS):
-                    new_i = vtx[i]["new_vtx"][j][e, x]
-                    vtx[i]["prob"][j][e, x] = 0.0
-                    
-                    if new_i != -1:
-                        denom = 0.0
-                        
-                        for x2 in range(N_LEGS):
-                            new_i2 = vtx[i]["new_vtx"][j][e, x2]
-                            if new_i2 != -1:
-                                denom += vtx[new_i2]["H"]
-                        if vtx[new_i]["H"] != 0:
-                            cum_prob += vtx[new_i]["H"] / denom
-                            vtx[i]["prob"][j][e, x] = cum_prob
-else:
-    # General method (Solution B)
-    for i in range(N_DIAGRAMS):
-        for j in range(n_updates):
-            for ent in range(N_LEGS):
-                A = np.zeros((N_LEGS, N_LEGS))
-                b = np.zeros(N_LEGS)
-                indx = vtx[i]["new_vtx"][j][ent, :]
-                
-                for e in range(N_LEGS):
-                    b[e] = vtx[indx[e]]["H"] if indx[e] != -1 else -1
-                z = np.where(b == -1)[0]
-                key = np.argsort(-b)
-                b[z] = 0.0
-                
-                if b[key[0]] <= np.sum(b[key[1:]]):
-                    if len(z) == 0:
-                        A[key[2], key[3]] = 1.0
-                        A[key[1], key[3]] = 0.0
-
-                        A[key[3], key[2]] = 1.0
-                        A[key[3], key[1]] = 0.0
-                    
-                    A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
-                    A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
-                    A[key[0], key[3]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
-                    A[key[1], key[2]] = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0 - (A[key[2], key[3]] + A[key[1], key[3]])
-
-                    A[key[1], key[0]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
-                    A[key[2], key[0]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
-                    A[key[2], key[1]] = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0 - (A[key[2], key[3]] + A[key[1], key[3]])
-                    A[key[3], key[0]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
+            A = np.zeros((N_LEGS, N_LEGS))
+            b = np.zeros(N_LEGS)
+            dim = N_LEGS
+            
+            vtx_idx = vtx[i]["new_vtx"][j][li, :]
+            update_idx = np.zeros(N_LEGS, dtype=int)
+            
+            for l, v in enumerate(vtx_idx):
+                if vtx[v]["spin"][l] - vtx[i]["spin"][l] > 0:
+                    update_idx[l] = 0
+                elif vtx[v]["spin"][l] - vtx[i]["spin"][l] == 0:
+                    update_idx[l] = j
                 else:
-                    A[key[0], key[0]] = b[key[0]] - b[key[1]] - b[key[2]] - b[key[3]]
+                    update_idx[l] = 1  
 
-                    A[key[0], key[1]] = b[key[1]]
-                    A[key[0], key[2]] = b[key[2]]
-                    A[key[0], key[3]] = b[key[3]]
+                b[l] = vtx[v]["H"] if v != -1 else 0.0
+                dim += -1 if v == -1 else 0
+            key = np.argsort(-b)
+            
+            if b[key[0]] <= np.sum(b[key[1:]]):
+                if dim == N_LEGS:
+                    A[key[2], key[3]] = 1.0
+                    A[key[1], key[3]] = 0.0
 
-                    A[key[1], key[0]] = b[key[1]]
-                    A[key[2], key[0]] = b[key[2]]
-                    A[key[3], key[0]] = b[key[3]]
+                    A[key[3], key[2]] = 1.0
+                    A[key[3], key[1]] = 0.0
+                
+                A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
+                A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
+                A[key[0], key[3]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
+                A[key[1], key[2]] = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0 - (A[key[2], key[3]] + A[key[1], key[3]])
 
-                for e in range(N_LEGS):
-                    for x in range(N_LEGS):
-                        if b[e] > 0.0:
-                            vtx[indx[e]]["prob"][j][e, x] = A[e, x] / b[e]
-        
-    for i in range(N_DIAGRAMS):
-        for j in range(n_updates):
+                A[key[1], key[0]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
+                A[key[2], key[0]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
+                A[key[2], key[1]] = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0 - (A[key[2], key[3]] + A[key[1], key[3]])
+                A[key[3], key[0]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
+            else:
+                A[key[0], key[0]] = b[key[0]] - b[key[1]] - b[key[2]] - b[key[3]]
+
+                A[key[0], key[1]] = b[key[1]]
+                A[key[0], key[2]] = b[key[2]]
+                A[key[0], key[3]] = b[key[3]]
+
+                A[key[1], key[0]] = b[key[1]]
+                A[key[2], key[0]] = b[key[2]]
+                A[key[3], key[0]] = b[key[3]]
+
             for e in range(N_LEGS):
-                cum_prob = 0.0
                 for x in range(N_LEGS):
-                    if vtx[i]["prob"][j][e, x] > 0.0:
-                        cum_prob += vtx[i]["prob"][j][e, x]
-                        vtx[i]["prob"][j][e, x] = cum_prob
+                    if b[e] > 0.0:
+                        vtx[vtx_idx[e]]["prob"][update_idx[e]][e, x] = A[e, x] / b[e]
 
+# Cumulative probabilities
+for i in range(N_DIAGRAMS):
+    for j in range(n_updates):
+        for e in range(N_LEGS):
+            cum_prob = 0.0
+            for x in range(N_LEGS):
+                if vtx[i]["prob"][j][e, x] > 0.0:
+                    cum_prob += vtx[i]["prob"][j][e, x]
+                    vtx[i]["prob"][j][e, x] = cum_prob
+
+# Save the results to file
 with open(SAVE_DIR + SAVE_FILENAME, "w") as f:
     f.write(str(N_DIAGRAMS) + " " + str(n_updates) + " " + str(N_LEGS) + "\n")
     f.write("\n")
