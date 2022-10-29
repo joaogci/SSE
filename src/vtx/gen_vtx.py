@@ -203,7 +203,7 @@ for i in range(N_DIAGRAMS):
 
 # Save the results to file
 with open(SAVE_DIR + SAVE_FILENAME, "w") as f:
-    f.write(str(N_DIAGRAMS) + " " + str(n_updates) + " " + str(N_LEGS) + "\n")
+    f.write(str(N_DIAGRAMS) + "\n")
     f.write("\n")
     
     for i in range(N_DIAGRAMS):

@@ -47,7 +47,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
         for (long t = 0; t < therm_cycles; t++) {
             diag_update(beta, system, state);
-            
+
             create_vtx_list(system, state);
             for (int loop = 0; loop < state->n_loops; loop++) {
                 loop_update(system, state);
@@ -90,7 +90,6 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
 int main(int argc, char **argv)
 {
-
     if (argc < 5) {
         printf("Please provide the input and outut file names for the program to work. \n");
         printf("Usage: %s n_threads input_name.txt vtx_name.txt output_name.csv", argv[0]);
