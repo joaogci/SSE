@@ -1,6 +1,6 @@
 # Stochastic Series Expansion - SSE
 
-Implementation of Stochastic Series Expansion (SSE) Monte Carlo method for the spin-1/2 XXZ model. This version uses the Directed Loops [1] method for the loop update.
+Implementation of Stochastic Series Expansion (SSE) Monte Carlo method for the spin-S XXZ model. This version uses the Directed Loops [1] method for the loop update.
 The Hamiltonian of the simulated system is given by
 
 $$ H = J \sum_{\langle i, j \rangle} \left[ \frac{1}{2} (S^+_i S^-_j + S^-_i S^+_j) + \Delta S^z_i S^z_j \right] - h \sum_i S^z_i $$
@@ -10,7 +10,7 @@ The SSE method is the power series expansion of the partition function
 
 $$ Z = \text{Tr}\{e^{-\beta H}\} = \sum_{\alpha} \sum_{n=0}^{\infty} \frac{(-\beta)^n}{n!} \langle \alpha |H^n| \alpha \rangle $$
 
-where $\beta = 1 / T$.
+where $\beta \equiv 1 / T$.
 
 The implementation uses binnig for the estimation of the standard deviations of the sampled quantities. It is possible to run each bin in parallel mode, using openMP.
 
@@ -32,7 +32,7 @@ $ pip3 install numpy
 To run a simulation you will need to use the `run.sh` script and an input file. This input file contains all of the information about the simulation and simualted system. This is the structure of the input file:
 ```
 # d, L, S, delta, h, epsilon
-1, 8, 1/2, 1.0, 0.0, 0.05
+1, 8, 0.5, 1.0, 0.0, 0.05
 
 # therm_cycles, mc_cycles, n_bins
 10000, 1000000, 10
@@ -43,7 +43,7 @@ To run a simulation you will need to use the `run.sh` script and an input file. 
 # temp_range
 0.05, 4.0
 ```
-The first line are the system parameters, `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S`, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. It has to be a value larger or equal to 0. Simulations perform best for lower values of `epsilon`.
+The first line are the system parameters, `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S` is the quantum spin number, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. `epsilon` has to be a value larger or equal to 0. Simulations perform best for low values of `epsilon`.
 
 To use the test temperatures ( $\beta = \{0.5, 1.0, 2.0, 4.0, 8.0, 16.0\}$ ), you will need to "uncomment" the line  `test_tmps`. Else, you will have to specify how many temperature point (`len_beta`) you want to generate, equaly spaced, between the `temp_range` variables.
 
@@ -56,11 +56,9 @@ to get more information about the arguments. The most important ones are `-n <n_
 $ ./run.sh -n 5 -i input.txt -o outputs/sim_output.csv
 ```
 
-
 The output file has the following structure:
 ```
-beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,binder,binder_std,binders,binders_std
-...
+beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,binder,binder_std
 ```
 
 [1] - "Directed loop updates for quantum lattice models", Olav F. Syljuåsen, 2003, Phys. Rev. E 67, 046701, https://doi.org/10.1103/PhysRevE.67.046701
