@@ -114,8 +114,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
                 * samples->m_bins[t_idx][n]);
             samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) 
                 / (3 * samples->m2_bins[t_idx][n]);
-            samples->binders_bins[t_idx][n] = 1 - (samples->m4s_bins[t_idx][n]) 
-                / (3 * samples->m2s_bins[t_idx][n]);
 
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
             samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
@@ -130,7 +128,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m4s_mean[t_idx] += samples->m4s_bins[t_idx][n];
             samples->m_sus_mean[t_idx] += samples->m_sus_bins[t_idx][n];
             samples->binder_mean[t_idx] += samples->binder_bins[t_idx][n];
-            samples->binders_mean[t_idx] += samples->binders_bins[t_idx][n];
         }
         samples->n_mean[t_idx] /= samples->bins;
         samples->n2_mean[t_idx] /= samples->bins;
@@ -145,7 +142,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         samples->m4s_mean[t_idx] /= samples->bins;
         samples->m_sus_mean[t_idx] /= samples->bins;
         samples->binder_mean[t_idx] /= samples->bins;
-        samples->binders_mean[t_idx] /= samples->bins;
 
         for (int n = 0; n < samples->bins; n++) {
             samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
@@ -160,7 +156,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m4s_std[t_idx] += pow(samples->m4s_bins[t_idx][n] - samples->m4s_mean[t_idx], 2.0);
             samples->m_sus_std[t_idx] += pow(samples->m_sus_bins[t_idx][n] - samples->m_sus_mean[t_idx], 2.0);
             samples->binder_std[t_idx] += pow(samples->binder_bins[t_idx][n] - samples->binder_mean[t_idx], 2.0);
-            samples->binders_std[t_idx] += pow(samples->binders_bins[t_idx][n] - samples->binders_mean[t_idx], 2.0);
         }
         samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
         samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
@@ -174,7 +169,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         samples->m4s_std[t_idx] = sqrt(samples->m4s_std[t_idx] / samples->bins);
         samples->m_sus_std[t_idx] = sqrt(samples->m_sus_std[t_idx] / samples->bins);
         samples->binder_std[t_idx] = sqrt(samples->binder_std[t_idx] / samples->bins);
-        samples->binders_std[t_idx] = sqrt(samples->binders_std[t_idx] / samples->bins);
     }
 }
 
@@ -206,7 +200,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     samples->m4s_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->m_sus_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->binder_bins = (double **) malloc(len_beta * sizeof(double *));
-    samples->binders_bins = (double **) malloc(len_beta * sizeof(double *));
     for (int i = 0; i < len_beta; i++) {
         samples->n_bins[i] = (double *) malloc(n_bins * sizeof(double));
         samples->n2_bins[i] = (double *) malloc(n_bins * sizeof(double));
@@ -220,7 +213,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
         samples->m4s_bins[i] = (double *) malloc(n_bins * sizeof(double));
         samples->m_sus_bins[i] = (double *) malloc(n_bins * sizeof(double));
         samples->binder_bins[i] = (double *) malloc(n_bins * sizeof(double));
-        samples->binders_bins[i] = (double *) malloc(n_bins * sizeof(double));
 
         memset(samples->n_bins[i], 0.0, n_bins * sizeof(double));
         memset(samples->n2_bins[i], 0.0, n_bins * sizeof(double));
@@ -234,7 +226,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
         memset(samples->m4s_bins[i], 0.0, n_bins * sizeof(double));
         memset(samples->m_sus_bins[i], 0.0, n_bins * sizeof(double));
         memset(samples->binder_bins[i], 0.0, n_bins * sizeof(double));
-        memset(samples->binders_bins[i], 0.0, n_bins * sizeof(double));
     }
 
     samples->n_mean = (double *) malloc(len_beta * sizeof(double));
@@ -263,8 +254,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
 
     samples->binder_mean = (double *) malloc(len_beta * sizeof(double));
     samples->binder_std = (double *) malloc(len_beta * sizeof(double));
-    samples->binders_mean = (double *) malloc(len_beta * sizeof(double));
-    samples->binders_std = (double *) malloc(len_beta * sizeof(double));
 
     memset(samples->n_mean, 0.0, len_beta * sizeof(double));
     memset(samples->n_std, 0.0, len_beta * sizeof(double));
@@ -289,8 +278,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     memset(samples->m_sus_std, 0.0, len_beta * sizeof(double));
     memset(samples->binder_mean, 0.0, len_beta * sizeof(double));
     memset(samples->binder_std, 0.0, len_beta * sizeof(double));
-    memset(samples->binders_mean, 0.0, len_beta * sizeof(double));
-    memset(samples->binders_std, 0.0, len_beta * sizeof(double));
 }
 
 /*
@@ -315,7 +302,6 @@ void free_samples(sampled_quantities *samples)
         free(samples->m4s_bins[i]);
         free(samples->m_sus_bins[i]);
         free(samples->binder_bins[i]);
-        free(samples->binders_bins[i]);
     }
     free(samples->n_bins);
     free(samples->n2_bins);
@@ -329,7 +315,6 @@ void free_samples(sampled_quantities *samples)
     free(samples->m4s_bins);
     free(samples->m_sus_bins);
     free(samples->binder_bins);
-    free(samples->binders_bins);
     free(samples->n_mean);
     free(samples->n_std);
     free(samples->n2_mean);
@@ -353,6 +338,4 @@ void free_samples(sampled_quantities *samples)
     free(samples->m_sus_std);
     free(samples->binder_mean);
     free(samples->binder_std);
-    free(samples->binders_mean);
-    free(samples->binders_std);
 }

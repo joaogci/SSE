@@ -33,7 +33,6 @@ typedef struct sampled_quantities
     double **m4s_bins;
     double **m_sus_bins;
     double **binder_bins;
-    double **binders_bins;
 
     double *n_mean;
     double *n2_mean;
@@ -61,8 +60,6 @@ typedef struct sampled_quantities
 
     double *binder_mean;
     double *binder_std;
-    double *binders_mean;
-    double *binders_std;
 } sampled_quantities;
 
 /* 
