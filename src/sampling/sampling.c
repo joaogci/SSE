@@ -50,8 +50,8 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 system->spin[system->bond[b][1]] += 2;
             }
 
-            ms += 2 * pow(- 1.0, system->bond[b][0]) 
-                * system->spin[system->bond[b][0]];
+            ms += 2.0 * pow(- 1.0, system->bond[b][0]) 
+            * system->spin[system->bond[b][0]];
         }
 
         if (state->op_string[p] != 0) {
@@ -60,14 +60,12 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         }
     }
 
-    int norm = state->n > 0 ? state->n : 1; /* normalization constant for ms */
-                                            /* should be n or 1 if n = 0 */
     m /= system->N;
     m2 /= system->N;
     m4 /= system->N;
-    ms /= (norm * system->N);
-    m2s /= (norm * system->N);
-    m4s /= (norm * system->N);
+    ms /= ((state->n + 1) * system->N);
+    m2s /= ((state->n + 1) * system->N);
+    m4s /= ((state->n + 1) * system->N);
 
     samples->m_bins[t_idx][n] += m;
     samples->m2_bins[t_idx][n] += m2;
