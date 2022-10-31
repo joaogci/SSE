@@ -95,10 +95,17 @@ void loop_update(heisenberg_system *system, sse_state *state)
         for (int le = 0; le < 4; le++) {
             if (r <= state->vtx_type[state->vtx[p]].prob_exit[update_idx][li][le]) {
                 // the new update is given by (state_new[le] - state_old[le])
-                update = - state->vtx_type[state->vtx[p]].spin[le];
+                int old_state = state->vtx_type[state->vtx[p]].spin[le];
                 state->vtx[p] = state->vtx_type[state->vtx[p]].new_vtx_type[update_idx][li][le];
-                update += state->vtx_type[state->vtx[p]].spin[le];
-                update_idx = (update == -2) ? 0 : 1;
+
+                if (state->vtx_type[state->vtx[p]].spin[le] - old_state == -2) {
+                    update_idx = 0;
+                } else if (state->vtx_type[state->vtx[p]].spin[le] - old_state == 2) {
+                    update_idx = 1;
+                } else {
+                    if (update_idx == 1) { update_idx = 0; }
+                    else if (update_idx == 0) { update_idx = 1; }
+                }
 
                 j = 4 * p + le;
                 break;
