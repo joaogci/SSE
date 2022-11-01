@@ -110,7 +110,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m4s_bins[t_idx][n] /= mc_cycles;
             samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] 
                 * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
-                * samples->m_bins[t_idx][n]);
+                * samples->m_bins[t_idx][n] * N);
             samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) 
                 / (3 * samples->m2_bins[t_idx][n]);
 
