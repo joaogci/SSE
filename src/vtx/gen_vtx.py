@@ -143,9 +143,11 @@ for i in range(N_DIAGRAMS):
             b = np.zeros(N_LEGS)
             dim = N_LEGS
             
+            # Get all the vertices 
             vtx_idx = vtx[i]["new_vtx"][j][li, :]
             update_idx = np.zeros(N_LEGS, dtype=int)
             
+            # Get he update indedx for these vertices
             for l, v in enumerate(vtx_idx):
                 if vtx[v]["spin"][l] - vtx[i]["spin"][l] > 0:
                     update_idx[l] = 0
@@ -154,17 +156,22 @@ for i in range(N_DIAGRAMS):
                 else:
                     update_idx[l] = 1  
 
+                # Weights for vertices
                 b[l] = vtx[v]["H"] if v != -1 else 0.0
                 dim += -1 if v == -1 else 0
+            # Sort from highest to lowest
             key = np.argsort(-b)
-            
-            if b[key[0]] <= np.sum(b[key[1:]]):
-                if dim == N_LEGS:
-                    A[key[2], key[3]] = 1.0
-                    A[key[1], key[3]] = 0.0
 
-                    A[key[3], key[2]] = 1.0
-                    A[key[3], key[1]] = 0.0
+            # Apply the solution
+            if b[key[0]] <= np.sum(b[key[1:]]):
+                # No-bounce solution
+                if dim == N_LEGS:
+                    W_delta = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0
+                    A[key[2], key[3]] = 0
+                    A[key[1], key[3]] = W_delta
+
+                    A[key[3], key[2]] = 0
+                    A[key[3], key[1]] = W_delta
                 
                 A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
                 A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
@@ -176,6 +183,7 @@ for i in range(N_DIAGRAMS):
                 A[key[2], key[1]] = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0 - (A[key[2], key[3]] + A[key[1], key[3]])
                 A[key[3], key[0]] = b[key[3]] - (A[key[2], key[3]] + A[key[1], key[3]])
             else:
+                # Bounce solution
                 A[key[0], key[0]] = b[key[0]] - b[key[1]] - b[key[2]] - b[key[3]]
 
                 A[key[0], key[1]] = b[key[1]]
