@@ -167,11 +167,16 @@ for i in range(N_DIAGRAMS):
                 # No-bounce solution
                 if dim == N_LEGS:
                     W_delta = (- b[key[0]] + b[key[1]] + b[key[2]] + b[key[3]]) / 2.0
-                    A[key[2], key[3]] = 0
-                    A[key[1], key[3]] = W_delta
-
-                    A[key[3], key[2]] = 0
-                    A[key[3], key[1]] = W_delta
+                    
+                    if W_delta > b[key[3]]:
+                        A[key[2], key[3]] = b[key[3]]
+                        A[key[1], key[3]] = 0
+                    elif W_delta < b[key[3]]:
+                        A[key[2], key[3]] = W_delta
+                        A[key[1], key[3]] = 0
+                    
+                    A[key[3], key[2]] = A[key[2], key[3]]
+                    A[key[3], key[1]] = A[key[1], key[3]]
                 
                 A[key[0], key[1]] = (b[key[0]] + b[key[1]] - b[key[2]] - b[key[3]]) / 2.0 + A[key[2], key[3]]
                 A[key[0], key[2]] = (b[key[0]] - b[key[1]] + b[key[2]] - b[key[3]]) / 2.0 + A[key[1], key[3]]
