@@ -220,6 +220,21 @@ void init_heisenberg_system(int d, int L, double S, double delta, double h, doub
                 system->bond[(j * L + i) + system->N][1] = ((j + 1) % L) * L + i;
             }
         }
+    } else if (d == 3) {
+        for (int i = 0; i < L; i++) {
+            for (int j = 0; j < L; j++) {
+                for (int k = 0; k < L; k++) {
+                    system->bond[k * L * L + j * L + i][0] = k * L * L + j * L + i;
+                    system->bond[k * L * L + j * L + i][1] = k * L * L + j * L + (i + 1) % L;
+
+                    system->bond[(k * L * L + j * L + i) + system->N][0] = k * L * L + j * L + i;
+                    system->bond[(k * L * L + j * L + i) + system->N][1] = k * L * L + ((j + 1) % L) * L + i;
+
+                    system->bond[(k * L * L + j * L + i) + 2 * system->N][0] = k * L * L + j * L + i;
+                    system->bond[(k * L * L + j * L + i) + 2 * system->N][1] = ((k + 1) % L) * L * L + ((j + 1) % L) * L + i;
+                }
+            }
+        }
     }
 
     for (int i = 0; i < system->N; i++) {
