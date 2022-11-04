@@ -130,9 +130,9 @@ void write_outputs(char *file_name, sampled_quantities *samples)
     output_file = fopen(file_name, "w");
 
     if (output_file != NULL) {
-        fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,binder,binder_std\n");
+        fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std\n");
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
-            fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 
+            fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 
             samples->beta_vals[t_idx], 
             samples->n_mean[t_idx],
             samples->n2_mean[t_idx], 
@@ -154,9 +154,7 @@ void write_outputs(char *file_name, sampled_quantities *samples)
             samples->m4s_mean[t_idx],
             samples->m4s_std[t_idx],
             samples->m_sus_mean[t_idx],
-            samples->m_sus_std[t_idx],
-            samples->binder_mean[t_idx],
-            samples->binder_std[t_idx]);
+            samples->m_sus_std[t_idx]);
         }
     } else {
         printf("Error in opening the %s file. \n", file_name);

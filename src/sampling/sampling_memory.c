@@ -28,7 +28,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     samples->m2s_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->m4s_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->m_sus_bins = (double **) malloc(len_beta * sizeof(double *));
-    samples->binder_bins = (double **) malloc(len_beta * sizeof(double *));
     for (int i = 0; i < len_beta; i++) {
         samples->n_bins[i] = (double *) malloc(n_bins * sizeof(double));
         samples->n2_bins[i] = (double *) malloc(n_bins * sizeof(double));
@@ -41,7 +40,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
         samples->m2s_bins[i] = (double *) malloc(n_bins * sizeof(double));
         samples->m4s_bins[i] = (double *) malloc(n_bins * sizeof(double));
         samples->m_sus_bins[i] = (double *) malloc(n_bins * sizeof(double));
-        samples->binder_bins[i] = (double *) malloc(n_bins * sizeof(double));
 
         memset(samples->n_bins[i], 0.0, n_bins * sizeof(double));
         memset(samples->n2_bins[i], 0.0, n_bins * sizeof(double));
@@ -54,7 +52,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
         memset(samples->m2s_bins[i], 0.0, n_bins * sizeof(double));
         memset(samples->m4s_bins[i], 0.0, n_bins * sizeof(double));
         memset(samples->m_sus_bins[i], 0.0, n_bins * sizeof(double));
-        memset(samples->binder_bins[i], 0.0, n_bins * sizeof(double));
     }
 
     samples->n_mean = (double *) malloc(len_beta * sizeof(double));
@@ -81,9 +78,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     samples->m_sus_mean = (double *) malloc(len_beta * sizeof(double));
     samples->m_sus_std = (double *) malloc(len_beta * sizeof(double));
 
-    samples->binder_mean = (double *) malloc(len_beta * sizeof(double));
-    samples->binder_std = (double *) malloc(len_beta * sizeof(double));
-
     memset(samples->n_mean, 0.0, len_beta * sizeof(double));
     memset(samples->n_std, 0.0, len_beta * sizeof(double));
     memset(samples->n2_mean, 0.0, len_beta * sizeof(double));
@@ -105,8 +99,6 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     memset(samples->m4s_std, 0.0, len_beta * sizeof(double));
     memset(samples->m_sus_mean, 0.0, len_beta * sizeof(double));
     memset(samples->m_sus_std, 0.0, len_beta * sizeof(double));
-    memset(samples->binder_mean, 0.0, len_beta * sizeof(double));
-    memset(samples->binder_std, 0.0, len_beta * sizeof(double));
 }
 
 /*
@@ -130,7 +122,6 @@ void free_samples(sampled_quantities *samples)
         free(samples->m2s_bins[i]);
         free(samples->m4s_bins[i]);
         free(samples->m_sus_bins[i]);
-        free(samples->binder_bins[i]);
     }
     free(samples->n_bins);
     free(samples->n2_bins);
@@ -143,7 +134,6 @@ void free_samples(sampled_quantities *samples)
     free(samples->m2s_bins);
     free(samples->m4s_bins);
     free(samples->m_sus_bins);
-    free(samples->binder_bins);
     free(samples->n_mean);
     free(samples->n_std);
     free(samples->n2_mean);
@@ -165,6 +155,4 @@ void free_samples(sampled_quantities *samples)
     free(samples->m4s_std);
     free(samples->m_sus_mean);
     free(samples->m_sus_std);
-    free(samples->binder_mean);
-    free(samples->binder_std);
 }

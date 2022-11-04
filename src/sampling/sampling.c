@@ -111,8 +111,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] 
                 * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
                 * samples->m_bins[t_idx][n] * N);
-            samples->binder_bins[t_idx][n] = 1 - (samples->m4_bins[t_idx][n]) 
-                / (3 * samples->m2_bins[t_idx][n]);
 
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
             samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
@@ -126,7 +124,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m2s_mean[t_idx] += samples->m2s_bins[t_idx][n];
             samples->m4s_mean[t_idx] += samples->m4s_bins[t_idx][n];
             samples->m_sus_mean[t_idx] += samples->m_sus_bins[t_idx][n];
-            samples->binder_mean[t_idx] += samples->binder_bins[t_idx][n];
         }
         samples->n_mean[t_idx] /= samples->bins;
         samples->n2_mean[t_idx] /= samples->bins;
@@ -140,7 +137,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         samples->m2s_mean[t_idx] /= samples->bins;
         samples->m4s_mean[t_idx] /= samples->bins;
         samples->m_sus_mean[t_idx] /= samples->bins;
-        samples->binder_mean[t_idx] /= samples->bins;
 
         for (int n = 0; n < samples->bins; n++) {
             samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
@@ -154,7 +150,6 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m2s_std[t_idx] += pow(samples->m2s_bins[t_idx][n] - samples->m2s_mean[t_idx], 2.0);
             samples->m4s_std[t_idx] += pow(samples->m4s_bins[t_idx][n] - samples->m4s_mean[t_idx], 2.0);
             samples->m_sus_std[t_idx] += pow(samples->m_sus_bins[t_idx][n] - samples->m_sus_mean[t_idx], 2.0);
-            samples->binder_std[t_idx] += pow(samples->binder_bins[t_idx][n] - samples->binder_mean[t_idx], 2.0);
         }
         samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
         samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
@@ -167,6 +162,5 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         samples->m2s_std[t_idx] = sqrt(samples->m2s_std[t_idx] / samples->bins);
         samples->m4s_std[t_idx] = sqrt(samples->m4s_std[t_idx] / samples->bins);
         samples->m_sus_std[t_idx] = sqrt(samples->m_sus_std[t_idx] / samples->bins);
-        samples->binder_std[t_idx] = sqrt(samples->binder_std[t_idx] / samples->bins);
     }
 }
