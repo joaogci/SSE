@@ -135,7 +135,7 @@ void write_outputs(char *file_name, sampled_quantities *samples,
 
     if (output_file != NULL) {
         fprintf(output_file, "d,L,S,delta,h,epsilon\n");
-        fprintf(output_file, "%d,%d,%lf,%lf,%lf\n", d, L, S, delta, epsilon);
+        fprintf(output_file, "%d,%d,%lf,%lf,%lf,%lf\n", d, L, S, delta, h, epsilon);
         
         fprintf(output_file, "therm_cycles,mc_cycles,n_bins\n");
         fprintf(output_file, "%ld,%ld,%d \n", therm_cycles, mc_cycles, samples->bins);
