@@ -21,7 +21,9 @@
  *      (double **) beta_vals: array to store simulation temperatures
  *      (int *) len_betas: number of temperatures 
  */
-void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, double *h, double *epsilon, long *therm_cycles, long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
+void read_inputs(char *file_name, int *d, int *L, double *S, 
+    double *delta, double *h, double *epsilon, long *therm_cycles, 
+    long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
     char buffer[BUFFER_SIZE];
     int count = 0;
@@ -124,12 +126,26 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams)
  *      (sampled_quantities *) samples: sampled quantities
  * during the simulation
  */
-void write_outputs(char *file_name, sampled_quantities *samples) 
+void write_outputs(char *file_name, sampled_quantities *samples, 
+    int d, int L, double S, double delta, double h, double epsilon,
+    long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads) 
 {
     FILE *output_file;
     output_file = fopen(file_name, "w");
 
     if (output_file != NULL) {
+        fprintf(output_file, "d,L,S,delta,h,epsilon\n");
+        fprintf(output_file, "%d,%d,%lf,%lf,%lf\n", d, L, S, delta, epsilon);
+        
+        fprintf(output_file, "therm_cycles,mc_cycles,n_bins\n");
+        fprintf(output_file, "%ld,%ld,%d \n", therm_cycles, mc_cycles, samples->bins);
+        
+        fprintf(output_file, "cpu_time,n_threads\n");
+        fprintf(output_file, "%lf,%d\n", cpu_time_used, n_threads);
+
+        fprintf(output_file, "n_betas\n");
+        fprintf(output_file, "%d\n", samples->betas);
+
         fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std\n");
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
             fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 

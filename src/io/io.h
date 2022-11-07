@@ -52,6 +52,8 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams);
  *      (sampled_quantities *) samples: sampled quantities
  * during the simulation
  */
-void write_outputs(char *file_name, sampled_quantities *samples);
+void write_outputs(char *file_name, sampled_quantities *samples, 
+    int d, int L, double S, double delta, double h, double epsilon,
+    long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads);
 
 #endif // IO_H

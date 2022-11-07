@@ -163,19 +163,19 @@ int main(int argc, char **argv)
         simulate(start, end, t_id + 1, argv[3]);
     }
     clock_t end_clock = clock();
-    double cpu_time_used = ((double) (end_clock - start_clock)) / CLOCKS_PER_SEC;
+    double cpu_time_used = ((double) (end_clock - start_clock)) / (CLOCKS_PER_SEC * n_threads);
     free(cpu_time);
     free(loop_size);
     free(n_loops);
     
     printf("\n");
-    printf("Simulation finished in %.5lfs \n", cpu_time_used / n_threads);
+    printf("Simulation finished in %.5lfs \n", cpu_time_used);
     printf(" -- Writing simulation results to file -- \n");
 
     normalize(mc_cycles, samples, pow(L, d), d, S, delta, h, epsilon);
-    write_outputs(argv[4], samples);
+    write_outputs(argv[4], samples, d, L, S, delta, h, epsilon,therm_cycles, mc_cycles, cpu_time_used, n_threads);
     
-    printf(" -- Results written with success -- \n");
+    printf(" -- Results written with success to file: %s -- \n", argv[4]);
 
     free_samples(samples);
     free(samples);
