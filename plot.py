@@ -8,7 +8,7 @@ matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 # Read the output file
-FILENAME = "output.csv"
+FILENAME = "1D_L64_AFM_Heisenberg_delta1.0_h0.0.csv"
 sim_info, sampled = read_sse_output(FILENAME)
 
 # Plot the variables
@@ -65,10 +65,10 @@ plt.ylabel(r"$\chi$")
 plt.legend()
 
 plt.figure(2)
-for i in range(sim_info["L"]):    
-    plt.errorbar(sampled["T"], sampled["corr_mean"][:, i], sampled["corr_std"][:, i], fmt=".--", label=f"i={i}")
-    plt.xlabel(r"$T$")
-    plt.ylabel(r"$\chi$")
+for j, T in enumerate(sampled["T"]):    
+    plt.errorbar(np.arange(sim_info["L"]), sampled["corr_mean"][j, :], sampled["corr_std"][j, :], fmt=".--", label=fr"$T={T}$")
+    plt.xlabel(r"$i$")
+    plt.ylabel(r"$C(0, i)$")
     plt.legend()
 
 plt.show()
