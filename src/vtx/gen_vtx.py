@@ -8,7 +8,6 @@ N_LEGS = 4
 
 # Read the input file to get the system parameters
 with open(FILENAME, "r") as f:
-    f.readline()
     line = f.readline().strip().split(", ")
 
 d = int(line[0])

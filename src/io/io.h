@@ -14,7 +14,6 @@
  * parameters of the function
  *  
  *  parameters:
- *      (char *) file_name: file name
  *      (int *) d: dimension
  *      (int *) L: length of the system
  *      (double *) S: spin quantum number
@@ -27,7 +26,7 @@
  *      (double **) beta_vals: array to store simulation temperatures
  *      (int *) len_betas: number of temperatures 
  */
-void read_inputs(char *file_name, int *d, int *L, double *S, double *delta, 
+void read_inputs(int *d, int *L, double *S, double *delta, 
     double *h, double *epsilon, long *therm_cycles, long *mc_cycles, 
     int *n_bins, double **beta_vals, int *len_beta);
 

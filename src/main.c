@@ -118,13 +118,13 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
 int main(int argc, char **argv)
 {
-    if (argc < 5) {
-        printf("Please provide the input and outut file names for the program to work. \n");
-        printf("Usage: %s n_threads input_name.txt vtx_name.txt output_name.csv", argv[0]);
+    if (argc < 4) {
+        printf("Please provide the output file names for the program to work. \n");
+        printf("Usage: %s n_threads vtx_name.txt output_name.csv", argv[0]);
         exit(1);
     }
 
-    read_inputs(argv[2], &d, &L, &S, &delta, &h, &epsilon, &therm_cycles, 
+    read_inputs(&d, &L, &S, &delta, &h, &epsilon, &therm_cycles, 
         &mc_cycles, &n_bins, &beta_vals, &len_beta);
     n_threads = atoi(argv[1]);
 
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
         int start = (t_id * n_bins) / team_size;
         int end = ((t_id + 1) * n_bins) / team_size; 
 
-        simulate(start, end, t_id + 1, argv[3]);
+        simulate(start, end, t_id + 1, argv[2]);
     }
     clock_t end_clock = clock();
     double cpu_time_used = ((double) (end_clock - start_clock)) / (CLOCKS_PER_SEC * n_threads);
@@ -173,9 +173,9 @@ int main(int argc, char **argv)
     printf(" -- Writing simulation results to file -- \n");
 
     normalize(mc_cycles, samples, pow(L, d), d, S, delta, h, epsilon);
-    write_outputs(argv[4], samples, d, L, S, delta, h, epsilon,therm_cycles, mc_cycles, cpu_time_used, n_threads);
+    write_outputs(argv[3], samples, d, L, S, delta, h, epsilon,therm_cycles, mc_cycles, cpu_time_used, n_threads);
     
-    printf(" -- Results written with success to file: %s -- \n", argv[4]);
+    printf(" -- Results written with success to file: %s -- \n", argv[3]);
 
     free_samples(samples);
     free(samples);

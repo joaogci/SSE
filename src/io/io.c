@@ -8,7 +8,6 @@
  * parameters of the function
  *  
  *  parameters:
- *      (char *) file_name: file name
  *      (int *) d: dimension
  *      (int *) L: length of the system
  *      (double *) S: spin quantum number
@@ -21,56 +20,42 @@
  *      (double **) beta_vals: array to store simulation temperatures
  *      (int *) len_betas: number of temperatures 
  */
-void read_inputs(char *file_name, int *d, int *L, double *S, 
+void read_inputs(int *d, int *L, double *S, 
     double *delta, double *h, double *epsilon, long *therm_cycles, 
     long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
     char buffer[BUFFER_SIZE];
     int count = 0;
     double Ti, Tf;
-
     FILE *input_file;
-    input_file = fopen(file_name, "r");
 
+    input_file = fopen("read.in", "r");
     if (input_file != NULL) {
-        while (fgets(buffer, BUFFER_SIZE, input_file) != NULL) {
-            if (strcmp(buffer, "test_temps\n") == 0) {
-                (*len_beta) = 6;
-                (*beta_vals) = (double *) malloc((*len_beta) * sizeof(double));
-                for (int i = 0; i < (*len_beta); i++) {
-                    (*beta_vals)[i] = pow(2.0, i - 1.0);
-                }
-                break;
-            } else if (buffer[0] != '#' && buffer[0] != '\n') {
-                switch (count) {
-                case 0:
-                    sscanf(buffer, "%d, %d, %lf, %lf, %lf, %lf", d, L, S, delta, h, epsilon);
-                    break;
-                case 1:
-                    sscanf(buffer, "%ld, %ld, %d ", therm_cycles, mc_cycles, n_bins);
-                    break;
-                case 2:
-                    sscanf(buffer, "%d ", len_beta);
-                    break;
-                case 3:
-                    sscanf(buffer, "%lf, %lf ", &Ti, &Tf);
-                    break;
-                }
-                count++;
-            }
-        }
-
-        if (count == 4) {
-            (*beta_vals) = (double *) malloc((*len_beta) * sizeof(double));
-            for (int i = 0; i < (*len_beta); i++) {
-                (*beta_vals)[i] = 1.0 / ((Tf - Ti) * (i + 1) / (*len_beta));
-            }
-        }
+        fgets(buffer, BUFFER_SIZE, input_file);
+        sscanf(buffer, "%d, %d, %lf, %lf, %lf, %lf", d, L, S, delta, h, epsilon);
+        
+        fgets(buffer, BUFFER_SIZE, input_file);
+        sscanf(buffer, "%ld, %ld, %d ", therm_cycles, mc_cycles, n_bins);
     } else {
-        printf("Error opening the %s file. Check if the file exists. \n", file_name);
+        printf("Error opening the read.i file. Check if the file exists. \n");
         exit(1);
     }
+    fclose(input_file);
 
+    input_file = fopen("beta.in", "r");
+    if (input_file != NULL) {
+        fgets(buffer, BUFFER_SIZE, input_file);
+        sscanf(buffer, "%d ", len_beta);
+        (*beta_vals) = (double *) malloc((*len_beta) * sizeof(double));
+        
+        for (int i = 0; i < (*len_beta); i++) {
+            fgets(buffer, BUFFER_SIZE, input_file);
+            sscanf(buffer, "%lf ", &((*beta_vals)[i]));
+        }
+    } else {
+        printf("Error opening the beta.in file. Check if the file exists. \n");
+        exit(1);
+    }
     fclose(input_file);
 }
 
