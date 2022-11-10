@@ -40,6 +40,12 @@ plt.xlabel(r"$T$")
 plt.ylabel(r"$\langle m_s^2 \rangle$")
 plt.legend()
 
+plt.subplot(3, 3, 6)
+plt.errorbar(sampled["T"], sampled["S_mean"], sampled["S_std"], fmt=".--")
+plt.xlabel(r"$T$")
+plt.ylabel(r"$S(\pi)$")
+plt.legend()
+
 plt.subplot(3, 3, 7)
 plt.errorbar(sampled["T"], sampled["m"], sampled["m_std"], fmt=".--")
 plt.xlabel(r"$T$")
@@ -57,5 +63,12 @@ plt.errorbar(sampled["T"], sampled["m_sus"], sampled["m_sus_std"], fmt=".--")
 plt.xlabel(r"$T$")
 plt.ylabel(r"$\chi$")
 plt.legend()
+
+plt.figure(2)
+for i in range(sim_info["L"]):    
+    plt.errorbar(sampled["T"], sampled["corr_mean"][:, i], sampled["corr_std"][:, i], fmt=".--", label=f"i={i}")
+    plt.xlabel(r"$T$")
+    plt.ylabel(r"$\chi$")
+    plt.legend()
 
 plt.show()

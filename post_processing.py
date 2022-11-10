@@ -18,7 +18,7 @@ def read_sse_output(filename):
         # read simulation info
         file.readline() 
         line = file.readline().strip().split(',')
-        print(line)
+
         sim_info["d"] = int(line[0])
         sim_info["L"] = int(line[1])
         sim_info["S"] = float(line[2])
@@ -64,6 +64,8 @@ def read_sse_output(filename):
         sampled["m4s_std"] = np.zeros(sim_info["n_betas"])
         sampled["m_sus"] = np.zeros(sim_info["n_betas"])
         sampled["m_sus_std"] = np.zeros(sim_info["n_betas"])
+        sampled["S_mean"] = np.zeros(sim_info["n_betas"])
+        sampled["S_std"] = np.zeros(sim_info["n_betas"])
 
         file.readline()
         for j in range(sim_info["n_betas"]):
@@ -72,8 +74,21 @@ def read_sse_output(filename):
             sampled["m"][j], sampled["m_std"][j], sampled["m2"][j], sampled["m2_std"][j], \
             sampled["m4"][j], sampled["m4_std"][j], sampled["ms"][j], sampled["ms_std"][j], \
             sampled["m2s"][j], sampled["m2s_std"][j], sampled["m4s"][j], sampled["m4s_std"][j], \
-            sampled["m_sus"][j], sampled["m_sus_std"][j] = [float(x) for x in file.readline().strip().split(',')]
+            sampled["m_sus"][j], sampled["m_sus_std"][j], sampled["S_mean"][j], sampled["S_std"][j] \
+            = [float(x) for x in file.readline().strip().split(',')]
             
             sampled["T"][j] = 1.0 / sampled["beta"][j]
+        
+        # read equal time spin-spin correlation function
+        sampled["corr_mean"] = np.zeros((sim_info["n_betas"], sim_info["L"]))
+        sampled["corr_std"] = np.zeros((sim_info["n_betas"], sim_info["L"]))
+        
+        for j in range(sim_info["n_betas"]):
+            file.readline()
+            file.readline()
+            file.readline()
             
+            for i in range(sim_info["L"]):
+                sampled["corr_mean"][j, i], sampled["corr_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+    
     return sim_info, sampled
