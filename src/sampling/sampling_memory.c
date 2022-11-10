@@ -1,6 +1,5 @@
 #include "sampling.h"
 
-
 /* 
  * function: init_samples
  *  initializes and allocates memory for the samples quantities struct
@@ -11,11 +10,13 @@
  *      (int) n_bins: number of bins
  *      (sampled_quantities *) samples: struct to inilialize 
  */
-void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_quantities *samples) 
+void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, struct sampled_quantities *samples) 
 {
     samples->bins = n_bins;
     samples->betas = len_beta;
     samples->beta_vals = beta_vals;
+    samples->L = L;
+    samples->d = d;
 
     samples->n_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->n2_bins = (double **) malloc(len_beta * sizeof(double *));
@@ -99,6 +100,35 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, struct sampled_qu
     memset(samples->m4s_std, 0.0, len_beta * sizeof(double));
     memset(samples->m_sus_mean, 0.0, len_beta * sizeof(double));
     memset(samples->m_sus_std, 0.0, len_beta * sizeof(double));
+
+    samples->corr_bins = (double ***) malloc(len_beta * sizeof(double **));
+    samples->corr_mean = (double **) malloc(len_beta * sizeof(double *));
+    samples->corr_std = (double **) malloc(len_beta * sizeof(double *));
+    samples->S_bins = (double **) malloc(len_beta * sizeof(double *));
+    samples->S_mean = (double *) malloc(len_beta * sizeof(double));
+    samples->S_std = (double *) malloc(len_beta * sizeof(double));
+    for (int i = 0; i < len_beta; i++) {
+        samples->corr_bins[i] = (double **) malloc(n_bins * sizeof(double *));
+        samples->corr_mean[i] = (double *) malloc(L * sizeof(double));
+        samples->corr_std[i] = (double *) malloc(L * sizeof(double));
+
+        samples->S_bins[i] = (double *) malloc(n_bins * sizeof(double));
+
+        for (int j = 0; j < n_bins; j++) {
+            samples->corr_bins[i][j] = (double *) malloc(L * sizeof(double));
+
+            memset(samples->corr_bins[i][j], 0.0, L * sizeof(double));
+        }
+        
+        memset(samples->corr_mean[i], 0.0, L * sizeof(double));
+        memset(samples->corr_std[i], 0.0, L * sizeof(double));
+
+        memset(samples->S_bins[i], 0.0, len_beta * sizeof(double));
+
+    }
+
+    memset(samples->S_mean, 0.0, len_beta * sizeof(double));
+    memset(samples->S_std, 0.0, len_beta * sizeof(double));
 }
 
 /*
@@ -155,4 +185,22 @@ void free_samples(sampled_quantities *samples)
     free(samples->m4s_std);
     free(samples->m_sus_mean);
     free(samples->m_sus_std);
+
+    for (int i = 0; i < samples->betas; i++) {
+        for (int j = 0; j < samples->bins; j++) {
+            free(samples->corr_bins[i][j]);
+        }
+        free(samples->corr_bins[i]);
+        free(samples->corr_mean[i]);
+        free(samples->corr_std[i]);
+
+        free(samples->S_bins[i]);
+    }
+    free(samples->corr_bins);
+    free(samples->corr_mean);
+    free(samples->corr_std);
+    
+    free(samples->S_bins);
+    free(samples->S_mean);
+    free(samples->S_std);
 }

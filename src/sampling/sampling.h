@@ -17,6 +17,8 @@
  */
 typedef struct sampled_quantities 
 {
+    int d;
+    int L;
     int bins;
     int betas;
     double *beta_vals;
@@ -56,6 +58,14 @@ typedef struct sampled_quantities
     double *m4s_std;
     double *m_sus_mean;
     double *m_sus_std;
+
+    double ***corr_bins;
+    double **corr_mean;
+    double **corr_std;
+
+    double **S_bins;
+    double *S_mean;
+    double *S_std;
 } sampled_quantities;
 
 /* 
@@ -66,9 +76,11 @@ typedef struct sampled_quantities
  *      (double *) beta_vals: array of the temperatures
  *      (int) len_beta: number of temperatures
  *      (int) n_bins: number of bins
+ *      (int) d: number of dimensions of the system
+ *      (int) L: number of unit lattices in the system
  *      (sampled_quantities *) samples: struct to inilialize 
  */
-void init_samples(double *beta_vals, int len_beta, int n_bins, 
+void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L,
     sampled_quantities *samples);
 
 /* 

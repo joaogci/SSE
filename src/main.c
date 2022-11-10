@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     }
 
     samples = (sampled_quantities *) malloc(sizeof(sampled_quantities));
-    init_samples(beta_vals, len_beta, n_bins, samples);
+    init_samples(beta_vals, len_beta, n_bins, d, L, samples);
     
     omp_set_num_threads(n_threads);
     cpu_time = (double *) malloc(sizeof(double) * n_threads);

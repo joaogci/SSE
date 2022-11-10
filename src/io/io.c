@@ -146,9 +146,9 @@ void write_outputs(char *file_name, sampled_quantities *samples,
         fprintf(output_file, "n_betas\n");
         fprintf(output_file, "%d\n", samples->betas);
 
-        fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std\n");
+        fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,S_mean,S_std\n");
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
-            fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 
+            fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 
             samples->beta_vals[t_idx], 
             samples->n_mean[t_idx],
             samples->n2_mean[t_idx], 
@@ -170,7 +170,19 @@ void write_outputs(char *file_name, sampled_quantities *samples,
             samples->m4s_mean[t_idx],
             samples->m4s_std[t_idx],
             samples->m_sus_mean[t_idx],
-            samples->m_sus_std[t_idx]);
+            samples->m_sus_std[t_idx],
+            samples->S_mean[t_idx],
+            samples->S_std[t_idx]);
+        }
+
+        
+        for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
+            fprintf(output_file, "beta\n");
+            fprintf(output_file, "%lf\n", samples->beta_vals[t_idx]);
+            fprintf(output_file, "corr_mean,corr_std\n");
+            for (int i = 0; i < L; i++) {
+                fprintf(output_file, "%lf,%lf\n", samples->corr_mean[t_idx][i], samples->corr_std[t_idx][i]);
+            }
         }
     } else {
         printf("Error in opening the %s file. \n", file_name);

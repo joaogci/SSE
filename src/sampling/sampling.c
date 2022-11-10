@@ -19,18 +19,17 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     double ms = 0.0;
     double m2s = 0.0;
     double m4s = 0.0;
+    double corr[system->L];
 
-    samples->n_bins[t_idx][n] += state->n; /* sample n */
-    samples->n2_bins[t_idx][n] += state->n * state->n; /* sample n^2 */
 
-    // sample the magnetization
     // sample the first state 
     for (int i = 0; i < system->N; i++) {
-        m += system->spin[i];
-        ms += pow(- 1.0, i) * system->spin[i];
+        m += system->spin[i] * 0.5;
+        ms += pow(- 1.0, i) * system->spin[i] * 0.5;
+
+        corr[i] = 0.0;
+        corr[i] += system->spin[0] * system->spin[i] * 0.25;
     }
-    m *= 0.5;
-    ms *= 0.5;
     m2 += m * m;
     m4 += m * m * m * m;
     m2s += ms * ms;
@@ -58,22 +57,26 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         if (state->op_string[p] != 0) {
             m2s += ms * ms;
             m4s += ms * ms * ms * ms;
+
+            for (int i = 0; i < system->L; i++) {
+                corr[i] += system->spin[0] * system->spin[i] * 0.25;
+            }
         }
     }
 
-    m /= system->N;
-    m2 /= system->N;
-    m4 /= system->N;
-    ms /= ((state->n + 1) * system->N);
-    m2s /= ((state->n + 1) * system->N);
-    m4s /= ((state->n + 1) * system->N);
-
-    samples->m_bins[t_idx][n] += m;
-    samples->m2_bins[t_idx][n] += m2;
-    samples->m4_bins[t_idx][n] += m4;
-    samples->ms_bins[t_idx][n] += ms;
-    samples->m2s_bins[t_idx][n] += m2s;
-    samples->m4s_bins[t_idx][n] += m4s;
+    // sample to the struct
+    samples->n_bins[t_idx][n] += state->n;
+    samples->n2_bins[t_idx][n] += state->n * state->n; 
+    samples->m_bins[t_idx][n] += m / system->N;
+    samples->m2_bins[t_idx][n] += m2 / system->N;
+    samples->m4_bins[t_idx][n] += m4 / system->N;
+    samples->ms_bins[t_idx][n] += ms / ((state->n + 1) * system->N);
+    samples->m2s_bins[t_idx][n] += m2s / ((state->n + 1) * system->N);
+    samples->m4s_bins[t_idx][n] += m4s / ((state->n + 1) * system->N);
+    for (int i = 0; i < system->L; i++) {
+        samples->corr_bins[t_idx][n][i] += corr[i] / (state->n + 1);
+        samples->S_bins[t_idx][n] += pow(- 1.0, i) * corr[i] / (system->L * (state->n + 1));
+    }    
 }
 
 /* 
@@ -112,6 +115,11 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
                 * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
                 * samples->m_bins[t_idx][n] * N);
 
+            for (int i = 0; i < N; i++) {
+                samples->corr_bins[t_idx][n][i] /= mc_cycles;
+            }
+            samples->S_bins[t_idx][n] /= mc_cycles;
+
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
             samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
             samples->E_mean[t_idx] += samples->E_bins[t_idx][n];
@@ -124,6 +132,11 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m2s_mean[t_idx] += samples->m2s_bins[t_idx][n];
             samples->m4s_mean[t_idx] += samples->m4s_bins[t_idx][n];
             samples->m_sus_mean[t_idx] += samples->m_sus_bins[t_idx][n];
+
+            for (int i = 0; i < N; i++) {
+                samples->corr_mean[t_idx][i] += samples->corr_bins[t_idx][n][i];
+            }
+            samples->S_mean[t_idx] += samples->S_bins[t_idx][n];
         }
         samples->n_mean[t_idx] /= samples->bins;
         samples->n2_mean[t_idx] /= samples->bins;
@@ -138,6 +151,11 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         samples->m4s_mean[t_idx] /= samples->bins;
         samples->m_sus_mean[t_idx] /= samples->bins;
 
+        for (int i = 0; i < N; i++) {
+            samples->corr_mean[t_idx][i] /= samples->bins;
+        }
+        samples->S_mean[t_idx] /= samples->bins;
+
         for (int n = 0; n < samples->bins; n++) {
             samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
             samples->E_std[t_idx] += pow(samples->E_bins[t_idx][n] - samples->E_mean[t_idx], 2.0);
@@ -150,6 +168,11 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m2s_std[t_idx] += pow(samples->m2s_bins[t_idx][n] - samples->m2s_mean[t_idx], 2.0);
             samples->m4s_std[t_idx] += pow(samples->m4s_bins[t_idx][n] - samples->m4s_mean[t_idx], 2.0);
             samples->m_sus_std[t_idx] += pow(samples->m_sus_bins[t_idx][n] - samples->m_sus_mean[t_idx], 2.0);
+
+            for (int i = 0; i < N; i++) {
+                samples->corr_std[t_idx][i] += pow(samples->corr_bins[t_idx][n][i] - samples->corr_mean[t_idx][i], 2.0);
+            }
+            samples->S_std[t_idx] += pow(samples->S_bins[t_idx][n] - samples->S_mean[t_idx], 2.0);
         }
         samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
         samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
@@ -162,5 +185,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         samples->m2s_std[t_idx] = sqrt(samples->m2s_std[t_idx] / samples->bins);
         samples->m4s_std[t_idx] = sqrt(samples->m4s_std[t_idx] / samples->bins);
         samples->m_sus_std[t_idx] = sqrt(samples->m_sus_std[t_idx] / samples->bins);
+
+        for (int i = 0; i < N; i++) {
+            samples->corr_std[t_idx][i] = sqrt(samples->corr_std[t_idx][i] / samples->bins);
+        }
+        samples->S_std[t_idx] = sqrt(samples->S_std[t_idx] / samples->bins);
     }
 }
