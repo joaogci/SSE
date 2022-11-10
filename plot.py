@@ -8,7 +8,7 @@ matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 # Read the output file
-FILENAME = "1D_L64_AFM_Heisenberg_delta1.0_h0.0.csv"
+FILENAME = "1D_L64_AFM_Heisenberg_delta1.0_h0.0_1.csv"
 sim_info, sampled = read_sse_output(FILENAME)
 
 # Plot the variables

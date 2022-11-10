@@ -20,7 +20,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     double m2s = 0.0;
     double m4s = 0.0;
     double corr[system->L];
-
+    double si[system->L];
 
     // sample the first state 
     for (int i = 0; i < system->N; i++) {
@@ -28,7 +28,9 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         ms += pow(- 1.0, i) * system->spin[i] * 0.5;
 
         corr[i] = 0.0;
+        si[i] = 0.0;
         corr[i] += system->spin[0] * system->spin[i] * 0.25;
+        si[i] += system->spin[i] * 0.5;
     }
     m2 += m * m;
     m4 += m * m * m * m;
@@ -60,6 +62,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
             for (int i = 0; i < system->L; i++) {
                 corr[i] += system->spin[0] * system->spin[i] * 0.25;
+                si[i] += system->spin[i] * 0.5;
             }
         }
     }
@@ -74,8 +77,8 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     samples->m2s_bins[t_idx][n] += m2s / ((state->n + 1) * system->N);
     samples->m4s_bins[t_idx][n] += m4s / ((state->n + 1) * system->N);
     for (int i = 0; i < system->L; i++) {
-        samples->corr_bins[t_idx][n][i] += corr[i] / (state->n + 1);
-        samples->S_bins[t_idx][n] += pow(- 1.0, i) * corr[i] / (system->L * (state->n + 1));
+        samples->corr_bins[t_idx][n][i] += (corr[i] - si[0] * si[i] / (state->n + 1)) / (state->n + 1);
+        samples->S_bins[t_idx][n] += pow(- 1.0, i) * (corr[i] - si[0] * si[i] / (state->n + 1)) / (system->L * (state->n + 1));
     }    
 }
 
