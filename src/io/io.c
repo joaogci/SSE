@@ -107,20 +107,30 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams)
  *  writes the simulation outputs to file
  *  
  *  parameters:
- *      (char *) file_name: file name
  *      (sampled_quantities *) samples: sampled quantities
  * during the simulation
+ *  returns:
+ *      (char *) file_name: name of save file
  */
-void write_outputs(char *file_name, sampled_quantities *samples, 
+char *write_outputs(sampled_quantities *samples, 
     int d, int L, double S, double delta, double h, double epsilon,
     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads) 
 {
+    char *file_name = (char *) malloc(BUFFER_SIZE * sizeof(char));
+    if (delta > 0) {
+        sprintf(file_name, "%dD_L%d_AFM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, S, fabs(delta), h, epsilon);
+    } else if (delta < 0) {
+        sprintf(file_name, "%dD_L%d_FM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, S, fabs(delta), h, epsilon);
+    } else {
+        sprintf(file_name, "%dD_L%d_XY_S%g_h%g_ep%g.csv", d, L, S, h, epsilon);
+    }
+
     FILE *output_file;
     output_file = fopen(file_name, "w");
 
     if (output_file != NULL) {
         fprintf(output_file, "d,L,S,delta,h,epsilon\n");
-        fprintf(output_file, "%d,%d,%lf,%lf,%lf,%lf\n", d, L, S, delta, h, epsilon);
+        fprintf(output_file, "%d,%d,%lf,%lf,%lf,%lf\n", d, L, S, fabs(delta), h, epsilon);
         
         fprintf(output_file, "therm_cycles,mc_cycles,n_bins\n");
         fprintf(output_file, "%ld,%ld,%d \n", therm_cycles, mc_cycles, samples->bins);
@@ -159,7 +169,6 @@ void write_outputs(char *file_name, sampled_quantities *samples,
             samples->S_mean[t_idx],
             samples->S_std[t_idx]);
         }
-
         
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
             fprintf(output_file, "beta\n");
@@ -175,4 +184,5 @@ void write_outputs(char *file_name, sampled_quantities *samples,
     }
 
     fclose(output_file);
+    return file_name;
 }

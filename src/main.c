@@ -118,9 +118,9 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
 int main(int argc, char **argv)
 {
-    if (argc < 4) {
+    if (argc < 3) {
         printf("Please provide the output file names for the program to work. \n");
-        printf("Usage: %s n_threads vtx_name.txt output_name.csv", argv[0]);
+        printf("Usage: %s n_threads vtx_name.txt \n", argv[0]);
         exit(1);
     }
 
@@ -173,12 +173,13 @@ int main(int argc, char **argv)
     printf(" -- Writing simulation results to file -- \n");
 
     normalize(mc_cycles, samples, pow(L, d), d, S, delta, h, epsilon);
-    write_outputs(argv[3], samples, d, L, S, delta, h, epsilon,therm_cycles, mc_cycles, cpu_time_used, n_threads);
+    char *file_name = write_outputs(samples, d, L, S, delta, h, epsilon,therm_cycles, mc_cycles, cpu_time_used, n_threads);
     
-    printf(" -- Results written with success to file: %s -- \n", argv[3]);
+    printf(" -- Results written with success to file: %s -- \n", file_name);
 
     free_samples(samples);
     free(samples);
+    free(file_name);
 
     return 0;
 }

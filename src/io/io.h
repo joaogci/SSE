@@ -47,11 +47,12 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams);
  *  writes the simulation outputs to file
  *  
  *  parameters:
- *      (char *) file_name: file name
  *      (sampled_quantities *) samples: sampled quantities
  * during the simulation
+ *  returns:
+ *      (char *) file_name: name of save file
  */
-void write_outputs(char *file_name, sampled_quantities *samples, 
+char *write_outputs(sampled_quantities *samples, 
     int d, int L, double S, double delta, double h, double epsilon,
     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads);
 

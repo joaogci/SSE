@@ -49,5 +49,5 @@ cd ..
 
 echo "[4] - Running the simulation."
 echo
-./src/main $n_threads tmp/$vtx_name $output_name 
+./src/main $n_threads tmp/$vtx_name
 echo 
