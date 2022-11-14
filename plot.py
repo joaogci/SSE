@@ -8,11 +8,11 @@ matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 # Read the output file
-FILENAME = "1D_L16_AFM_XXZ_S0.5_delta1_h0_ep0.25.csv"
+FILENAME = "1D_L8_AFM_XXZ_S1_delta1_h0_ep0.25.csv"
 sim_info, sampled = read_sse_output(FILENAME)
 
 # Plot the variables
-fig, _ = plt.subplots(3, 3, sharex=True)
+fig, _ = plt.subplots(3, 3)
 plt.figure(1)
 fig.suptitle(FILENAME)
 
