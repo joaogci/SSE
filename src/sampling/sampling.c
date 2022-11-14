@@ -21,14 +21,14 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     double m4s = 0.0;
     double corr[system->L];
     double si[system->L];
+    memset(corr, 0.0, system->L * sizeof(double));
+    memset(si, 0.0, system->L * sizeof(double));
 
     // sample the first state 
     for (int i = 0; i < system->N; i++) {
         m += system->spin[i] * 0.5;
         ms += pow(- 1.0, i) * system->spin[i] * 0.5;
 
-        corr[i] = 0.0;
-        si[i] = 0.0;
         corr[i] += system->spin[0] * system->spin[i] * 0.25;
         si[i] += system->spin[i] * 0.5;
     }
