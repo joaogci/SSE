@@ -43,6 +43,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
     init_heisenberg_system(d, L, S, delta, h, epsilon, system);
     init_sse_state(SEED * t_id, system, state);
+    #pragma omp critical 
     read_vtx_info(vtx_file, &(state->vtx_type), &(state->n_diagrams));
 
     for (int t_idx = 0; t_idx < len_beta; t_idx++) {
@@ -111,9 +112,13 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
         #pragma omp barrier
     }
 
+    printf("here %d\n", t_id);
     free_memory(system, state);
+    printf("here2 %d\n", t_id);
     free(state);
+    printf("here3 %d\n", t_id);
     free(system);
+    printf("here4 %d\n", t_id);
 }
 
 int main(int argc, char **argv)
