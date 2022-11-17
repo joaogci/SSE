@@ -1,41 +1,5 @@
 #include "sse.h"
 
-// #define COND
-#ifdef COND
-double integral(int m, int n, double w_k, double beta) 
-{
-    long mc = 100000;
-    double val = 0.0;
-
-    for (int i = 0; i < mc; i++) {
-        double x = next_double();
-        val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
-    }
-
-    return val / mc;
-}
-
-double prefac(int m, int n) 
-{
-    double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
-        log(M_PI * (2 * (n - 1) + 1.0/3.0)) - (n - 1);
-
-    double f_n_m = 0;
-    if ((n - m) != 0) {
-        f_n_m = (n - m) * log(n - m) + 0.5 * 
-            log(M_PI * (2 * (n - m) + 1.0/3.0)) - (n - m);
-    }
-    
-    double f_m = 0;
-    if (m != 0) {
-        f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
-    }
-
-    return exp(f_n_1 - f_n_m - f_m);
-}
-#endif
-
-
 /* 
  * function: diag_update
  *  diagonal update for the SSE MCS

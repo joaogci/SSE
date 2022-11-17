@@ -198,10 +198,4 @@ double prob(int b, heisenberg_system *system, sse_state *state);
  */
 void free_memory(heisenberg_system *system, sse_state *state);
 
-#define COND
-#ifdef COND
-double integral(int m, int n, double w_k, double beta);
-double prefac(int m, int n);
-#endif 
-
 #endif // SSE_H
