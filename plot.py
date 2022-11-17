@@ -80,4 +80,12 @@ for j, T in enumerate(sampled["T"]):
     plt.ylabel(r"$C(0, i)$")
     plt.legend()
 
+if sim_info["n_k"] != 0:
+    plt.figure(3)
+    for j, T in enumerate(sampled["T"]):    
+        plt.errorbar(sampled["w_k"][j, :], sampled["g_spin_mean"][j, :], sampled["g_spin_std"][j, :], fmt=".--", label=fr"$T={T}$")
+        plt.xlabel(r"$\omega_k$")
+        plt.ylabel(r"$g(\omega_k)$")
+        plt.legend()
+
 plt.show()

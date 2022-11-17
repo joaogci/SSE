@@ -40,6 +40,9 @@ def read_sse_output(filename):
         file.readline()
         line = file.readline().strip().split(',')
         sim_info["n_betas"] = int(line[0])
+        sim_info["n_k"] = int(line[1])
+        sim_info["x"] = int(line[2])
+        sim_info["y"] = int(line[3])
         
         # read sampled quantities
         sampled["beta"] = np.zeros(sim_info["n_betas"])
@@ -90,5 +93,19 @@ def read_sse_output(filename):
             
             for i in range(sim_info["L"]):
                 sampled["corr_mean"][j, i], sampled["corr_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
-    
+
+        # spin conductivity
+        if sim_info["n_k"] != 0:
+            sampled["w_k"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
+            sampled["g_spin_mean"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
+            sampled["g_spin_std"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
+        
+            for j in range(sim_info["n_betas"]):
+                file.readline()
+                file.readline()
+                file.readline()
+                
+                for i in range(sim_info["n_k"]):
+                    sampled["w_k"][j, i], sampled["g_spin_mean"][j, i], sampled["g_spin_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+
     return sim_info, sampled
