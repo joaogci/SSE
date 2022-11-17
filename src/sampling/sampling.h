@@ -2,6 +2,7 @@
 #define SAMPLING_H
 
 #include "../sse/sse.h"
+#include <time.h>
 
 /*
  * struct: sampled_quantities
@@ -67,9 +68,13 @@ typedef struct sampled_quantities
     double *S_mean;
     double *S_std;
 
-    double **g_spin_bins;
-    double *g_spin_mean;
-    double *g_spin_std;
+    int k_max;
+    int x;
+    int y;
+    double **w_k;
+    double ***g_spin_bins;
+    double **g_spin_mean;
+    double **g_spin_std;
 } sampled_quantities;
 
 /* 
@@ -126,5 +131,16 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d,
  *      (sampled_quantities *) samples: struct to free
  */
 void free_samples(sampled_quantities *samples);
+
+#ifdef SPIN_COND
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the spin conductance formula. 
+ * The integral is computed using Monte-Carlo integration with 
+ *  mc samples. 
+ * The factorial prefactor is computed using the Stirling's approximation
+ */
+double prefactor_spin_cond(int m, int n, double w_k, double beta);
+#endif // SPIN_COND
 
 #endif // SAMPLING_H

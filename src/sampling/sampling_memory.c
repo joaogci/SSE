@@ -1,5 +1,7 @@
 #include "sampling.h"
 
+#define BUFFER_SIZE 256
+
 /* 
  * function: init_samples
  *  initializes and allocates memory for the samples quantities struct
@@ -17,6 +19,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     samples->beta_vals = beta_vals;
     samples->L = L;
     samples->d = d;
+    samples->k_max = 0;
 
     samples->n_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->n2_bins = (double **) malloc(len_beta * sizeof(double *));
@@ -130,15 +133,52 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     memset(samples->S_mean, 0.0, len_beta * sizeof(double));
     memset(samples->S_std, 0.0, len_beta * sizeof(double));
 
-    samples->g_spin_bins = (double **) malloc(len_beta * sizeof(double *));
-    samples->g_spin_mean = (double *) malloc(len_beta * sizeof(double));
-    samples->g_spin_std = (double *) malloc(len_beta * sizeof(double));
-    for (int i = 0; i < len_beta; i++) {
-        samples->g_spin_bins[i] = (double *) malloc(n_bins * sizeof(double));
-        memset(samples->g_spin_bins[i], 0.0, n_bins * sizeof(double));
+#ifdef SPIN_COND
+    char buffer[BUFFER_SIZE];
+    FILE *fp;
+    fp = fopen("matsubara.in", "r");
+    if (fp != NULL) {
+        fgets(buffer, BUFFER_SIZE, fp);
+        sscanf(buffer, "%d ", &(samples->k_max));
+
+        fgets(buffer, BUFFER_SIZE, fp);
+        sscanf(buffer, "%d, %d", &(samples->x), &(samples->y));
+    } else {
+        printf("Error opening the matsubara.in file. Check if the file exists. \n");
+        printf("Setting the maximum Matsubara frequency to 5. \n");
+        samples->k_max = 5;
+        printf("Setting x and y for measuring the perturbation to the middle of the chain. \n");
+        samples->x = L / 2 - 1;
+        samples->y = samples->x;
     }
-    memset(samples->g_spin_mean, 0.0, len_beta * sizeof(double));
-    memset(samples->g_spin_std, 0.0, len_beta * sizeof(double));
+
+    samples->g_spin_bins = (double ***) malloc(len_beta * sizeof(double **));
+    samples->g_spin_mean = (double **) malloc(len_beta * sizeof(double *));
+    samples->g_spin_std = (double **) malloc(len_beta * sizeof(double *));
+    samples->w_k = (double **) malloc(len_beta * sizeof(double *));
+    for (int i = 0; i < len_beta; i++) {
+        samples->g_spin_bins[i] = (double **) malloc(n_bins * sizeof(double *));
+        samples->g_spin_mean[i] = (double *) malloc(samples->k_max * sizeof(double));
+        samples->g_spin_std[i] = (double *) malloc(samples->k_max * sizeof(double));
+        samples->w_k[i] = (double *) malloc(samples->k_max * sizeof(double));
+
+        for (int j = 0; j < n_bins; j++) {
+            samples->g_spin_bins[i][j] = (double *) malloc(samples->k_max * sizeof(double));
+
+            memset(samples->g_spin_bins[i][j], 0.0, samples->k_max * sizeof(double));
+        }
+
+        memset(samples->g_spin_mean[i], 0.0, samples->k_max * sizeof(double));
+        memset(samples->g_spin_std[i], 0.0, samples->k_max * sizeof(double));
+        memset(samples->w_k[i], 0.0, samples->k_max * sizeof(double));
+    }
+
+    for (int i = 0; i < len_beta; i++) {
+        for (int k = 1; k < samples->k_max + 1; k++) {
+            samples->w_k[i][k - 1] = 2 * M_PI * k / samples->beta_vals[i];
+        }
+    }
+#endif // SPIN_COND
 }
 
 /*
@@ -214,10 +254,19 @@ void free_samples(sampled_quantities *samples)
     free(samples->S_mean);
     free(samples->S_std);
 
+#ifdef SPIN_COND
     for (int i = 0; i < samples->betas; i++) {
+        for (int j = 0; j < samples->bins; j++) {
+            free(samples->g_spin_bins[i][j]);
+        }   
         free(samples->g_spin_bins[i]);
+        free(samples->g_spin_mean[i]);
+        free(samples->g_spin_std[i]);
+        free(samples->w_k[i]);
     }
     free(samples->g_spin_bins);
     free(samples->g_spin_mean);
     free(samples->g_spin_std);
+    free(samples->w_k);
+#endif // SPIN_COND
 }

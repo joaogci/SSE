@@ -13,7 +13,11 @@
  */
 void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples) 
 {
-    double m = 0.0;
+    for (int i = 0; i < 4; i++) {
+        s[i] = rand() * (n + 1);
+    }
+
+    double m1 = 0.0;
     double m2 = 0.0;
     double m4 = 0.0;
     double ms = 0.0;
@@ -26,18 +30,18 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // sample the first state 
     for (int i = 0; i < system->N; i++) {
-        m += system->spin[i] * 0.5;
+        m1 += system->spin[i] * 0.5;
         ms += pow(- 1.0, i) * system->spin[i] * 0.5;
 
         corr[i] += system->spin[0] * system->spin[i] * 0.25;
         si[i] += system->spin[i] * 0.5;
     }
-    m2 += m * m;
-    m4 += m * m * m * m;
+    m2 += m1 * m1;
+    m4 += m1 * m1 * m1 * m1;
     m2s += ms * ms;
     m4s += ms * ms * ms * ms;
 
-    // reduced op string
+    // reduced operator string
     int red_op_string[state->n];
     int p_red = 0;
     for (int p = 0; p < state->M; p++) {
@@ -78,29 +82,20 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     // sample to the struct
     samples->n_bins[t_idx][n] += state->n;
     samples->n2_bins[t_idx][n] += state->n * state->n; 
-    samples->m_bins[t_idx][n] += m / system->N;
-    samples->m2_bins[t_idx][n] += m2 / system->N;
-    samples->m4_bins[t_idx][n] += m4 / system->N;
+    samples->m_bins[t_idx][n] += m1 / system->N;
+    samples->m2_bins[t_idx][n] += m2 / (system->N * system->N);
+    samples->m4_bins[t_idx][n] += m4 / (system->N * system->N * system->N * system->N);
     samples->ms_bins[t_idx][n] += ms / ((state->n + 1) * system->N);
-    samples->m2s_bins[t_idx][n] += m2s / ((state->n + 1) * system->N);
-    samples->m4s_bins[t_idx][n] += m4s / ((state->n + 1) * system->N);
+    samples->m2s_bins[t_idx][n] += m2s / ((state->n + 1) * system->N * system->N);
+    samples->m4s_bins[t_idx][n] += m4s / ((state->n + 1) * system->N * system->N * system->N * system->N);
     for (int i = 0; i < system->L; i++) {
         samples->corr_bins[t_idx][n][i] += corr[i] / (state->n + 1);
         samples->S_bins[t_idx][n] += pow(- 1.0, i) * corr[i] / (system->L * (state->n + 1));
-        // samples->corr_bins[t_idx][n][i] += (corr[i] - si[0] * si[i] / (state->n + 1)) / (state->n + 1);
-        // samples->S_bins[t_idx][n] += pow(- 1.0, i) * (corr[i] - si[0] * si[i] / (state->n + 1)) / (system->L * (state->n + 1));
     }
 
-    // #define COND
-    #ifdef COND
-    int k_m = 1;
-    double w_k = 2 * M_PI * k_m / samples->beta_vals[t_idx];
-    int x = system->L / 2 - 1;
-    int y = x;
-
-    // sample spin conductance g(w1)
+    // sample the spin conductance
+#ifdef SPIN_COND
     if (state->n > 1) {
-
         int spinsum_x[state->n];
         int spinsum_y[state->n];
         int spin_prod[state->n + 1];
@@ -109,10 +104,10 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         memset(spin_prod, 0.0, (state->n + 1) * sizeof(int));
 
         for (int p = 0; p < state->n; p++) {
-            for (int i = x; i < system->L; i++) {
+            for (int i = samples->x; i < system->L; i++) {
                 spinsum_x[p] += system->spin[i];
             }
-            for (int i = y; i < system->L; i++) {
+            for (int i = samples->y; i < system->L; i++) {
                 spinsum_y[p] += system->spin[i];
             }
 
@@ -138,13 +133,52 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
             }
         }
 
-        for (int m = 0; m < state->n + 1; m++) {
-            samples->g_spin_bins[t_idx][n] += prefac(m, state->n) * w_k * samples->beta_vals[t_idx] * 
-                integral(m, state->n, w_k, samples->beta_vals[t_idx]) * spin_prod[m] * 0.25;
+        for (int k = 0; k < samples->k_max; k++) {
+            for (int m = 0; m < state->n + 1; m++) {
+                samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * 
+                    prefactor_spin_cond(m, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]) * 
+                    spin_prod[m] * 0.25;
+            }
         }
     }
-    #endif
+#endif // SPIN_COND
 }
+
+#ifdef SPIN_COND
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the spin conductance formula. 
+ * The integral is computed using Monte-Carlo integration with 
+ *  mc samples. 
+ * The factorial prefactor is computed using the Stirling's approximation
+ */
+double prefactor_spin_cond(int m, int n, double w_k, double beta) 
+{
+    long mc = 100000;
+    double val = 0.0;
+
+    for (int i = 0; i < mc; i++) {
+        double x = next_double();
+        val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
+    }
+
+    double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
+        log(M_PI * (2 * (n - 1) + 1.0/3.0)) - (n - 1);
+
+    double f_n_m = 0;
+    if ((n - m) != 0) {
+        f_n_m = (n - m) * log(n - m) + 0.5 * 
+            log(M_PI * (2 * (n - m) + 1.0/3.0)) - (n - m);
+    }
+    
+    double f_m = 0;
+    if (m != 0) {
+        f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
+    }
+
+    return exp(f_n_1 - f_n_m - f_m) * val / mc;
+}
+#endif // SPIN_COND
 
 /* 
  * function: normalize 
@@ -187,7 +221,9 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             }
             samples->S_bins[t_idx][n] /= mc_cycles;
 
-            samples->g_spin_bins[t_idx][n] /= mc_cycles;
+            for (int k = 0; k < samples->k_max; k++) {
+                samples->g_spin_bins[t_idx][n][k] /= mc_cycles;
+            }
 
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
             samples->n2_mean[t_idx] += samples->n2_bins[t_idx][n];
@@ -207,7 +243,9 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             }
             samples->S_mean[t_idx] += samples->S_bins[t_idx][n];
 
-            samples->g_spin_mean[t_idx] += samples->g_spin_bins[t_idx][n];
+            for (int k = 0; k < samples->k_max; k++) {
+                samples->g_spin_mean[t_idx][k] += samples->g_spin_bins[t_idx][n][k];
+            }
         }
         samples->n_mean[t_idx] /= samples->bins;
         samples->n2_mean[t_idx] /= samples->bins;
@@ -227,7 +265,9 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         }
         samples->S_mean[t_idx] /= samples->bins;
 
-        samples->g_spin_mean[t_idx] /= samples->bins;
+        for (int k = 0; k < samples->k_max; k++) {
+            samples->g_spin_mean[t_idx][k] /= samples->bins;
+        }
 
         for (int n = 0; n < samples->bins; n++) {
             samples->n_std[t_idx] += pow(samples->n_bins[t_idx][n] - samples->n_mean[t_idx], 2.0);
@@ -247,7 +287,9 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             }
             samples->S_std[t_idx] += pow(samples->S_bins[t_idx][n] - samples->S_mean[t_idx], 2.0);
 
-            samples->g_spin_std[t_idx] += pow(samples->g_spin_bins[t_idx][n] - samples->g_spin_mean[t_idx], 2.0);
+            for (int k = 0; k < samples->k_max; k++) {
+                samples->g_spin_std[t_idx][k] += pow(samples->g_spin_bins[t_idx][n][k] - samples->g_spin_mean[t_idx][k], 2.0);
+            }
         }
         samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
         samples->E_std[t_idx] = sqrt(samples->E_std[t_idx] / samples->bins);
@@ -266,6 +308,8 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
         }
         samples->S_std[t_idx] = sqrt(samples->S_std[t_idx] / samples->bins);
 
-        samples->g_spin_std[t_idx] = sqrt(samples->g_spin_std[t_idx] / samples->bins);
+        for (int k = 0; k < samples->k_max; k++) {
+            samples->g_spin_std[t_idx][k] = sqrt(samples->g_spin_std[t_idx][k] / samples->bins);
+        }
     }
 }

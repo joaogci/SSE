@@ -136,12 +136,12 @@ char *write_outputs(sampled_quantities *samples,
         fprintf(output_file, "cpu_time,n_threads\n");
         fprintf(output_file, "%lf,%d\n", cpu_time_used, n_threads);
 
-        fprintf(output_file, "n_betas\n");
-        fprintf(output_file, "%d\n", samples->betas);
+        fprintf(output_file, "n_betas,n_k\n");
+        fprintf(output_file, "%d,%d\n", samples->betas, samples->k_max);
 
-        fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,S_mean,S_std,g_spin,g_spin_std\n");
+        fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,S_mean,S_std\n");
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
-            fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 
+            fprintf(output_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", 
             samples->beta_vals[t_idx], 
             samples->n_mean[t_idx],
             samples->n2_mean[t_idx], 
@@ -165,9 +165,7 @@ char *write_outputs(sampled_quantities *samples,
             samples->m_sus_mean[t_idx],
             samples->m_sus_std[t_idx],
             samples->S_mean[t_idx],
-            samples->S_std[t_idx],
-            samples->g_spin_mean[t_idx],
-            samples->g_spin_std[t_idx]);
+            samples->S_std[t_idx]);
         }
         
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
@@ -178,6 +176,16 @@ char *write_outputs(sampled_quantities *samples,
                 fprintf(output_file, "%lf,%lf\n", samples->corr_mean[t_idx][i], samples->corr_std[t_idx][i]);
             }
         }
+#ifdef SPIN_COND
+        for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
+            fprintf(output_file, "beta\n");
+            fprintf(output_file, "%lf\n", samples->beta_vals[t_idx]);
+            fprintf(output_file, "w_k,g_spin_mean,g_spin_std\n");
+            for (int k = 0; k < samples->k_max; k++) {
+                fprintf(output_file, "%lf,%lf,%lf\n", samples->w_k[t_idx][k], samples->g_spin_mean[t_idx][k], samples->g_spin_std[t_idx][k]);
+            }
+        }
+#endif // SPIN_COND
     } else {
         printf("Error in opening the %s file. \n", file_name);
         exit(1);
