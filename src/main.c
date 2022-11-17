@@ -112,13 +112,9 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
         #pragma omp barrier
     }
 
-    printf("here %d\n", t_id);
     free_memory(system, state);
-    printf("here2 %d\n", t_id);
     free(state);
-    printf("here3 %d\n", t_id);
     free(system);
-    printf("here4 %d\n", t_id);
 }
 
 int main(int argc, char **argv)
