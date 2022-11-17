@@ -136,8 +136,8 @@ char *write_outputs(sampled_quantities *samples,
         fprintf(output_file, "cpu_time,n_threads\n");
         fprintf(output_file, "%lf,%d\n", cpu_time_used, n_threads);
 
-        fprintf(output_file, "n_betas,n_k\n");
-        fprintf(output_file, "%d,%d\n", samples->betas, samples->k_max);
+        fprintf(output_file, "n_betas,n_k,x,y\n");
+        fprintf(output_file, "%d,%d,%d,%d\n", samples->betas, samples->k_max, samples->x, samples->y);
 
         fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,S_mean,S_std\n");
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {

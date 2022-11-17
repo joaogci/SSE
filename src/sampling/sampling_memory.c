@@ -20,6 +20,8 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     samples->L = L;
     samples->d = d;
     samples->k_max = 0;
+    samples->x = 0;
+    samples->y = 0;
 
     samples->n_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->n2_bins = (double **) malloc(len_beta * sizeof(double *));
