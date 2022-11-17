@@ -1,5 +1,41 @@
 #include "sse.h"
 
+// #define COND
+#ifdef COND
+double integral(int m, int n, double w_k, double beta) 
+{
+    long mc = 100000;
+    double val = 0.0;
+
+    for (int i = 0; i < mc; i++) {
+        double x = next_double();
+        val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
+    }
+
+    return val / mc;
+}
+
+double prefac(int m, int n) 
+{
+    double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
+        log(M_PI * (2 * (n - 1) + 1.0/3.0)) - (n - 1);
+
+    double f_n_m = 0;
+    if ((n - m) != 0) {
+        f_n_m = (n - m) * log(n - m) + 0.5 * 
+            log(M_PI * (2 * (n - m) + 1.0/3.0)) - (n - m);
+    }
+    
+    double f_m = 0;
+    if (m != 0) {
+        f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
+    }
+
+    return exp(f_n_1 - f_n_m - f_m);
+}
+#endif
+
+
 /* 
  * function: diag_update
  *  diagonal update for the SSE MCS
@@ -190,7 +226,7 @@ void init_heisenberg_system(int d, int L, double S, double delta, double h, doub
     system->d = d;
     system->L = L;
     system->N = pow(L, d);
-    system->Nb = system->N * d; // For PBC
+    system->Nb = system->N * d - 1; // For PBC or with -1 for OBC
     system->S = S;
     system->n_proj = 2.0 * S + 1.0;
     system->Sz = (int *) malloc(system->n_proj * sizeof(int));
@@ -206,7 +242,7 @@ void init_heisenberg_system(int d, int L, double S, double delta, double h, doub
     system->bond = (int **) malloc(system->Nb * sizeof(int *));
     for (int i = 0; i < system->Nb; i++) { system->bond[i] = (int*) malloc(2 * sizeof(int)); }
     if (d == 1) {
-        for (int i = 0; i < L; i++) {
+        for (int i = 0; i < system->Nb; i++) {
             system->bond[i][0] = i;
             system->bond[i][1] = (i + 1) % system->N;
         }
@@ -256,11 +292,11 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
     for (int i = 0; i < 4; i++) { s[i] = seed * (i + 1); }
 
     state->n = 0;
-    state->M = MAX(4, system->N / 4);
+    state->M = MAX_(4, system->N / 4);
     state->op_string = (int *) malloc(state->M * sizeof(int));
     memset(state->op_string, 0, state->M * sizeof(int));
 
-    state->n_loops = MAX(4, system->N / 4);
+    state->n_loops = MAX_(4, system->N / 4);
     state->loop_size = 0;
     state->first = (int *) malloc(system->N * sizeof(int));
 }
@@ -281,9 +317,9 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
     }
 
     state->n = 0;
-    state->M = MAX(4, system->N / 4);
+    state->M = MAX_(4, system->N / 4);
     state->loop_size = 0;
-    state->n_loops = MAX(4, system->N / 4);
+    state->n_loops = MAX_(4, system->N / 4);
 
     free(state->op_string);
     state->op_string = (int *) malloc(state->M * sizeof(int));

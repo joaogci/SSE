@@ -66,6 +66,10 @@ typedef struct sampled_quantities
     double **S_bins;
     double *S_mean;
     double *S_std;
+
+    double **g_spin_bins;
+    double *g_spin_mean;
+    double *g_spin_std;
 } sampled_quantities;
 
 /* 

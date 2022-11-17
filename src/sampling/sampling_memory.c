@@ -129,6 +129,16 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
 
     memset(samples->S_mean, 0.0, len_beta * sizeof(double));
     memset(samples->S_std, 0.0, len_beta * sizeof(double));
+
+    samples->g_spin_bins = (double **) malloc(len_beta * sizeof(double *));
+    samples->g_spin_mean = (double *) malloc(len_beta * sizeof(double));
+    samples->g_spin_std = (double *) malloc(len_beta * sizeof(double));
+    for (int i = 0; i < len_beta; i++) {
+        samples->g_spin_bins[i] = (double *) malloc(n_bins * sizeof(double));
+        memset(samples->g_spin_bins[i], 0.0, n_bins * sizeof(double));
+    }
+    memset(samples->g_spin_mean, 0.0, len_beta * sizeof(double));
+    memset(samples->g_spin_std, 0.0, len_beta * sizeof(double));
 }
 
 /*
@@ -203,4 +213,11 @@ void free_samples(sampled_quantities *samples)
     free(samples->S_bins);
     free(samples->S_mean);
     free(samples->S_std);
+
+    for (int i = 0; i < samples->betas; i++) {
+        free(samples->g_spin_bins[i]);
+    }
+    free(samples->g_spin_bins);
+    free(samples->g_spin_mean);
+    free(samples->g_spin_std);
 }

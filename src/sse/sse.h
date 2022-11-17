@@ -11,11 +11,11 @@
 #include "../vtx/vtx_type.h"
 #include "../rng/xorshiro256++.h"
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX_(a, b) ((a) > (b) ? (a) : (b))
+#define MIN_(a, b) ((a) < (b) ? (a) : (b))
 
-#define C ( S * S * fabs(delta) + 2.0 * S * hb )
-#define hb ( h / (2.0 * d) )
+#define C_ ( S * S * fabs(delta) + 2.0 * S * hb_ )
+#define hb_ ( h / (2.0 * d) )
 
 /* 
  * struct: heisenberg_system
@@ -197,5 +197,11 @@ double prob(int b, heisenberg_system *system, sse_state *state);
  *      (sse_state *) state: sse_state struct
  */
 void free_memory(heisenberg_system *system, sse_state *state);
+
+#define COND
+#ifdef COND
+double integral(int m, int n, double w_k, double beta);
+double prefac(int m, int n);
+#endif 
 
 #endif // SSE_H
