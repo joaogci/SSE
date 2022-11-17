@@ -1,14 +1,17 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from post_processing import read_sse_output
+import sys
 
 plt.style.use('seaborn')
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 # Read the output file
-FILENAME = "1D_L8_AFM_XXZ_S1_delta1_h0_ep0.25.csv"
+FILENAME = sys.argv[1]
 sim_info, sampled = read_sse_output(FILENAME)
 
 # Plot the variables
@@ -26,6 +29,12 @@ plt.subplot(3, 3, 2)
 plt.errorbar(sampled["T"], sampled["C"], sampled["C_std"], fmt=".--")
 plt.xlabel(r"$T$")
 plt.ylabel(r"$C$")
+plt.legend()
+
+plt.subplot(3, 3, 3)
+plt.errorbar(sampled["T"], sampled["corr_mean"][:, 0], sampled["corr_std"][:, 0], fmt=".--")
+plt.xlabel(r"$T$")
+plt.ylabel(r"$C(0, 0)$")
 plt.legend()
 
 plt.subplot(3, 3, 4)
