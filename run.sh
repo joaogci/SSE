@@ -18,9 +18,11 @@ EOF
 output_name="output.csv"
 n_threads="4"
 test=""
+cond=""
 
-while getopts bi:hn:o:t opts; do
+while getopts chn:o:t opts; do
     case $opts in 
+        (c) cond="cond";;
         (h) usage;;
         (n) n_threads=$OPTARG;;
         (o) output_name=$OPTARG;;
@@ -44,7 +46,7 @@ echo "Saved to file $vtx_name"
 
 echo "[3] - Compiling program."
 cd src
-make $test
+make $cond $test
 cd ..
 
 echo "[4] - Running the simulation."

@@ -22,5 +22,8 @@ $(PROGRAM): $(SOURCES) $(INCLUDES)
 test: $(SOURCES) $(INCLUDES)
 	$(CC) -o $(PROGRAM) $(FLAGS) -Wall -Wshadow $(SOURCES) $(LIBS) -DTESTING
 
+cond: $(SOURCES) $(INCLUDES)
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DCOND
+
 clean: 
 	rm $(PROGRAM)
