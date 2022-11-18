@@ -4,28 +4,26 @@ PROGNAME=$0
 usage() {
     cat << EOF >&2
 
-Usage               : $PROGNAME [-h] [-n <n_threads>] [-o <output_name>] [-t]
+Usage               : $PROGNAME [-c] [-h] [-n <n_threads>] [-t]
 
+-c                  : Run conductivity calculations.
 -h                  : Help. Shows this text.
 -n <n_threads>      : Set number of threads for openMP. Default value: "4"
--o <output_name>    : Relative path + name of output file for simulation. csv file is more convinient. Default value: "output.csv"
 -t                  : Test mode. Uses a pre-fixed seed (2)
 
 EOF
     exit 1
 }
 
-output_name="output.csv"
 n_threads="4"
 test=""
 cond=""
 
-while getopts chn:o:t opts; do
+while getopts chn:t opts; do
     case $opts in 
         (c) cond="cond";;
         (h) usage;;
         (n) n_threads=$OPTARG;;
-        (o) output_name=$OPTARG;;
         (t) test="test";;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
         (*) usage
@@ -52,4 +50,4 @@ cd ..
 echo "[4] - Running the simulation."
 echo
 ./src/main $n_threads tmp/$vtx_name
-echo 
+echo "[4] - Finished the simulation."
