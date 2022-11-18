@@ -1,5 +1,5 @@
-SOURCES = main.c sse/sse.c sampling/sampling.c io/io.c sampling/sampling_memory.c 
-INCLUDES = sse/sse.h sampling/sampling.h vtx/vtx_type.h rng/xorshiro256++.h io/io.h
+SOURCES = src/main.c src/sse/sse.c src/sampling/sampling.c src/io/io.c src/sampling/sampling_memory.c 
+INCLUDES = src/sse/sse.h src/sampling/sampling.h src/vtx/vtx_type.h src/rng/xorshiro256++.h src/io/io.h
 FLAGS = -fopenmp -O2 
 LIBS = -lm
 PROGRAM = main

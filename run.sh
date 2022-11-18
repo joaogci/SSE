@@ -43,11 +43,9 @@ vtx_name=$(python3 src/vtx/gen_vtx.py read.in)
 echo "Saved to file $vtx_name"
 
 echo "[3] - Compiling program."
-cd src
 make $cond $test
-cd ..
 
 echo "[4] - Running the simulation."
 echo
-./src/main $n_threads tmp/$vtx_name
+./main $n_threads tmp/$vtx_name
 echo "[4] - Finished the simulation."
