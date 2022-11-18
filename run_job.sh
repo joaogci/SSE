@@ -1,4 +1,23 @@
 #!/bin/bash
+# Job name:
+#SBATCH --job-name=xy_L128
+#
+# Project:
+#SBATCH --account=ec12
+#
+# Wall time limit:
+#SBATCH --time=1-00:00:00
+#
+# Other parameters:
+# Other parameters:
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=10
+#SBATCH --mem-per-cpu=500M
+
+## Set up job environment:
+set -o errexit  # Exit the script on any error
+set -o nounset  # Treat any unset variables as an error
+set -o pipefail
 
 module --quiet purge  # Reset the modules to the system default
 module load GCC/11.2.0
@@ -55,5 +74,5 @@ make $cond $test
 
 echo "[4] - Running the simulation."
 echo
-sbatch ./run_cluster.sh $n_threads $vtx_name
+srun ./main $n_threads tmp/$vtx_name
 echo "[4] - Finished the simulation."
