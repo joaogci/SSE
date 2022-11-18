@@ -424,7 +424,7 @@ double prob(int b, heisenberg_system *system, sse_state *state)
  */
 void free_memory(heisenberg_system *system, sse_state *state) 
 {
-    for (int i = 0; i < system->N; i++) { free(system->bond[i]); }
+    for (int i = 0; i < system->Nb; i++) { free(system->bond[i]); }
     free(system->bond);
     free(system->spin);
     free(system->Sz);
