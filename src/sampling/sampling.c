@@ -214,7 +214,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double
             samples->m4s_bins[t_idx][n] /= mc_cycles;
             samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] 
                 * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
-                * samples->m_bins[t_idx][n] * N);
+                * samples->m_bins[t_idx][n]);
 
             for (int i = 0; i < N; i++) {
                 samples->corr_bins[t_idx][n][i] /= mc_cycles;
