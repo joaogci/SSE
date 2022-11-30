@@ -174,7 +174,8 @@ int main(int argc, char **argv)
     printf(" -- Writing simulation results to file -- \n");
 
     normalize(mc_cycles, samples, pow(L, d), d, S, delta, h, epsilon);
-    char *file_name = write_outputs(samples, d, L, S, delta, h, epsilon,therm_cycles, mc_cycles, cpu_time_used, n_threads);
+    char *file_name = write_outputs(samples, d, L, S, delta, h, epsilon,
+        therm_cycles, mc_cycles, cpu_time_used, n_threads);
     
     printf(" -- Results written with success to file: %s -- \n", file_name);
 

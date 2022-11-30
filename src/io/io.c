@@ -115,6 +115,7 @@ char *write_outputs(sampled_quantities *samples,
     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads) 
 {
     char *file_name = (char *) malloc(BUFFER_SIZE * sizeof(char));
+#ifndef SPIN_COND
     if (delta > 0) {
         sprintf(file_name, "%dD_L%d_AFM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, S, fabs(delta), h, epsilon);
     } else if (delta < 0) {
@@ -122,6 +123,15 @@ char *write_outputs(sampled_quantities *samples,
     } else {
         sprintf(file_name, "%dD_L%d_XY_S%g_h%g_ep%g.csv", d, L, S, h, epsilon);
     }
+#else 
+    if (delta > 0) {
+        sprintf(file_name, "%dD_L%d_AFM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, S, fabs(delta), h, epsilon, samples->x, samples->y);
+    } else if (delta < 0) {
+        sprintf(file_name, "%dD_L%d_FM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, S, fabs(delta), h, epsilon, samples->x, samples->y);
+    } else {
+        sprintf(file_name, "%dD_L%d_XY_S%g_h%g_ep%g_x%d_y%d.csv", d, L, S, h, epsilon, samples->x, samples->y);
+    }
+#endif // SPIN_COND
 
     FILE *output_file;
     output_file = fopen(file_name, "w");
