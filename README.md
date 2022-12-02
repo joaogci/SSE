@@ -29,36 +29,35 @@ You will also need an uptodate version of NumPy. You can do so by running the fo
 $ pip3 install numpy
 ```
 
-To run a simulation you will need to use the `run.sh` script and an input file. This input file contains all of the information about the simulation and simualted system. This is the structure of the input file:
+To run a simulation you will need to use the `run.sh` script and three input files. The first input file `read.in` contains the information about the system and MC parameters for the simulation.
 ```
-# d, L, S, delta, h, epsilon
 1, 8, 0.5, 1.0, 0.0, 0.05
-
-# therm_cycles, mc_cycles, n_bins
 10000, 1000000, 10
-
-# test_temps
-# len_beta
-10
-# temp_range
-0.05, 4.0
 ```
-The first line are the system parameters, `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S` is the quantum spin number, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. `epsilon` has to be a value larger or equal to 0. Simulations perform best for low values of `epsilon`.
+The first line is `d, L, S, delta, h, epsilon` and the second is `therm_cycles, mc_cycles, n_bins`. `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S` is the quantum spin number, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. `epsilon` has to be a value larger or equal to 0. Simulations perform best for low values of `epsilon`.
 
-To use the test temperatures ( $\beta = \{0.5, 1.0, 2.0, 4.0, 8.0, 16.0\}$ ), you will need to "uncomment" the line  `test_tmps`. Else, you will have to specify how many temperature point (`len_beta`) you want to generate, equaly spaced, between the `temp_range` variables.
+The second input file is `beta.in` which has the following structure
+```
+2
+0.5
+1.0
+```
+The first line is the number of beta values in the file and the next lines are the beta values for the MC simulation.
+
+The final file `matsubara.in` is only available for OBC 1-dimensional problems. It contains the information about the measurement of spin conductivity.
+```
+5
+4, 2
+```
+Here the first line is the number of matsubara frequencies to be computed by the system and the second is the x site for measuring the perturbation induced in the y site, respectively.
 
 After setting the simulation parameters, you will need to run it via the `run.sh` script. You can type 
 ```bash
 $ ./run.sh -h
 ```
-to get more information about the arguments. The most important ones are `-n <n_threads>` which specifies the number of threads used by openMP, `-i <input_name>` and `-o <output_name>` are used for specifing the input and output filenames. For ease of use, the extensions for the input and output files should be `.txt` and `.csv`, respectively. For instance, to run a simulation where the input file is called `sim_input.txt` and we want an output in the directory `outputs/` named `sim_output.csv`, with 5 threads, you will have to write
+to get more information about the arguments. The most important ones are `-n <n_threads>` which specifies the number of threads used by openMP.
 ```bash
-$ ./run.sh -n 5 -i input.txt -o outputs/sim_output.csv
-```
-
-The output file has the following structure:
-```
-beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,binder,binder_std
+$ ./run.sh -n 5 
 ```
 
 [1] - "Directed loop updates for quantum lattice models", Olav F. Syljuåsen, 2003, Phys. Rev. E 67, 046701, https://doi.org/10.1103/PhysRevE.67.046701
