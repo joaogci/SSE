@@ -26,6 +26,7 @@
  *      (int) L: number of unit cells
  *      (int) N: number of particles (pow(L, d))
  *      (int) Nb: number of bonds 
+ *      (int) boundary_cond: boundary_cond of the system
  *      (double) S: spin quantum number
  *      (int) n_proj: number of spin projections in the z-direction
  *      (int *) Sz: spin values in the z-direction
@@ -41,6 +42,7 @@ typedef struct heisenberg_system
     int L;
     int N;
     int Nb;
+    int boundary_cond;
 
     double S;
     int n_proj;
@@ -97,13 +99,14 @@ typedef struct sse_state
  *  parameters:
  *      (int) d: dimension
  *      (int) L: number of unit cells
+ *      (int) boundary_cond: boundary condition of the lattice
  *      (double) S: spin quantum number
  *      (double) delta: z-axis anisotropy strength
  *      (double) h: z-axis magnetic field strength
  *      (double) epsilon: constant added to the Hamiltonian
  *      (heisenberg_system *) system: system to be initialized
  */
-void init_heisenberg_system(int d, int L, double S, double delta, double h, 
+void init_heisenberg_system(int d, int L, int boundary_cond, double S, double delta, double h, 
     double epsilon, heisenberg_system *system);
 
 /* 

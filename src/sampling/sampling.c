@@ -189,19 +189,20 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
  *      (sampled_quantities *) samples: sampled quantities
  *      (int) N: number of particles
  *      (int) d: dimension of the system
+ *      (int) boundary_cond: boundary condition of the lattice
  *      (double) S: quantum spin number
  *      (double) delta: anisotropy
  *      (double) h: applied magnetic field
  *      (double) epsilon: constant to the Hamiltonian
  */
-void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, double S, double delta, double h, double epsilon) 
+void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int boundary_cond, double S, double delta, double h, double epsilon) 
 {
     for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
         for (int n = 0; n < samples->bins; n++) {
             samples->n_bins[t_idx][n] /= mc_cycles;
             samples->n2_bins[t_idx][n] /= mc_cycles;
             samples->E_bins[t_idx][n] = - samples->n_bins[t_idx][n] 
-                / (samples->beta_vals[t_idx] * N) + (N - 1) * (C_ + epsilon) / N; /* remove the added constant to the Hamiltonian */
+                / (samples->beta_vals[t_idx] * N) + (N - boundary_cond) * (C_ + epsilon) / N; /* remove the added constant to the Hamiltonian */
             samples->C_bins[t_idx][n] = (samples->n2_bins[t_idx][n] 
                 - samples->n_bins[t_idx][n] * samples->n_bins[t_idx][n] 
                 - samples->n_bins[t_idx][n]) / N;

@@ -10,6 +10,7 @@
  *  parameters:
  *      (int *) d: dimension
  *      (int *) L: length of the system
+ *      (int *) boundary_cond: boundary condition of the lattice
  *      (double *) S: spin quantum number
  *      (double *) delta: anisotropy
  *      (double *) h: applied magnetic field
@@ -20,17 +21,23 @@
  *      (double **) beta_vals: array to store simulation temperatures
  *      (int *) len_betas: number of temperatures 
  */
-void read_inputs(int *d, int *L, double *S, 
+void read_inputs(int *d, int *L, int *boundary_cond, double *S, 
     double *delta, double *h, double *epsilon, long *therm_cycles, 
     long *mc_cycles, int *n_bins, double **beta_vals, int *len_beta) 
 {
     char buffer[BUFFER_SIZE];
+    char buffer2[BUFFER_SIZE];
     FILE *input_file;
 
     input_file = fopen("read.in", "r");
     if (input_file != NULL) {
         fgets(buffer, BUFFER_SIZE, input_file);
-        sscanf(buffer, "%d, %d, %lf, %lf, %lf, %lf", d, L, S, delta, h, epsilon);
+        sscanf(buffer, "%d, %d, %lf, %lf, %lf, %lf, %s", d, L, S, delta, h, epsilon, buffer2);
+
+        (*boundary_cond) = 0;
+        if (strcmp(buffer2, "OBC") == 0) {
+            (*boundary_cond) = 1;
+        }
         
         fgets(buffer, BUFFER_SIZE, input_file);
         sscanf(buffer, "%ld, %ld, %d ", therm_cycles, mc_cycles, n_bins);
@@ -111,25 +118,27 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams)
  *      (char *) file_name: name of save file
  */
 char *write_outputs(sampled_quantities *samples, 
-    int d, int L, double S, double delta, double h, double epsilon,
+    int d, int L, int boundary_cond, double S, double delta, double h, double epsilon,
     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads) 
 {
     char *file_name = (char *) malloc(BUFFER_SIZE * sizeof(char));
+    char *buffer = (boundary_cond == 0) ? "PBC" : "OBC";
+
 #ifndef SPIN_COND
     if (delta > 0) {
-        sprintf(file_name, "%dD_L%d_AFM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, S, fabs(delta), h, epsilon);
+        sprintf(file_name, "%dD_L%d_%s_AFM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, buffer, S, fabs(delta), h, epsilon);
     } else if (delta < 0) {
-        sprintf(file_name, "%dD_L%d_FM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, S, fabs(delta), h, epsilon);
+        sprintf(file_name, "%dD_L%d_%s_FM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, buffer, S, fabs(delta), h, epsilon);
     } else {
-        sprintf(file_name, "%dD_L%d_XY_S%g_h%g_ep%g.csv", d, L, S, h, epsilon);
+        sprintf(file_name, "%dD_L%d_%s_XY_S%g_h%g_ep%g.csv", d, L, buffer, S, h, epsilon);
     }
 #else 
     if (delta > 0) {
-        sprintf(file_name, "%dD_L%d_AFM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, S, fabs(delta), h, epsilon, samples->x, samples->y);
+        sprintf(file_name, "%dD_L%d_%s_AFM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
     } else if (delta < 0) {
-        sprintf(file_name, "%dD_L%d_FM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, S, fabs(delta), h, epsilon, samples->x, samples->y);
+        sprintf(file_name, "%dD_L%d_%s_FM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
     } else {
-        sprintf(file_name, "%dD_L%d_XY_S%g_h%g_ep%g_x%d_y%d.csv", d, L, S, h, epsilon, samples->x, samples->y);
+        sprintf(file_name, "%dD_L%d_%s_XY_S%g_h%g_ep%g_x%d_y%d.csv", d, L, buffer, S, h, epsilon, samples->x, samples->y);
     }
 #endif // SPIN_COND
 
@@ -137,8 +146,8 @@ char *write_outputs(sampled_quantities *samples,
     output_file = fopen(file_name, "w");
 
     if (output_file != NULL) {
-        fprintf(output_file, "d,L,S,delta,h,epsilon\n");
-        fprintf(output_file, "%d,%d,%lf,%lf,%lf,%lf\n", d, L, S, fabs(delta), h, epsilon);
+        fprintf(output_file, "d,L,boundary_cond,S,delta,h,epsilon\n");
+        fprintf(output_file, "%d,%d,%s,%lf,%lf,%lf,%lf\n", d, L, buffer, S, fabs(delta), h, epsilon);
         
         fprintf(output_file, "therm_cycles,mc_cycles,n_bins\n");
         fprintf(output_file, "%ld,%ld,%d \n", therm_cycles, mc_cycles, samples->bins);

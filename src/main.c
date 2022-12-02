@@ -16,6 +16,7 @@
 // gobal variables for the system and simulation
 int d;
 int L;
+int boundary_cond;
 double S;
 double delta;
 double h;
@@ -41,7 +42,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
     heisenberg_system *system = (heisenberg_system *) malloc(sizeof(heisenberg_system));
     sse_state *state = (sse_state *) malloc(sizeof(sse_state));
 
-    init_heisenberg_system(d, L, S, delta, h, epsilon, system);
+    init_heisenberg_system(d, L, boundary_cond, S, delta, h, epsilon, system);
     init_sse_state(SEED * t_id, system, state);
     #pragma omp critical 
     read_vtx_info(vtx_file, &(state->vtx_type), &(state->n_diagrams));
@@ -125,7 +126,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    read_inputs(&d, &L, &S, &delta, &h, &epsilon, &therm_cycles, 
+    read_inputs(&d, &L, &boundary_cond, &S, &delta, &h, &epsilon, &therm_cycles, 
         &mc_cycles, &n_bins, &beta_vals, &len_beta);
     n_threads = atoi(argv[1]);
 
@@ -134,6 +135,17 @@ int main(int argc, char **argv)
             " the number of threads (%d).\n", n_bins, n_threads);
         exit(1);
     }
+    if (boundary_cond == 1 && d != 1) {
+        printf("OBC can only be used in a one-dimensional system. \n");
+        exit(1);
+    }
+#ifdef SPIN_COND
+    if (boundary_cond != 1 || d != 1) {
+        printf("Spin conductivity can only be computed in a one-dimensional system"
+                " with OBC. \n");
+        exit(1);
+    }
+#endif // SPIN_COND
 
     samples = (sampled_quantities *) malloc(sizeof(sampled_quantities));
     init_samples(beta_vals, len_beta, n_bins, d, L, samples);
@@ -145,8 +157,8 @@ int main(int argc, char **argv)
 
     time_t t = time(NULL);
     printf(" -- Starting SSE simulation of the spin-S XXZ model -- \n");
-    printf("   d: %d | L: %d | S: %.1lf | delta: %.2lf | h: %.2lf | epsilon: %.2lf \n", 
-        d, L, S, delta, h, epsilon);
+    printf("   d: %d | L: %d | %s | S: %.1lf | delta: %.2lf | h: %.2lf | epsilon: %.2lf \n", 
+        d, L, (boundary_cond == 0) ? "PBC" : "OBC" , S, delta, h, epsilon);
     printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", 
         n_threads, therm_cycles, mc_cycles, n_bins);
     printf("   Simulation started at: %s ", ctime(&t));
@@ -173,8 +185,8 @@ int main(int argc, char **argv)
     printf("Simulation finished in %.5lfs \n", cpu_time_used);
     printf(" -- Writing simulation results to file -- \n");
 
-    normalize(mc_cycles, samples, pow(L, d), d, S, delta, h, epsilon);
-    char *file_name = write_outputs(samples, d, L, S, delta, h, epsilon,
+    normalize(mc_cycles, samples, pow(L, d), d, boundary_cond, S, delta, h, epsilon);
+    char *file_name = write_outputs(samples, d, L, boundary_cond, S, delta, h, epsilon,
         therm_cycles, mc_cycles, cpu_time_used, n_threads);
     
     printf(" -- Results written with success to file: %s -- \n", file_name);

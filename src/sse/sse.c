@@ -179,18 +179,21 @@ void ajust_cutoff(sse_state *state, bool adjust_loop)
  *  parameters:
  *      (int) d: dimension
  *      (int) L: number of unit cells
+ *      (int) boundary_cond: boundary condition of the lattice
  *      (double) S: spin quantum number
  *      (double) delta: z-axis anisotropy strength
  *      (double) h: z-axis magnetic field strength
  *      (double) epsilon: constant added to the Hamiltonian
  *      (heisenberg_system *) system: system to be initialized
  */
-void init_heisenberg_system(int d, int L, double S, double delta, double h, double epsilon, heisenberg_system *system) 
+void init_heisenberg_system(int d, int L, int boundary_cond, double S, double delta, double h, double epsilon, heisenberg_system *system) 
 {
     system->d = d;
     system->L = L;
+    system->boundary_cond = boundary_cond;
     system->N = pow(L, d);
-    system->Nb = system->N * d - 1; // For PBC or with -1 for OBC
+    system->Nb = system->N * d - system->boundary_cond;
+
     system->S = S;
     system->n_proj = 2.0 * S + 1.0;
     system->Sz = (int *) malloc(system->n_proj * sizeof(int));

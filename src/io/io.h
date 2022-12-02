@@ -16,6 +16,7 @@
  *  parameters:
  *      (int *) d: dimension
  *      (int *) L: length of the system
+ *      (int *) boundary_cond: boundary condition of the lattice
  *      (double *) S: spin quantum number
  *      (double *) delta: anisotropy
  *      (double *) h: applied magnetic field
@@ -26,7 +27,7 @@
  *      (double **) beta_vals: array to store simulation temperatures
  *      (int *) len_betas: number of temperatures 
  */
-void read_inputs(int *d, int *L, double *S, double *delta, 
+void read_inputs(int *d, int *L, int *boundary_cond, double *S, double *delta, 
     double *h, double *epsilon, long *therm_cycles, long *mc_cycles, 
     int *n_bins, double **beta_vals, int *len_beta);
 
@@ -53,7 +54,7 @@ void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams);
  *      (char *) file_name: name of save file
  */
 char *write_outputs(sampled_quantities *samples, 
-    int d, int L, double S, double delta, double h, double epsilon,
+    int d, int L, int boundary_cond, double S, double delta, double h, double epsilon,
     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads);
 
 #endif // IO_H

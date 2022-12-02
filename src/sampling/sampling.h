@@ -115,12 +115,13 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state,
  *      (sampled_quantities *) samples: sampled quantities
  *      (int) N: number of particles
  *      (int) d: dimension of the system
+ *      (int) boundary_cond: boundary condition of the lattice
  *      (double) S: quantum spin number
  *      (double) delta: anisotropy
  *      (double) h: applied magnetic field
  *      (double) epsilon: constant to the Hamiltonian
  */
-void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, 
+void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int boundary_cond, 
     double S, double delta, double h, double epsilon);
 
 /*
