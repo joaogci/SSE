@@ -21,10 +21,11 @@ def read_sse_output(filename):
 
         sim_info["d"] = int(line[0])
         sim_info["L"] = int(line[1])
-        sim_info["S"] = float(line[2])
-        sim_info["delta"] = float(line[3])
-        sim_info["h"] = float(line[4])
-        sim_info["epsilon"] = float(line[5])
+        sim_info["boundary_cond"] = line[2]
+        sim_info["S"] = float(line[3])
+        sim_info["delta"] = float(line[4])
+        sim_info["h"] = float(line[5])
+        sim_info["epsilon"] = float(line[6])
         
         file.readline()
         line = file.readline().strip().split(',')
