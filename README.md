@@ -31,10 +31,10 @@ $ pip3 install numpy
 
 To run a simulation you will need to use the `run.sh` script and three input files. The first input file `read.in` contains the information about the system and MC parameters for the simulation.
 ```
-1, 8, 0.5, 1.0, 0.0, 0.05
+1, 8, 0.5, 1.0, 0.0, 0.05, PBC
 10000, 1000000, 10
 ```
-The first line is `d, L, S, delta, h, epsilon` and the second is `therm_cycles, mc_cycles, n_bins`. `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S` is the quantum spin number, `delta` and `h` are just the Hamiltonian parameters, and `epsilon` is a parameter for the Directed Loops method. `epsilon` has to be a value larger or equal to 0. Simulations perform best for low values of `epsilon`.
+The first line is `d, L, S, delta, h, epsilon, boundary_cond` and the second is `therm_cycles, mc_cycles, n_bins`. `d` is the system dimension, `1` and `2`, `L` is the number of unit cells, `S` is the quantum spin number, `delta` and `h` are just the Hamiltonian parameters, `epsilon` is a parameter for the Directed Loops method and `boundary_cond` is the boundary condition for the lattice (can be `PBC` or `OBC`). `epsilon` has to be a value larger or equal to 0. Simulations perform best for low values of `epsilon`.
 
 The second input file is `beta.in` which has the following structure
 ```
