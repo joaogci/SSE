@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Job name:
-##SBATCH --job-name=xy_L128
+# no SBATCH --job-name=xy_L128
 #
 # Project:
 #SBATCH --account=ec12
 #
 # Wall time limit:
-##SBATCH --time=1-00:00:00
+# no SBATCH --time=1-00:00:00
 #
 # Other parameters:
 #SBATCH --ntasks=1
-##SBATCH --cpus-per-task=10
+# no SBATCH --cpus-per-task=10
 #SBATCH --mem-per-cpu=500M
 
 ## Set up job environment:
@@ -26,4 +26,4 @@ module load Python/3.9.6-GCCcore-11.2.0
 module load SciPy-bundle/2021.10-foss-2021b
 module list
 
-./main $n_threads tmp/$vtx_name
+./main $1 $2
