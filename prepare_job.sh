@@ -63,6 +63,7 @@ mkdir $job_name
 cp read.in $job_name
 cp matsubara.in $job_name
 cp beta.in $job_name
+cp submit_job.sh $job_name
 mv main $job_name
 cd $job_name
 
