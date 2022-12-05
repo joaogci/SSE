@@ -1,10 +1,10 @@
 #!/bin/bash
 
-module --quiet purge  # Reset the modules to the system default
-module load GCC/11.2.0
-module load GCCcore/11.2.0
-module load Python/3.9.6-GCCcore-11.2.0
-module load SciPy-bundle/2021.10-foss-2021b
+# module --quiet purge  # Reset the modules to the system default
+# module load GCC/11.2.0
+# module load GCCcore/11.2.0
+# module load Python/3.9.6-GCCcore-11.2.0
+# module load SciPy-bundle/2021.10-foss-2021b
 
 PROGNAME=$0
 
@@ -65,8 +65,9 @@ cp matsubara.in $job_name
 cp beta.in $job_name
 cp submit_job.sh $job_name
 mv main $job_name
+mv tmp/$vtx_name $job_name
 cd $job_name
 
 echo "[5] - Submitting job."
 echo
-sbatch -c $n_threads -J $job_name -t $time ./submit_job.sh $n_threads ../tmp/$vtx_name
+sbatch -c $n_threads -J $job_name -t $time ./submit_job.sh $n_threads $vtx_name
