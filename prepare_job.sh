@@ -69,4 +69,4 @@ cd $job_name
 
 echo "[5] - Submitting job."
 echo
-sbatch -c $n_threads -J $job_name -t $time ./submit_job $n_threads ../tmp/$vtx_name
+sbatch -c $n_threads -J $job_name -t $time ./submit_job.sh $n_threads ../tmp/$vtx_name
