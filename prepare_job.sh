@@ -1,30 +1,10 @@
 #!/bin/bash
-# Job name:
-#SBATCH --job-name=xy_L128
-#
-# Project:
-#SBATCH --account=ec12
-#
-# Wall time limit:
-#SBATCH --time=1-00:00:00
-#
-# Other parameters:
-# Other parameters:
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem-per-cpu=500M
-
-## Set up job environment:
-set -o errexit  # Exit the script on any error
-set -o nounset  # Treat any unset variables as an error
-set -o pipefail
 
 module --quiet purge  # Reset the modules to the system default
 module load GCC/11.2.0
 module load GCCcore/11.2.0
 module load Python/3.9.6-GCCcore-11.2.0
 module load SciPy-bundle/2021.10-foss-2021b
-module list
 
 PROGNAME=$0
 
@@ -35,8 +15,10 @@ Usage               : $PROGNAME [-c] [-h] [-n <n_threads>] [-t]
 
 -c                  : Run conductivity calculations.
 -h                  : Help. Shows this text.
+-j <job_name>       : Job name.
 -n <n_threads>      : Set number of threads for openMP. Default value: "4"
 -t                  : Test mode. Uses a pre-fixed seed (2)
+-r <DD-HH:MM:SS>    : Time for the job to run.
 
 EOF
     exit 1
@@ -45,13 +27,17 @@ EOF
 n_threads="4"
 test=""
 cond=""
+job_name=""
+time=""
 
-while getopts chn:t opts; do
+while getopts chj:n:tr: opts; do
     case $opts in 
         (c) cond="cond";;
         (h) usage;;
+        (j) job_name=$OPTARG;;
         (n) n_threads=$OPTARG;;
         (t) test="test";;
+        (r) time=$OPTARG;;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
         (*) usage
     esac
@@ -72,7 +58,14 @@ echo "Saved to file $vtx_name"
 echo "[3] - Compiling program."
 make $cond $test
 
-echo "[4] - Running the simulation."
+echo "[4] - Moving files to another directory."
+mkdir $job_name
+cp read.in $job_name
+cp matsubara.in $job_name
+cp beta.in $job_name
+mv main $job_name
+cd $job_name
+
+echo "[5] - Submitting job."
 echo
-srun ./main $n_threads tmp/$vtx_name
-echo "[4] - Finished the simulation."
+sbatch -c $n_threads -J $job_name -t $time ./submit_job $n_threads ../tmp/$vtx_name
