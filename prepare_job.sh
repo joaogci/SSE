@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# module --quiet purge  # Reset the modules to the system default
-# module load GCC/11.2.0
-# module load GCCcore/11.2.0
-# module load Python/3.9.6-GCCcore-11.2.0
-# module load SciPy-bundle/2021.10-foss-2021b
+module --quiet purge  # Reset the modules to the system default
+module load GCC/11.2.0
+module load GCCcore/11.2.0
+module load Python/3.9.6-GCCcore-11.2.0
+module load SciPy-bundle/2021.10-foss-2021b
 
 PROGNAME=$0
 
