@@ -110,3 +110,73 @@ def read_sse_output(filename):
                     sampled["w_k"][j, i], sampled["g_spin_mean"][j, i], sampled["g_spin_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
 
     return sim_info, sampled
+
+def read_exact_output(filename):
+    """
+        reads SSE simulation outputs
+        
+        parameters:
+            filename - path for the output file
+            
+        output:
+            dictionary with all of the sampled quantitites
+            dictionary with simulation info
+    """
+    sim_info = dict()
+    sampled = dict()
+    
+    with open(filename, "r") as file:
+        # read simulation info
+        file.readline() 
+        line = file.readline().strip().split(',')
+
+        sim_info["L"] = int(line[0])
+        sim_info["boundary_cond"] = line[1]
+        sim_info["S"] = float(line[2])
+        sim_info["delta"] = float(line[3])
+        sim_info["h"] = float(line[4])
+        
+        file.readline()
+        line = file.readline().strip().split(',')
+        sim_info["n_betas"] = int(line[0])
+        sim_info["n_betas_k"] = int(line[1])
+        sim_info["n_k"] = int(line[2])
+        sim_info["x"] = int(line[3])
+        sim_info["y"] = int(line[4])
+        
+        # read sampled quantities
+        sampled["beta"] = np.zeros(sim_info["n_betas"])
+        sampled["T"] = np.zeros(sim_info["n_betas"])
+        sampled["E"] = np.zeros(sim_info["n_betas"])
+        sampled["C"] = np.zeros(sim_info["n_betas"])
+        sampled["m"] = np.zeros(sim_info["n_betas"])
+        sampled["m2"] = np.zeros(sim_info["n_betas"])
+        sampled["ms"] = np.zeros(sim_info["n_betas"])
+        sampled["m2s"] = np.zeros(sim_info["n_betas"])
+        sampled["m_sus"] = np.zeros(sim_info["n_betas"])
+        
+        file.readline()
+        for j in range(sim_info["n_betas"]):
+            sampled["beta"][j], sampled["E"][j], sampled["C"][j], \
+            sampled["m"][j], sampled["m2"][j], sampled["ms"][j], \
+            sampled["m2s"][j], sampled["m_sus"][j] \
+            = [float(x) for x in file.readline().strip().split(',')]
+            
+            sampled["T"][j] = 1.0 / sampled["beta"][j]
+        
+        # spin conductivity
+        if sim_info["n_k"] != 0:
+            sampled["beta_k"] = np.zeros(sim_info["n_betas_k"])
+            sampled["w_k"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
+            sampled["g_spin"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
+        
+            for j in range(sim_info["n_betas_k"]):
+                file.readline()
+                line = file.readline().strip().split()
+                file.readline()
+                sampled["beta_k"][j] = float(line[0])
+                
+                for i in range(sim_info["n_k"]):
+                    sampled["w_k"][j, i], sampled["g_spin"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+
+    return sim_info, sampled
