@@ -156,10 +156,17 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
 {
     long mc = 100000;
     double val = 0.0;
+    int sign;
 
     for (int i = 0; i < mc; i++) {
         double x = next_double();
         val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
+    }
+    if (val < 0) {
+        sign = -1;
+        val = - val;
+    } else {
+        sign = 1;
     }
 
     double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
@@ -176,7 +183,7 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
         f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
     }
 
-    return exp(f_n_1 - f_n_m - f_m) * val / mc;
+    return sign * exp(f_n_1 - f_n_m - f_m + log(val / mc));
 }
 #endif // SPIN_COND
 
