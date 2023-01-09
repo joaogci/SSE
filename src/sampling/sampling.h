@@ -4,6 +4,9 @@
 #include "../sse/sse.h"
 #include <time.h>
 
+// Number of quadrature points
+#define N_QUAD 100000
+
 /*
  * struct: sampled_quantities
  *  contains all of the sampled quantities during the simulation

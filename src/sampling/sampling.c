@@ -154,19 +154,22 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
  */
 double prefactor_spin_cond(int m, int n, double w_k, double beta) 
 {
-    long mc = 100000;
     double val = 0.0;
     int sign;
+    double h = 1.0 / N_QUAD;
 
-    for (int i = 0; i < mc; i++) {
-        double x = next_double();
+    for (int i = 1; i <= N_QUAD; i++) {
+        double x = (i - 0.5) * h;
         val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
     }
-    if (val < 0) {
+    val = (float) round(h * val * 1000000000000) / 1000000000000;
+    if (val < 0.0) {
         sign = -1;
         val = - val;
-    } else {
+    } else if (val > 0.0) {
         sign = 1;
+    } else {
+        return 0.0;
     }
 
     double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
@@ -183,8 +186,42 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
         f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
     }
 
-    return sign * exp(f_n_1 - f_n_m - f_m + log(val / mc));
+    return sign * exp(f_n_1 - f_n_m - f_m + log(val));
 }
+
+// {
+//     double val = 0.0;
+//     int sign;
+
+//     for (int i = 0; i < MC; i++) {
+//         double x = next_double();
+//         val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
+//     }
+//     val /= MC;
+
+//     if (val < 0.0) {
+//         sign = -1;
+//         val = - val;
+//     } else if (val > 0.0) {
+//         sign = 1;
+//     }
+
+//     double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
+//         log(M_PI * (2 * (n - 1) + 1.0/3.0)) - (n - 1);
+
+//     double f_n_m = 0;
+//     if ((n - m) != 0) {
+//         f_n_m = (n - m) * log(n - m) + 0.5 * 
+//             log(M_PI * (2 * (n - m) + 1.0/3.0)) - (n - m);
+//     }
+    
+//     double f_m = 0;
+//     if (m != 0) {
+//         f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
+//     }
+
+//     return sign * exp(f_n_1 - f_n_m - f_m + log(val));
+// }
 #endif // SPIN_COND
 
 /* 
