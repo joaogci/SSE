@@ -160,9 +160,8 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
 
     for (int i = 1; i <= N_QUAD; i++) {
         double x = (i - 0.5) * h;
-        val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
+        val += h * cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
     }
-    val = (float) round(h * val * 1000000000000) / 1000000000000;
     if (val < 0.0) {
         sign = -1;
         val = - val;
@@ -172,21 +171,22 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
         return 0.0;
     }
 
-    double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
-        log(M_PI * (2 * (n - 1) + 1.0/3.0)) - (n - 1);
+    double f_m = 0.0;
+    double f_n_1 = 0.0;
 
-    double f_n_m = 0;
-    if ((n - m) != 0) {
-        f_n_m = (n - m) * log(n - m) + 0.5 * 
-            log(M_PI * (2 * (n - m) + 1.0/3.0)) - (n - m);
-    }
-    
-    double f_m = 0;
-    if (m != 0) {
-        f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
+    for (int i = 1; i <= m; i++) {
+        f_m += log(i);
     }
 
-    return sign * exp(f_n_1 - f_n_m - f_m + log(val));
+    if (m == 0) {
+        f_n_1 = log(1.0 / n);
+    } else {
+        for (int i = 1; i < m; i++) {
+            f_n_1 += log(n - i);
+        }
+    }
+
+    return sign * exp(f_n_1 + log(val) - f_m);
 }
 
 // {
