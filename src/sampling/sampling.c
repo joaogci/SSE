@@ -95,6 +95,43 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // sample the spin conductance
 #ifdef SPIN_COND
+    // if (state->n > 3) {
+    //     int vtx_counter[state->n - 1];
+    //     for (int q = 0; q < state->n - 1; q++) { vtx_counter[q] = 0; }
+        
+    //     for (int p = 0; p < state->n; p++) {
+    //         int b1 = (red_op_string[p] / 3) - 1;
+
+    //         if (b1 >= samples->x) {
+    //             int q = 0;
+
+    //             for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
+    //                 int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
+
+    //                 if (b2 >= samples->y) {
+    //                     vtx_counter[q]++;
+    //                 }
+    //                 q++;
+    //             }
+    //         }
+    //     }
+
+    //     for (int k = 0; k < samples->k_max; k++) {
+    //         for (int q = 0; q < state->n - 1; q++) {
+    //             samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * vtx_counter[q] * 
+    //                 prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]) / 
+    //                 samples->beta_vals[t_idx];
+    //             // printf("n: %d q: %d -> %d * %lf \n", state->n, q, vtx_counter[q], prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]));
+    //         }
+    //         // printf("red_opstring: a, b\n");
+    //         // for (int i = 0 ; i < state->n; i++) {
+    //         //     printf("%d: %d, %d\n", red_op_string[i], red_op_string[i] % 3, (red_op_string[i] / 3) - 1);
+    //         // }
+    //         // printf("---\n");
+    //         // printf("%lf \n\n", samples->g_spin_bins[t_idx][n][k]);
+    //     }
+    // }
+
     if (state->n > 1) {
         int spinsum_x[state->n];
         int spinsum_y[state->n];
@@ -153,6 +190,37 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
  * The factorial prefactor is computed using the Stirling's approximation
  */
 double prefactor_spin_cond(int m, int n, double w_k, double beta) 
+// {
+//     double val = 0.0;
+//     int sign;
+//     double h = 1.0 / N_QUAD;
+
+//     for (int i = 1; i <= N_QUAD; i++) {
+//         double x = (i - 0.5) * h;
+//         val += h * cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m - 2);
+//     }
+//     if (val < 0.0) {
+//         sign = -1;
+//         val = - val;
+//     } else if (val > 0.0) {
+//         sign = 1;
+//     } else {
+//         return 0.0;
+//     }
+
+//     double f_m = 0.0;
+//     double f_n_1 = 0.0;
+
+//     for (int i = 1; i <= m; i++) {
+//         f_m += log(i);
+//     }
+
+//     for (int i = 1; i <= m + 1; i++) {
+//         f_n_1 += log(n - i);
+//     }
+
+//     return sign * exp(f_n_1 + log(val) - f_m);
+// }
 {
     double val = 0.0;
     int sign;
@@ -189,39 +257,6 @@ double prefactor_spin_cond(int m, int n, double w_k, double beta)
     return sign * exp(f_n_1 + log(val) - f_m);
 }
 
-// {
-//     double val = 0.0;
-//     int sign;
-
-//     for (int i = 0; i < MC; i++) {
-//         double x = next_double();
-//         val += cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
-//     }
-//     val /= MC;
-
-//     if (val < 0.0) {
-//         sign = -1;
-//         val = - val;
-//     } else if (val > 0.0) {
-//         sign = 1;
-//     }
-
-//     double f_n_1 = (n - 1) * log(n - 1) + 0.5 * 
-//         log(M_PI * (2 * (n - 1) + 1.0/3.0)) - (n - 1);
-
-//     double f_n_m = 0;
-//     if ((n - m) != 0) {
-//         f_n_m = (n - m) * log(n - m) + 0.5 * 
-//             log(M_PI * (2 * (n - m) + 1.0/3.0)) - (n - m);
-//     }
-    
-//     double f_m = 0;
-//     if (m != 0) {
-//         f_m = m * log(m) + 0.5 * log(M_PI * (2 * (m) + 1.0/3.0)) - (m);
-//     }
-
-//     return sign * exp(f_n_1 - f_n_m - f_m + log(val));
-// }
 #endif // SPIN_COND
 
 /* 
