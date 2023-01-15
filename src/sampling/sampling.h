@@ -5,7 +5,7 @@
 #include <time.h>
 
 // Number of quadrature points
-#define N_QUAD 10000
+#define N_QUAD 100000
 
 /*
  * struct: sampled_quantities
