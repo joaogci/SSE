@@ -5,6 +5,7 @@ module load GCC/11.2.0
 module load GCCcore/11.2.0
 module load Python/3.9.6-GCCcore-11.2.0
 module load SciPy-bundle/2021.10-foss-2021b
+module load Arb/2.22.1-GCC-11.2.0
 
 PROGNAME=$0
 
