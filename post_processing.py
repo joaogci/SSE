@@ -100,6 +100,9 @@ def read_sse_output(filename):
             sampled["w_k"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
             sampled["g_spin_mean"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
             sampled["g_spin_std"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
+            sampled["g_heat_mean"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
+            sampled["g_heat_std"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
+
         
             for j in range(sim_info["n_betas"]):
                 file.readline()
@@ -108,6 +111,15 @@ def read_sse_output(filename):
                 
                 for i in range(sim_info["n_k"]):
                     sampled["w_k"][j, i], sampled["g_spin_mean"][j, i], sampled["g_spin_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+                
+            for j in range(sim_info["n_betas"]):
+                file.readline()
+                file.readline()
+                file.readline()
+                
+                for i in range(sim_info["n_k"]):
+                    sampled["w_k"][j, i], sampled["g_heat_mean"][j, i], sampled["g_heat_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+
 
     return sim_info, sampled
 
@@ -169,6 +181,7 @@ def read_exact_output(filename):
             sampled["beta_k"] = np.zeros(sim_info["n_betas_k"])
             sampled["w_k"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
             sampled["g_spin"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
+            sampled["g_heat"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
         
             for j in range(sim_info["n_betas_k"]):
                 file.readline()
@@ -178,5 +191,15 @@ def read_exact_output(filename):
                 
                 for i in range(sim_info["n_k"]):
                     sampled["w_k"][j, i], sampled["g_spin"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+
+            for j in range(sim_info["n_betas_k"]):
+                file.readline()
+                line = file.readline().strip().split()
+                file.readline()
+                sampled["beta_k"][j] = float(line[0])
+                
+                for i in range(sim_info["n_k"]):
+                    sampled["w_k"][j, i], sampled["g_heat"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+
 
     return sim_info, sampled
