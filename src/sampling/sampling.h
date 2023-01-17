@@ -1,6 +1,7 @@
 #ifndef SAMPLING_H
 #define SAMPLING_H
 
+#include "acb_hypgeom.h"
 #include "../sse/sse.h"
 #include <time.h>
 
@@ -144,7 +145,20 @@ void free_samples(sampled_quantities *samples);
  *  mc samples. 
  * The factorial prefactor is computed using the Stirling's approximation
  */
-double prefactor_spin_cond(int m, int n, double w_k, double beta);
+double prefactor_spin_cond(int m, int n, int k);
+
+/*
+ * Computes the 1F1(a, b, x) hypergeometric function for an imaginary 
+ *  argument x. 
+ * Uses the ARB library for the calculation. (https://arblib.org)
+ * parameters:
+ *      (double *) re: real part of the result
+ *      (double *) im: imaginary part of the result
+ *      (double) a: parameter for F
+ *      (double) b: parameter for F
+ *      (double) x: imaginary part of the input
+ */
+void hyp1f1ix(double* re, double* im, double a, double b, double x);
 #endif // SPIN_COND
 
 #endif // SAMPLING_H

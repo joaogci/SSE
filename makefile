@@ -1,7 +1,7 @@
 SOURCES = src/main.c src/sse/sse.c src/sampling/sampling.c src/io/io.c src/sampling/sampling_memory.c 
 INCLUDES = src/sse/sse.h src/sampling/sampling.h src/vtx/vtx_type.h src/rng/xorshiro256++.h src/io/io.h
 FLAGS = -fopenmp -O2 
-LIBS = -lm
+LIBS = -lm -larb
 PROGRAM = main
 
 ifeq ($(OS),Windows_NT)

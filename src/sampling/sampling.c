@@ -95,43 +95,6 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // sample the spin conductance
 #ifdef SPIN_COND
-    // if (state->n > 3) {
-    //     int vtx_counter[state->n - 1];
-    //     for (int q = 0; q < state->n - 1; q++) { vtx_counter[q] = 0; }
-        
-    //     for (int p = 0; p < state->n; p++) {
-    //         int b1 = (red_op_string[p] / 3) - 1;
-
-    //         if (b1 >= samples->x) {
-    //             int q = 0;
-
-    //             for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
-    //                 int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
-
-    //                 if (b2 >= samples->y) {
-    //                     vtx_counter[q]++;
-    //                 }
-    //                 q++;
-    //             }
-    //         }
-    //     }
-
-    //     for (int k = 0; k < samples->k_max; k++) {
-    //         for (int q = 0; q < state->n - 1; q++) {
-    //             samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * vtx_counter[q] * 
-    //                 prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]) / 
-    //                 samples->beta_vals[t_idx];
-    //             // printf("n: %d q: %d -> %d * %lf \n", state->n, q, vtx_counter[q], prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]));
-    //         }
-    //         // printf("red_opstring: a, b\n");
-    //         // for (int i = 0 ; i < state->n; i++) {
-    //         //     printf("%d: %d, %d\n", red_op_string[i], red_op_string[i] % 3, (red_op_string[i] / 3) - 1);
-    //         // }
-    //         // printf("---\n");
-    //         // printf("%lf \n\n", samples->g_spin_bins[t_idx][n][k]);
-    //     }
-    // }
-
     if (state->n > 1) {
         int spinsum_x[state->n];
         int spinsum_y[state->n];
@@ -171,13 +134,49 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         }
 
         for (int k = 0; k < samples->k_max; k++) {
-            for (int m = 0; m < state->n + 1; m++) {
+            for (int m = 0; m < state->n + 1; m++) { 
                 samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * 
-                    prefactor_spin_cond(m, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]) * 
-                    spin_prod[m] * 0.25;
+                    prefactor_spin_cond(m, state->n, k + 1) * spin_prod[m] * 0.25;
             }
         }
     }
+
+    // if (state->n > 3) {
+    //     int vtx_counter[state->n - 1];
+    //     for (int q = 0; q < state->n - 1; q++) { vtx_counter[q] = 0; }
+        
+    //     for (int p = 0; p < state->n; p++) {
+    //         int b1 = (red_op_string[p] / 3) - 1;
+
+    //         if (b1 >= samples->x) {
+    //             int q = 0;
+
+    //             for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
+    //                 int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
+
+    //                 if (b2 >= samples->y) {
+    //                     vtx_counter[q]++;
+    //                 }
+    //                 q++;
+    //             }
+    //         }
+    //     }
+
+    //     for (int k = 0; k < samples->k_max; k++) {
+    //         for (int q = 0; q < state->n - 1; q++) {
+    //             samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * vtx_counter[q] * 
+    //                 prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]) / 
+    //                 samples->beta_vals[t_idx];
+    //             // printf("n: %d q: %d -> %d * %lf \n", state->n, q, vtx_counter[q], prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]));
+    //         }
+    //         // printf("red_opstring: a, b\n");
+    //         // for (int i = 0 ; i < state->n; i++) {
+    //         //     printf("%d: %d, %d\n", red_op_string[i], red_op_string[i] % 3, (red_op_string[i] / 3) - 1);
+    //         // }
+    //         // printf("---\n");
+    //         // printf("%lf \n\n", samples->g_spin_bins[t_idx][n][k]);
+    //     }
+    // }
 #endif // SPIN_COND
 }
 
@@ -189,74 +188,48 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
  *  mc samples. 
  * The factorial prefactor is computed using the Stirling's approximation
  */
-double prefactor_spin_cond(int m, int n, double w_k, double beta) 
-// {
-//     double val = 0.0;
-//     int sign;
-//     double h = 1.0 / N_QUAD;
-
-//     for (int i = 1; i <= N_QUAD; i++) {
-//         double x = (i - 0.5) * h;
-//         val += h * cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m - 2);
-//     }
-//     if (val < 0.0) {
-//         sign = -1;
-//         val = - val;
-//     } else if (val > 0.0) {
-//         sign = 1;
-//     } else {
-//         return 0.0;
-//     }
-
-//     double f_m = 0.0;
-//     double f_n_1 = 0.0;
-
-//     for (int i = 1; i <= m; i++) {
-//         f_m += log(i);
-//     }
-
-//     for (int i = 1; i <= m + 1; i++) {
-//         f_n_1 += log(n - i);
-//     }
-
-//     return sign * exp(f_n_1 + log(val) - f_m);
-// }
+double prefactor_spin_cond(int m, int n, int k) 
 {
-    double val = 0.0;
-    int sign;
-    double h = 1.0 / N_QUAD;
+    double re, im;
+    hyp1f1ix(&re, &im, m + 1, n + 2, 2 * M_PI * k);
 
-    for (int i = 1; i <= N_QUAD; i++) {
-        double x = (i - 0.5) * h;
-        val += h * cos(w_k * beta * x) * pow(x, m) * pow(1 - x, n - m);
-    }
-    if (val < 0.0) {
-        sign = -1;
-        val = - val;
-    } else if (val > 0.0) {
-        sign = 1;
-    } else {
-        return 0.0;
-    }
-
-    double f_m = 0.0;
-    double f_n_1 = 0.0;
-
-    for (int i = 1; i <= m; i++) {
-        f_m += log(i);
-    }
-
-    if (m == 0) {
-        f_n_1 = log(1.0 / n);
-    } else {
-        for (int i = 1; i < m; i++) {
-            f_n_1 += log(n - i);
-        }
-    }
-
-    return sign * exp(f_n_1 + log(val) - f_m);
+    return re / (n * (n + 1));
 }
 
+/*
+ * Computes the 1F1(a, b, x) hypergeometric function for an imaginary 
+ *  argument x. 
+ * Uses the ARB library for the calculation. (https://arblib.org)
+ * parameters:
+ *      (double *) re: real part of the result
+ *      (double *) im: imaginary part of the result
+ *      (double) a: parameter for F
+ *      (double) b: parameter for F
+ *      (double) x: imaginary part of the input
+ */
+void hyp1f1ix(double* re, double* im, double a, double b, double x)
+{
+    long prec;
+    acb_t aa, bb, xx, rr;
+    acb_init(aa); acb_init(bb); acb_init(xx); acb_init(rr);
+
+    acb_set_d(aa, a);
+    acb_set_d(bb, b);
+    acb_set_d(xx, x);
+    acb_mul_onei(xx, xx);
+
+    for (prec = 64; ; prec *= 2)
+    {
+        acb_hypgeom_m(rr, aa, bb, xx, 0, prec);
+        if (acb_rel_accuracy_bits(rr) >= 53)
+            break;
+    }
+
+    *re = arf_get_d(arb_midref(acb_realref(rr)), ARF_RND_DOWN);
+    *im = arf_get_d(arb_midref(acb_imagref(rr)), ARF_RND_DOWN);
+
+    acb_clear(aa); acb_clear(bb); acb_clear(xx); acb_clear(rr);
+}
 #endif // SPIN_COND
 
 /* 
