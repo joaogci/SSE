@@ -135,7 +135,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     memset(samples->S_mean, 0.0, len_beta * sizeof(double));
     memset(samples->S_std, 0.0, len_beta * sizeof(double));
 
-#ifdef SPIN_COND
+#ifdef CONDUCTANCE
     char buffer[BUFFER_SIZE];
     FILE *fp;
     fp = fopen("matsubara.in", "r");
@@ -157,21 +157,31 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     samples->g_spin_bins = (double ***) malloc(len_beta * sizeof(double **));
     samples->g_spin_mean = (double **) malloc(len_beta * sizeof(double *));
     samples->g_spin_std = (double **) malloc(len_beta * sizeof(double *));
+    samples->g_heat_bins = (double ***) malloc(len_beta * sizeof(double **));
+    samples->g_heat_mean = (double **) malloc(len_beta * sizeof(double *));
+    samples->g_heat_std = (double **) malloc(len_beta * sizeof(double *));
     samples->w_k = (double **) malloc(len_beta * sizeof(double *));
     for (int i = 0; i < len_beta; i++) {
         samples->g_spin_bins[i] = (double **) malloc(n_bins * sizeof(double *));
         samples->g_spin_mean[i] = (double *) malloc(samples->k_max * sizeof(double));
         samples->g_spin_std[i] = (double *) malloc(samples->k_max * sizeof(double));
+        samples->g_heat_bins[i] = (double **) malloc(n_bins * sizeof(double *));
+        samples->g_heat_mean[i] = (double *) malloc(samples->k_max * sizeof(double));
+        samples->g_heat_std[i] = (double *) malloc(samples->k_max * sizeof(double));
         samples->w_k[i] = (double *) malloc(samples->k_max * sizeof(double));
 
         for (int j = 0; j < n_bins; j++) {
             samples->g_spin_bins[i][j] = (double *) malloc(samples->k_max * sizeof(double));
+            samples->g_heat_bins[i][j] = (double *) malloc(samples->k_max * sizeof(double));
 
             memset(samples->g_spin_bins[i][j], 0.0, samples->k_max * sizeof(double));
+            memset(samples->g_heat_bins[i][j], 0.0, samples->k_max * sizeof(double));
         }
 
         memset(samples->g_spin_mean[i], 0.0, samples->k_max * sizeof(double));
         memset(samples->g_spin_std[i], 0.0, samples->k_max * sizeof(double));
+        memset(samples->g_heat_mean[i], 0.0, samples->k_max * sizeof(double));
+        memset(samples->g_heat_std[i], 0.0, samples->k_max * sizeof(double));
         memset(samples->w_k[i], 0.0, samples->k_max * sizeof(double));
     }
 
@@ -180,7 +190,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
             samples->w_k[i][k - 1] = 2 * M_PI * k / samples->beta_vals[i];
         }
     }
-#endif // SPIN_COND
+#endif // CONDUCTANCE
 }
 
 /*
@@ -256,19 +266,26 @@ void free_samples(sampled_quantities *samples)
     free(samples->S_mean);
     free(samples->S_std);
 
-#ifdef SPIN_COND
+#ifdef CONDUCTANCE
     for (int i = 0; i < samples->betas; i++) {
         for (int j = 0; j < samples->bins; j++) {
             free(samples->g_spin_bins[i][j]);
+            free(samples->g_heat_bins[i][j]);
         }   
         free(samples->g_spin_bins[i]);
         free(samples->g_spin_mean[i]);
         free(samples->g_spin_std[i]);
+        free(samples->g_heat_bins[i]);
+        free(samples->g_heat_mean[i]);
+        free(samples->g_heat_std[i]);
         free(samples->w_k[i]);
     }
     free(samples->g_spin_bins);
     free(samples->g_spin_mean);
     free(samples->g_spin_std);
+    free(samples->g_heat_bins);
+    free(samples->g_heat_mean);
+    free(samples->g_heat_std);
     free(samples->w_k);
-#endif // SPIN_COND
+#endif // CONDUCTANCE
 }

@@ -93,8 +93,8 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         samples->S_bins[t_idx][n] += pow(- 1.0, i) * corr[i] / (system->L * (state->n + 1));
     }
 
-    // sample the spin conductance
-#ifdef SPIN_COND
+    // sample the spin and heat conductances
+#ifdef CONDUCTANCE
     if (state->n > 1) {
         int spinsum_x[state->n];
         int spinsum_y[state->n];
@@ -141,52 +141,41 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         }
     }
 
-    // if (state->n > 3) {
-    //     int vtx_counter[state->n - 1];
-    //     for (int q = 0; q < state->n - 1; q++) { vtx_counter[q] = 0; }
+    if (state->n > 3) {
+        int vtx_counter[state->n - 1];
+        for (int q = 0; q < state->n - 1; q++) { vtx_counter[q] = 0; }
         
-    //     for (int p = 0; p < state->n; p++) {
-    //         int b1 = (red_op_string[p] / 3) - 1;
+        for (int p = 0; p < state->n; p++) {
+            int b1 = (red_op_string[p] / 3) - 1;
 
-    //         if (b1 >= samples->x) {
-    //             int q = 0;
+            if (b1 >= samples->x) {
+                int q = 0;
 
-    //             for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
-    //                 int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
+                for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
+                    int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
 
-    //                 if (b2 >= samples->y) {
-    //                     vtx_counter[q]++;
-    //                 }
-    //                 q++;
-    //             }
-    //         }
-    //     }
+                    if (b2 >= samples->y) {
+                        vtx_counter[q]++;
+                    }
+                    q++;
+                }
+            }
+        }
 
-    //     for (int k = 0; k < samples->k_max; k++) {
-    //         for (int q = 0; q < state->n - 1; q++) {
-    //             samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * vtx_counter[q] * 
-    //                 prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]) / 
-    //                 samples->beta_vals[t_idx];
-    //             // printf("n: %d q: %d -> %d * %lf \n", state->n, q, vtx_counter[q], prefactor_spin_cond(q, state->n, samples->w_k[t_idx][k], samples->beta_vals[t_idx]));
-    //         }
-    //         // printf("red_opstring: a, b\n");
-    //         // for (int i = 0 ; i < state->n; i++) {
-    //         //     printf("%d: %d, %d\n", red_op_string[i], red_op_string[i] % 3, (red_op_string[i] / 3) - 1);
-    //         // }
-    //         // printf("---\n");
-    //         // printf("%lf \n\n", samples->g_spin_bins[t_idx][n][k]);
-    //     }
-    // }
-#endif // SPIN_COND
+        for (int k = 0; k < samples->k_max; k++) {
+            for (int q = 0; q < state->n - 1; q++) {
+                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * vtx_counter[q] * 
+                    prefactor_heat_cond(q, state->n, k + 1) / samples->beta_vals[t_idx];
+            }
+        }
+    }
+#endif // CONDUCTANCE
 }
 
-#ifdef SPIN_COND
+#ifdef CONDUCTANCE
 /*
  * Functions to help computing the integral and factorial
  *  prefactors in the spin conductance formula. 
- * The integral is computed using Monte-Carlo integration with 
- *  mc samples. 
- * The factorial prefactor is computed using the Stirling's approximation
  */
 double prefactor_spin_cond(int m, int n, int k) 
 {
@@ -194,6 +183,18 @@ double prefactor_spin_cond(int m, int n, int k)
     hyp1f1ix(&re, &im, m + 1, n + 2, 2 * M_PI * k);
 
     return re / (n * (n + 1));
+}
+
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the heat conductance formula. 
+ */
+double prefactor_heat_cond(int q, int n, int k) 
+{
+    double re, im;
+    hyp1f1ix(&re, &im, q + 1, n, 2 * M_PI * k);
+
+    return re;
 }
 
 /*
@@ -230,7 +231,7 @@ void hyp1f1ix(double* re, double* im, double a, double b, double x)
 
     acb_clear(aa); acb_clear(bb); acb_clear(xx); acb_clear(rr);
 }
-#endif // SPIN_COND
+#endif // CONDUCTANCE
 
 /* 
  * function: normalize 
@@ -276,6 +277,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
 
             for (int k = 0; k < samples->k_max; k++) {
                 samples->g_spin_bins[t_idx][n][k] /= mc_cycles;
+                samples->g_heat_bins[t_idx][n][k] /= mc_cycles;
             }
 
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
@@ -298,6 +300,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
 
             for (int k = 0; k < samples->k_max; k++) {
                 samples->g_spin_mean[t_idx][k] += samples->g_spin_bins[t_idx][n][k];
+                samples->g_heat_mean[t_idx][k] += samples->g_heat_bins[t_idx][n][k];
             }
         }
         samples->n_mean[t_idx] /= samples->bins;
@@ -320,6 +323,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
 
         for (int k = 0; k < samples->k_max; k++) {
             samples->g_spin_mean[t_idx][k] /= samples->bins;
+            samples->g_heat_mean[t_idx][k] /= samples->bins;
         }
 
         for (int n = 0; n < samples->bins; n++) {
@@ -342,6 +346,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
 
             for (int k = 0; k < samples->k_max; k++) {
                 samples->g_spin_std[t_idx][k] += pow(samples->g_spin_bins[t_idx][n][k] - samples->g_spin_mean[t_idx][k], 2.0);
+                samples->g_heat_std[t_idx][k] += pow(samples->g_heat_bins[t_idx][n][k] - samples->g_heat_mean[t_idx][k], 2.0);
             }
         }
         samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
@@ -363,6 +368,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
 
         for (int k = 0; k < samples->k_max; k++) {
             samples->g_spin_std[t_idx][k] = sqrt(samples->g_spin_std[t_idx][k] / samples->bins);
+            samples->g_heat_std[t_idx][k] = sqrt(samples->g_heat_std[t_idx][k] / samples->bins);
         }
     }
 }

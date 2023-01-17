@@ -1,12 +1,8 @@
 #ifndef SAMPLING_H
 #define SAMPLING_H
 
-#include "acb_hypgeom.h"
 #include "../sse/sse.h"
 #include <time.h>
-
-// Number of quadrature points
-#define N_QUAD 100000
 
 /*
  * struct: sampled_quantities
@@ -79,6 +75,9 @@ typedef struct sampled_quantities
     double ***g_spin_bins;
     double **g_spin_mean;
     double **g_spin_std;
+    double ***g_heat_bins;
+    double **g_heat_mean;
+    double **g_heat_std;
 } sampled_quantities;
 
 /* 
@@ -137,15 +136,21 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
  */
 void free_samples(sampled_quantities *samples);
 
-#ifdef SPIN_COND
+#ifdef CONDUCTANCE
+
+#include "acb_hypgeom.h"
+
 /*
  * Functions to help computing the integral and factorial
  *  prefactors in the spin conductance formula. 
- * The integral is computed using Monte-Carlo integration with 
- *  mc samples. 
- * The factorial prefactor is computed using the Stirling's approximation
  */
 double prefactor_spin_cond(int m, int n, int k);
+
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the heat conductance formula. 
+ */
+double prefactor_heat_cond(int q, int n, int k);
 
 /*
  * Computes the 1F1(a, b, x) hypergeometric function for an imaginary 
@@ -159,6 +164,6 @@ double prefactor_spin_cond(int m, int n, int k);
  *      (double) x: imaginary part of the input
  */
 void hyp1f1ix(double* re, double* im, double a, double b, double x);
-#endif // SPIN_COND
+#endif // CONDUCTANCE
 
 #endif // SAMPLING_H

@@ -1,7 +1,7 @@
 SOURCES = src/main.c src/sse/sse.c src/sampling/sampling.c src/io/io.c src/sampling/sampling_memory.c 
 INCLUDES = src/sse/sse.h src/sampling/sampling.h src/vtx/vtx_type.h src/rng/xorshiro256++.h src/io/io.h
-FLAGS = -fopenmp -O2 
-LIBS = -lm -larb
+FLAGS = -fopenmp -O2
+LIBS = -lm
 PROGRAM = main
 
 ifeq ($(OS),Windows_NT)
@@ -23,7 +23,7 @@ test: $(SOURCES) $(INCLUDES)
 	$(CC) -o $(PROGRAM) $(FLAGS) -Wall -Wshadow $(SOURCES) $(LIBS) -DTESTING
 
 cond: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DSPIN_COND 
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DCONDUCTANCE -larb
 
 clean: 
 	rm $(PROGRAM)

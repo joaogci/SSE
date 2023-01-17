@@ -139,13 +139,13 @@ int main(int argc, char **argv)
         printf("OBC can only be used in a one-dimensional system. \n");
         exit(1);
     }
-#ifdef SPIN_COND
+#ifdef CONDUCTANCE
     if (boundary_cond != 1 || d != 1) {
         printf("Spin conductivity can only be computed in a one-dimensional system"
                 " with OBC. \n");
         exit(1);
     }
-#endif // SPIN_COND
+#endif // CONDUCTANCE
 
     samples = (sampled_quantities *) malloc(sizeof(sampled_quantities));
     init_samples(beta_vals, len_beta, n_bins, d, L, samples);
