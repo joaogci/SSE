@@ -1,5 +1,6 @@
 #!/bin/bash
 
+module use $HOME/.local/easybuild/modules/all
 module --quiet purge  # Reset the modules to the system default
 module load GCC/11.2.0
 module load GCCcore/11.2.0
