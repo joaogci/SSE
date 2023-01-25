@@ -13,10 +13,6 @@
  */
 void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples) 
 {
-    for (int i = 0; i < 4; i++) {
-        s[i] = rand() * (n + 1);
-    }
-
     double m1 = 0.0;
     double m2 = 0.0;
     double m4 = 0.0;
