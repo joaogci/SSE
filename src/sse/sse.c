@@ -167,7 +167,7 @@ void ajust_cutoff(sse_state *state, bool adjust_loop)
     }
 
     if (adjust_loop) {
-        if (state->loop_size > 1000) { state->n_loops = 2000 * state->M * state->n_loops / state->loop_size; }
+        if (state->loop_size > 100) { state->n_loops = 200 * state->M * state->n_loops / state->loop_size; }
         state->loop_size = 0;
     }
 }

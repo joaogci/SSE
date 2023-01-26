@@ -61,13 +61,14 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                 loop_update(system, state);
             }
 
-            ajust_cutoff(state, t % 1000 == 0);
+            ajust_cutoff(state, t % 100 == 0);
         }
 
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state);
                 
+                state->loop_size = 0;
                 create_vtx_list(system, state);
                 for (int loop = 0; loop < state->n_loops; loop++) {
                     loop_update(system, state);
@@ -84,7 +85,6 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
         buff[strcspn(buff, "\n")] = 0;
 
         cpu_time[t_id - 1] = ((double) (end_clock - start_clock)) / CLOCKS_PER_SEC;
-        loop_size[t_id - 1] = state->loop_size / (mc_cycles * state->n_loops * (end_bin - start_bin));
         n_loops[t_id - 1] = state->n_loops;
 
         #pragma omp barrier
@@ -92,7 +92,6 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
         {
             double max = cpu_time[0];
             int max_id = 0;
-            int avg_loop_size = 0;
             int avg_n_loops = 0;
 
             for (int i = 0; i < n_threads; i++) {
@@ -101,14 +100,12 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                     max_id = i;
                 }
 
-                avg_loop_size += loop_size[i];
                 avg_n_loops += n_loops[i];
             }
-            avg_loop_size /= n_threads;
             avg_n_loops /= n_threads;
 
-            printf("%s | beta: %.4lf | loop_size: %d | n_loops: %d | max_time: %.5lfs (T_id: %d) \n", 
-                buff, beta, avg_loop_size, avg_n_loops, max / n_threads, max_id);
+            printf("%s | beta: %.4lf | n_loops: %d | max_time: %.5lfs (T_id: %d) \n", 
+                buff, beta, avg_n_loops, max / n_threads, max_id);
         }
         #pragma omp barrier
     }
