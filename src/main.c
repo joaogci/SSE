@@ -158,6 +158,9 @@ int main(int argc, char **argv)
         d, L, (boundary_cond == 0) ? "PBC" : "OBC" , S, delta, h, epsilon);
     printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", 
         n_threads, therm_cycles, mc_cycles, n_bins);
+#ifdef CONDUCTANCE
+    printf("   Computing conductances | Max Matsubara Freq: %d | x: %d | y: %d \n", samples->k_max, samples->x, samples->y);
+#endif // CONDUCTANCE
     printf("   Simulation started at: %s ", ctime(&t));
     printf("\n");
 

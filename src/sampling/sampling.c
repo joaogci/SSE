@@ -100,10 +100,10 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         memset(spin_prod, 0.0, (state->n + 1) * sizeof(int));
 
         for (int p = 0; p < state->n; p++) {
-            for (int i = samples->x; i < system->L; i++) {
+            for (int i = samples->x + 1; i < system->L; i++) {
                 spinsum_x[p] += system->spin[i];
             }
-            for (int i = samples->y; i < system->L; i++) {
+            for (int i = samples->y + 1; i < system->L; i++) {
                 spinsum_y[p] += system->spin[i];
             }
 
@@ -144,13 +144,13 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         for (int p = 0; p < state->n; p++) {
             int b1 = (red_op_string[p] / 3) - 1;
 
-            if (b1 >= samples->x) {
+            if (b1 > samples->x) {
                 int q = 0;
 
                 for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
                     int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
 
-                    if (b2 >= samples->y) {
+                    if (b2 > samples->y) {
                         vtx_counter[q]++;
                     }
                     q++;
