@@ -124,12 +124,12 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
             for (int p = 0; p <= state->n; p++) {
                 double sum_a = 0.0;
-                for (int a = samples->x; a < system->L; a++) {
+                for (int a = samples->x + 1; a < system->L; a++) {
                     sum_a += 0.5 * system->spin[a];
                 }
 
                 double sum_b = 0.0;
-                for (int b = samples->y; b < system->L; b++) {
+                for (int b = samples->y + 1; b < system->L; b++) {
                     sum_b += 0.5 * system->spin[b];
                 }
 
@@ -191,17 +191,17 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 for (int p = 0; p < state->n; p++) {
                     int bond = (red_op_string[p] / 3) - 1;
 
-                    if (bond >= samples->x) {
+                    if (bond > samples->x) {
                         Ka[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]);
                         Ka[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]);
                     }
                     
-                    if (bond >= samples->y) {
+                    if (bond > samples->y) {
                         Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]);
                         Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]);
                     }
                     
-                    if (bond >= samples->x && bond >= samples->y) {
+                    if (bond > samples->x && bond > samples->y) {
                         Cab++;
                     }
                 }
