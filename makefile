@@ -23,7 +23,7 @@ test: $(SOURCES) $(INCLUDES)
 	$(CC) -o $(PROGRAM) $(FLAGS) -Wall -Wshadow $(SOURCES) $(LIBS) -DTESTING
 
 cond: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DCONDUCTANCE -larb
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DCONDUCTANCE
 
 clean: 
 	rm $(PROGRAM)
