@@ -442,3 +442,15 @@ void free_memory(heisenberg_system *system, sse_state *state)
 
     free(state->vtx_type);
 }
+
+/* 
+ * function: get_rng
+ *  returns a random number from the stream
+ * 
+ *  returns:
+ *      (double) random number
+ */
+double get_rng() 
+{
+    return next_double();
+}

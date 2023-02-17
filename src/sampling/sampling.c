@@ -49,22 +49,20 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // propagate the system to sample the staggered magnetization
     for (int p = 0; p < state->n; p++) {
-        if (red_op_string[p] % 3 != 0) {
-            int b = (red_op_string[p] / 3) - 1;
-            int a = red_op_string[p] % 3;
-            int old_state = system->spin[system->bond[b][0]];
+        int b = (red_op_string[p] / 3) - 1;
+        int a = red_op_string[p] % 3;
+        int old_state = system->spin[system->bond[b][0]];
 
-            if (a == 1) {
-                system->spin[system->bond[b][0]] += 2;
-                system->spin[system->bond[b][1]] += -2;
-            } else if (a == 2) {
-                system->spin[system->bond[b][0]] += -2;
-                system->spin[system->bond[b][1]] += 2;
-            }
-
-            ms += pow(- 1.0, system->bond[b][0]) 
-            * (system->spin[system->bond[b][0]] - old_state);
+        if (a == 1) {
+            system->spin[system->bond[b][0]] += 2;
+            system->spin[system->bond[b][1]] += -2;
+        } else if (a == 2) {
+            system->spin[system->bond[b][0]] += -2;
+            system->spin[system->bond[b][1]] += 2;
         }
+
+        ms += pow(- 1.0, system->bond[b][0]) 
+        * (system->spin[system->bond[b][0]] - old_state);
 
         m2s += ms * ms;
         m4s += ms * ms * ms * ms;
@@ -91,23 +89,16 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // sample the spin and heat conductances
 #ifdef CONDUCTANCE
+    // max number of samples for the conductances, for each MC cycle
+    int max_samp = 1;
+
     // New sampling of Spin Conductance
-    for (int i = 0; i < 4; i++) {
-        s[i] = rand() * (n * t_idx + 1);
-    }
-
-    // Assign random numbers to the imaginary times
-    double res[samples->k_max];
-    for (int k = 0; k < samples->k_max; k++) {
-        res[k] = 0.0;
-    }
-    int max_samp = 10;
-
     for (int samp = 0; samp < max_samp; samp++) {
+        // Assign random numbers to the imaginary times
         double tau_spin[state->n + 2];
         tau_spin[0] = 0.0;
         for (int i = 1; i <= state->n; i++) {
-            double tmp = next_double() * samples->beta_vals[t_idx];
+            double tmp = get_rng() * samples->beta_vals[t_idx];
 
             int j;
             for (j = i - 1; (j >= 1 && tau_spin[j] > tmp); j--)
@@ -120,8 +111,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         for (int k = 0; k < samples->k_max; k++) {
             double Ka[2] = {};
             double Kb[2] = {};
-            double Cab = 0.0;
-
+        
             for (int p = 0; p <= state->n; p++) {
                 double sum_a = 0.0;
                 for (int a = samples->x + 1; a < system->L; a++) {
@@ -133,13 +123,11 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                     sum_b += 0.5 * system->spin[b];
                 }
 
-                Ka[0] += (cos(samples->w_k[t_idx][k] * tau_spin[p + 1] - M_PI_2) - cos(samples->w_k[t_idx][k] * tau_spin[p] - M_PI_2)) * sum_a / samples->w_k[t_idx][k];
-                Ka[1] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1] - M_PI_2) - sin(samples->w_k[t_idx][k] * tau_spin[p] - M_PI_2)) * sum_a / samples->w_k[t_idx][k];
+                Ka[0] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1]) - sin(samples->w_k[t_idx][k] * tau_spin[p])) * sum_a / samples->w_k[t_idx][k];
+                Ka[1] += (cos(samples->w_k[t_idx][k] * tau_spin[p]) - cos(samples->w_k[t_idx][k] * tau_spin[p + 1])) * sum_a / samples->w_k[t_idx][k];
 
-                Kb[0] += (cos(samples->w_k[t_idx][k] * tau_spin[p + 1] - M_PI_2) - cos(samples->w_k[t_idx][k] * tau_spin[p] - M_PI_2)) * sum_b / samples->w_k[t_idx][k];
-                Kb[1] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1] - M_PI_2) - sin(samples->w_k[t_idx][k] * tau_spin[p] - M_PI_2)) * sum_b / samples->w_k[t_idx][k];
-                
-                Cab += - 2 * (1 - cos(samples->w_k[t_idx][k] * (tau_spin[p + 1] - tau_spin[p]))) * sum_b * sum_a / (samples->w_k[t_idx][k] * samples->w_k[t_idx][k]);
+                Kb[0] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1]) - sin(samples->w_k[t_idx][k] * tau_spin[p])) * sum_b / samples->w_k[t_idx][k];
+                Kb[1] += (cos(samples->w_k[t_idx][k] * tau_spin[p]) - cos(samples->w_k[t_idx][k] * tau_spin[p + 1])) * sum_b / samples->w_k[t_idx][k];
 
                 if (p < state->n && red_op_string[p] % 3 != 0) {
                     int b_ = (red_op_string[p] / 3) - 1;
@@ -154,27 +142,18 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                     }
                 }
             }
-            
-            res[k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / samples->beta_vals[t_idx];
+
+            samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->beta_vals[t_idx] * max_samp);
         }
-    }
-    for (int k = 0; k < samples->k_max; k++) {
-        samples->g_spin_bins[t_idx][n][k] += res[k] / max_samp;
     }
     
     // New Sampling of Heat Conductance
-    if (n >= 2) {
-        double res[samples->k_max];
-        for (int k = 0; k < samples->k_max; k++) {
-            res[k] = 0.0;
-        }
-        int max_samp = 10;
-
+    if (state->n >= 2) {
         for (int samp = 0; samp < max_samp; samp++) {
             // Assign random numbers to the imaginary times
             double tau_heat[state->n];
             for (int i = 0; i < state->n; i++) {
-                double tmp = next_double() * samples->beta_vals[t_idx];
+                double tmp = get_rng() * samples->beta_vals[t_idx];
 
                 int j;
                 for (j = i - 1; (j >= 0 && tau_heat[j] > tmp); j--)
@@ -206,12 +185,8 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                     }
                 }
 
-                res[k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / samples->beta_vals[t_idx];                    
+                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * max_samp);
             }
-        }
-
-        for (int k = 0; k < samples->k_max; k++) {
-            samples->g_heat_bins[t_idx][n][k] += res[k] / max_samp;
         }
     }
 
