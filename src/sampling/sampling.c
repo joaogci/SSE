@@ -49,22 +49,20 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // propagate the system to sample the staggered magnetization
     for (int p = 0; p < state->n; p++) {
-        if (red_op_string[p] % 3 != 0) {
-            int b = (red_op_string[p] / 3) - 1;
-            int a = red_op_string[p] % 3;
-            int old_state = system->spin[system->bond[b][0]];
+        int b = (red_op_string[p] / 3) - 1;
+        int a = red_op_string[p] % 3;
+        int old_state = system->spin[system->bond[b][0]];
 
-            if (a == 1) {
-                system->spin[system->bond[b][0]] += 2;
-                system->spin[system->bond[b][1]] += -2;
-            } else if (a == 2) {
-                system->spin[system->bond[b][0]] += -2;
-                system->spin[system->bond[b][1]] += 2;
-            }
-
-            ms += pow(- 1.0, system->bond[b][0]) 
-            * (system->spin[system->bond[b][0]] - old_state);
+        if (a == 1) {
+            system->spin[system->bond[b][0]] += 2;
+            system->spin[system->bond[b][1]] += -2;
+        } else if (a == 2) {
+            system->spin[system->bond[b][0]] += -2;
+            system->spin[system->bond[b][1]] += 2;
         }
+
+        ms += pow(- 1.0, system->bond[b][0]) 
+        * (system->spin[system->bond[b][0]] - old_state);
 
         m2s += ms * ms;
         m4s += ms * ms * ms * ms;
