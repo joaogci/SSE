@@ -13,12 +13,13 @@ PROGNAME=$0
 usage() {
     cat << EOF >&2
 
-Usage               : $PROGNAME [-c] [-h] [-n <n_threads>] [-t]
+Usage               : $PROGNAME [-c] [-h] [-n <n_threads>] [-m <max_samp>] [-t]
 
--c                  : Run conductivity calculations.
+-c <option>         : Run conductivity calculations. Options: "both", "heat", "spin"
 -h                  : Help. Shows this text.
 -j <job_name>       : Job name.
 -n <n_threads>      : Set number of threads for openMP. Default value: "4"
+-m <max_samp>       : Number of maximum samples for conductance
 -t                  : Test mode. Uses a pre-fixed seed (2)
 -r <DD-HH:MM:SS>    : Time for the job to run.
 
@@ -31,13 +32,15 @@ test=""
 cond=""
 job_name=""
 time=""
+max_samp="1"
 
-while getopts chj:n:tr: opts; do
+while getopts c:hj:n:m:tr: opts; do
     case $opts in 
-        (c) cond="cond";;
+        (c) cond=$OPTARG;;
         (h) usage;;
         (j) job_name=$OPTARG;;
         (n) n_threads=$OPTARG;;
+        (m) max_samp=$OPTARG;;
         (t) test="test";;
         (r) time=$OPTARG;;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
@@ -72,4 +75,4 @@ cd $job_name
 
 echo "[5] - Submitting job."
 echo
-sbatch -c $n_threads -J $job_name -t $time ./submit_job.sh $n_threads $vtx_name
+sbatch -c $n_threads -J $job_name -t $time ./submit_job.sh $n_threads $vtx_name $max_samp

@@ -4,11 +4,12 @@ PROGNAME=$0
 usage() {
     cat << EOF >&2
 
-Usage               : $PROGNAME [-c] [-h] [-n <n_threads>] [-t]
+Usage               : $PROGNAME [-c <option>] [-h] [-n <n_threads>] [-m <max_samp>] [-t]
 
--c                  : Run conductivity calculations.
+-c <option>         : Run conductivity calculations. Options: "both", "heat", "spin"
 -h                  : Help. Shows this text.
 -n <n_threads>      : Set number of threads for openMP. Default value: "4"
+-m <max_samp>       : Number of maximum samples for conductance
 -t                  : Test mode. Uses a pre-fixed seed (2)
 
 EOF
@@ -18,12 +19,14 @@ EOF
 n_threads="4"
 test=""
 cond=""
+max_samp="1"
 
-while getopts chn:t opts; do
+while getopts c:hn:m:t opts; do
     case $opts in 
-        (c) cond="cond";;
+        (c) cond=$OPTARG;;
         (h) usage;;
         (n) n_threads=$OPTARG;;
+        (m) max_samp=$OPTARG;;
         (t) test="test";;
         (:) echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
         (*) usage
@@ -47,5 +50,5 @@ make $cond $test
 
 echo "[4] - Running the simulation."
 echo
-./main $n_threads tmp/$vtx_name
+./main $n_threads tmp/$vtx_name $max_samp
 echo "[4] - Finished the simulation."

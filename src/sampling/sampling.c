@@ -32,8 +32,10 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         corr[i] += system->spin[0] * system->spin[i] * 0.25;
         si[i] += system->spin[i] * 0.5;
     }
+    m1 /= system->N;
     m2 += m1 * m1;
     m4 += m1 * m1 * m1 * m1;
+    ms /= system->N;
     m2s += ms * ms;
     m4s += ms * ms * ms * ms;
 
@@ -51,7 +53,6 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     for (int p = 0; p < state->n; p++) {
         int b = (red_op_string[p] / 3) - 1;
         int a = red_op_string[p] % 3;
-        int old_state = system->spin[system->bond[b][0]];
 
         if (a == 1) {
             system->spin[system->bond[b][0]] += 2;
@@ -60,12 +61,6 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
             system->spin[system->bond[b][0]] += -2;
             system->spin[system->bond[b][1]] += 2;
         }
-
-        ms += pow(- 1.0, system->bond[b][0]) 
-        * (system->spin[system->bond[b][0]] - old_state);
-
-        m2s += ms * ms;
-        m4s += ms * ms * ms * ms;
 
         for (int i = 0; i < system->L; i++) {
             corr[i] += system->spin[0] * system->spin[i] * 0.25;
@@ -76,25 +71,23 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     // sample to the struct
     samples->n_bins[t_idx][n] += state->n;
     samples->n2_bins[t_idx][n] += state->n * state->n; 
-    samples->m_bins[t_idx][n] += m1 / system->N;
-    samples->m2_bins[t_idx][n] += m2 / (system->N * system->N);
-    samples->m4_bins[t_idx][n] += m4 / (system->N * system->N * system->N * system->N);
-    samples->ms_bins[t_idx][n] += ms / ((state->n + 1) * system->N);
-    samples->m2s_bins[t_idx][n] += m2s / ((state->n + 1) * system->N * system->N);
-    samples->m4s_bins[t_idx][n] += m4s / ((state->n + 1) * system->N * system->N * system->N * system->N);
+    samples->m_bins[t_idx][n] += m1;
+    samples->m2_bins[t_idx][n] += m2;
+    samples->m4_bins[t_idx][n] += m4;
+    samples->ms_bins[t_idx][n] += ms;
+    samples->m2s_bins[t_idx][n] += m2s;
+    samples->m4s_bins[t_idx][n] += m4s;
     for (int i = 0; i < system->L; i++) {
         samples->corr_bins[t_idx][n][i] += corr[i] / (state->n + 1);
         samples->S_bins[t_idx][n] += pow(- 1.0, i) * corr[i] / (system->L * (state->n + 1));
     }
 
     // sample the spin and heat conductances
-#ifdef CONDUCTANCE
-    // max number of samples for the conductances, for each MC cycle
-    int max_samp = 1;
-
+#ifdef SPIN_CONDUCTANCE
     // New sampling of Spin Conductance
-    for (int samp = 0; samp < max_samp; samp++) {
+    for (int samp = 0; samp < samples->max_samp; samp++) {
         // Assign random numbers to the imaginary times
+        // state->n = 10000;
         double tau_spin[state->n + 2];
         tau_spin[0] = 0.0;
         for (int i = 1; i <= state->n; i++) {
@@ -149,13 +142,15 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 }
             }
 
-            samples->g_spin_bins[t_idx][n][k] += (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * max_samp);
+            samples->g_spin_bins[t_idx][n][k] += (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * samples->max_samp);
         }
     }
-    
+#endif //SPIN_CONDUCTANCE
+
+#ifdef HEAT_CONDUCTANCE
     // New Sampling of Heat Conductance
-    if (state->n >= 2) {
-        for (int samp = 0; samp < max_samp; samp++) {
+    if (state->n >= 2) {        
+        for (int samp = 0; samp < samples->max_samp; samp++) {
             // Assign random numbers to the imaginary times
             double tau_heat[state->n];
             for (int i = 0; i < state->n; i++) {
@@ -201,10 +196,12 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                     Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
                 }
 
-                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * max_samp);
+                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
             }
         }
     }
+
+#endif // HEAT_CONDUCTANCE
 
     // Sampling of Spin-Seebeck Conductance
     // if (state->n >= 1) {
@@ -228,21 +225,22 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     //             double sum_2 = 0.0;
 
     //             int Hb[state->n];
-    //             double Sa[state->n];
+    //             double Sa[state->n + 1];
 
-    //             for (int p = 0; p < state->n; p++) {
+    //             for (int p = 0; p <= state->n; p++) {
     //                 int bond = (red_op_string[p] / 3) - 1;
 
     //                 Sa[p] = 0.0;
     //                 for (int a = samples->x + 1; a < system->L; a++) {
     //                     Sa[p] += 0.5 * system->spin[a];
     //                 }
-                    
-    //                 if (bond > samples->y) {
+
+    //                 Hb[p] = 0;
+    //                 if (p < state->n && bond > samples->y) {
     //                     Hb[p] = 1;
     //                 }
 
-    //                 if (red_op_string[p] % 3 != 0) {
+    //                 if (p < state->n && red_op_string[p] % 3 != 0) {
     //                     int b_ = (red_op_string[p] / 3) - 1;
     //                     int a_ = red_op_string[p] % 3;
 
@@ -256,10 +254,10 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     //                 }
     //             }
 
-    //             for (int p = 1; p <= state->n; p++) {
-    //                 for (int l = 0; l <= state->n - p; l++) {
-    //                     sum_1 += (Sa[p + l] * Hb[p]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p] - tau_heat[p + l])) - sin(samples->w_k[t_idx][k] * (tau_heat[p] - tau_heat[p + l + 1]))) / samples->w_k[t_idx][k];
-    //                     sum_2 += (Sa[p] * Hb[p + l]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
+    //             for (int p = 0; p <= state->n - 1; p++) {
+    //                 for (int l = 0; l <= state->n - 1 - p; l++) {
+    //                     sum_1 += (Sa[p + l] * Hb[p + 1]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l + 1] - tau_heat[p + 1])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
+    //                     sum_2 += (Sa[p] * Hb[p + l + 1]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
     //                 }
     //             }
 
@@ -267,8 +265,6 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     //         }
     //     }
     // }
-
-#endif // CONDUCTANCE
 }
 
 /* 

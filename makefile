@@ -1,5 +1,5 @@
-SOURCES = src/main.c src/sse/sse.c src/sampling/sampling.c src/io/io.c src/sampling/sampling_memory.c 
-INCLUDES = src/sse/sse.h src/sampling/sampling.h src/vtx/vtx_type.h src/rng/xorshiro256++.h src/io/io.h
+SOURCES = src/main.c src/sse/sse.c src/sampling/sampling.c src/io/io.c src/sampling/sampling_memory.c src/rng/pcg_basic.c
+INCLUDES = src/sse/sse.h src/sampling/sampling.h src/vtx/vtx_type.h src/io/io.h src/rng/pcg_basic.h
 FLAGS = -fopenmp -O2
 LIBS = -lm
 PROGRAM = main
@@ -22,8 +22,16 @@ $(PROGRAM): $(SOURCES) $(INCLUDES)
 test: $(SOURCES) $(INCLUDES)
 	$(CC) -o $(PROGRAM) $(FLAGS) -Wall -Wshadow $(SOURCES) $(LIBS) -DTESTING
 
-cond: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DCONDUCTANCE
+
+both: $(SOURCES) $(INCLUDES)
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DSPIN_CONDUCTANCE -DHEAT_CONDUCTANCE
+
+spin: $(SOURCES) $(INCLUDES)
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DSPIN_CONDUCTANCE
+
+heat: $(SOURCES) $(INCLUDES)
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DHEAT_CONDUCTANCE
+
 
 clean: 
 	rm $(PROGRAM)

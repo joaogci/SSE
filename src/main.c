@@ -57,8 +57,9 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
             diag_update(beta, system, state);
 
             create_vtx_list(system, state);
-            for (int loop = 0; loop < state->n_loops; loop++) {
-                loop_update(system, state);
+            int loop = 0;
+            while (loop != state->n_loops) {
+                loop_update(system, state, &loop);
             }
 
             ajust_cutoff(state, t % 100 == 0);
@@ -70,8 +71,9 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                 
                 state->loop_size = 0;
                 create_vtx_list(system, state);
-                for (int loop = 0; loop < state->n_loops; loop++) {
-                    loop_update(system, state);
+                int loop = 0;
+                while (loop != state->n_loops) {
+                    loop_update(system, state, &loop);
                 }
 
                 sample(n, t_idx, system, state, samples);
@@ -136,16 +138,20 @@ int main(int argc, char **argv)
         printf("OBC can only be used in a one-dimensional system. \n");
         exit(1);
     }
-#ifdef CONDUCTANCE
+#if defined(HEAT_CONDUCTANCE) || defined(SPIN_CONDUCTANCE)
     if (boundary_cond != 1 || d != 1) {
-        printf("Spin conductivity can only be computed in a one-dimensional system"
+        printf("Conductances can only be computed in a one-dimensional system"
                 " with OBC. \n");
         exit(1);
     }
 #endif // CONDUCTANCE
 
     samples = (sampled_quantities *) malloc(sizeof(sampled_quantities));
-    init_samples(beta_vals, len_beta, n_bins, d, L, samples);
+    int max_samp = 1;
+    if (argc == 4) {
+        max_samp = atoi(argv[3]);
+    }
+    init_samples(beta_vals, len_beta, n_bins, d, L, samples, max_samp);
     
     omp_set_num_threads(n_threads);
     cpu_time = (double *) malloc(sizeof(double) * n_threads);
@@ -158,8 +164,8 @@ int main(int argc, char **argv)
         d, L, (boundary_cond == 0) ? "PBC" : "OBC" , S, delta, h, epsilon);
     printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", 
         n_threads, therm_cycles, mc_cycles, n_bins);
-#ifdef CONDUCTANCE
-    printf("   Computing conductances | Max Matsubara Freq: %d | x: %d | y: %d \n", samples->k_max, samples->x, samples->y);
+#if defined(HEAT_CONDUCTANCE) || defined(SPIN_CONDUCTANCE)
+    printf("   Computing conductance | Max Matsubara Freq: %d | x: %d | y: %d | samples: %d \n", samples->k_max, samples->x, samples->y, samples->max_samp);
 #endif // CONDUCTANCE
     printf("   Simulation started at: %s ", ctime(&t));
     printf("\n");

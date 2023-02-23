@@ -27,4 +27,4 @@ module load SciPy-bundle/2021.10-foss-2021b
 module load Arb/2.22.1-GCC-11.2.0
 module list
 
-./main $1 $2
+./main $1 $2 $3

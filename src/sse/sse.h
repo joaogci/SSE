@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 #include "../vtx/vtx_type.h"
-#include "../rng/xorshiro256++.h"
+#include "../rng/pcg_basic.h"
 
 #define MAX_(a, b) ((a) > (b) ? (a) : (b))
 #define MIN_(a, b) ((a) < (b) ? (a) : (b))
@@ -154,7 +154,7 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state);
  *      (heisenberg_system *) system: simulated system
  *      (sse_state *) state: SSE state
  */
-void loop_update(heisenberg_system *system, sse_state *state);
+void loop_update(heisenberg_system *system, sse_state *state, int *loop);
 
 /* 
  * function: ajust_cutoff

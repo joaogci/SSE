@@ -71,6 +71,7 @@ typedef struct sampled_quantities
     int k_max;
     int x;
     int y;
+    int max_samp;
     double **w_k;
     double ***g_spin_bins;
     double **g_spin_mean;
@@ -91,9 +92,10 @@ typedef struct sampled_quantities
  *      (int) d: number of dimensions of the system
  *      (int) L: number of unit lattices in the system
  *      (sampled_quantities *) samples: struct to inilialize 
+ *      (int) max_samp: number of samples for the conductance
  */
 void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L,
-    sampled_quantities *samples);
+    sampled_quantities *samples, int max_samp);
 
 /* 
  * function: sample 

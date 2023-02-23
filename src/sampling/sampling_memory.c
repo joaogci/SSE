@@ -10,9 +10,12 @@
  *      (double *) beta_vals: array of the temperatures
  *      (int) len_beta: number of temperatures
  *      (int) n_bins: number of bins
+ *      (int) d: number of dimensions of the system
+ *      (int) L: number of unit lattices in the system
  *      (sampled_quantities *) samples: struct to inilialize 
+ *      (int) max_samp: number of samples for the conductance
  */
-void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, struct sampled_quantities *samples) 
+void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, struct sampled_quantities *samples, int max_samp) 
 {
     samples->bins = n_bins;
     samples->betas = len_beta;
@@ -22,6 +25,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     samples->k_max = 0;
     samples->x = 0;
     samples->y = 0;
+    samples->max_samp = max_samp;
 
     samples->n_bins = (double **) malloc(len_beta * sizeof(double *));
     samples->n2_bins = (double **) malloc(len_beta * sizeof(double *));
@@ -135,7 +139,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
     memset(samples->S_mean, 0.0, len_beta * sizeof(double));
     memset(samples->S_std, 0.0, len_beta * sizeof(double));
 
-#ifdef CONDUCTANCE
+#if defined(HEAT_CONDUCTANCE) || defined(SPIN_CONDUCTANCE)
     char buffer[BUFFER_SIZE];
     FILE *fp;
     fp = fopen("matsubara.in", "r");
@@ -190,7 +194,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
             samples->w_k[i][k - 1] = 2 * M_PI * k / samples->beta_vals[i];
         }
     }
-#endif // CONDUCTANCE
+#endif // HEAT_CONDUCTANCE || SPIN_CONDUCTANCE
 }
 
 /*

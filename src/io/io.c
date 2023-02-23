@@ -124,7 +124,7 @@ char *write_outputs(sampled_quantities *samples,
     char *file_name = (char *) malloc(BUFFER_SIZE * sizeof(char));
     char *buffer = (boundary_cond == 0) ? "PBC" : "OBC";
 
-#ifndef CONDUCTANCE
+#if !defined(SPIN_CONDUCTANCE) && !defined(HEAT_CONDUCTANCE)
     if (delta > 0) {
         sprintf(file_name, "%dD_L%d_%s_AFM_XXZ_S%g_delta%g_h%g_ep%g.csv", d, L, buffer, S, fabs(delta), h, epsilon);
     } else if (delta < 0) {
@@ -132,7 +132,8 @@ char *write_outputs(sampled_quantities *samples,
     } else {
         sprintf(file_name, "%dD_L%d_%s_XY_S%g_h%g_ep%g.csv", d, L, buffer, S, h, epsilon);
     }
-#else 
+#endif
+#if defined(SPIN_CONDUCTANCE) && defined(HEAT_CONDUCTANCE)
     if (delta > 0) {
         sprintf(file_name, "%dD_L%d_%s_AFM_XXZ_S%g_delta%g_h%g_ep%g_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
     } else if (delta < 0) {
@@ -140,7 +141,26 @@ char *write_outputs(sampled_quantities *samples,
     } else {
         sprintf(file_name, "%dD_L%d_%s_XY_S%g_h%g_ep%g_x%d_y%d.csv", d, L, buffer, S, h, epsilon, samples->x, samples->y);
     }
-#endif // CONDUCTANCE
+#else
+    #ifdef SPIN_CONDUCTANCE
+    if (delta > 0) {
+        sprintf(file_name, "%dD_L%d_%s_AFM_XXZ_S%g_delta%g_h%g_ep%g_spin_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
+    } else if (delta < 0) {
+        sprintf(file_name, "%dD_L%d_%s_FM_XXZ_S%g_delta%g_h%g_ep%g_spin_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
+    } else {
+        sprintf(file_name, "%dD_L%d_%s_XY_S%g_h%g_ep%g_spin_x%d_y%d.csv", d, L, buffer, S, h, epsilon, samples->x, samples->y);
+    }
+    #endif
+    #ifdef HEAT_CONDUCTANCE
+    if (delta > 0) {
+        sprintf(file_name, "%dD_L%d_%s_AFM_XXZ_S%g_delta%g_h%g_ep%g_heat_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
+    } else if (delta < 0) {
+        sprintf(file_name, "%dD_L%d_%s_FM_XXZ_S%g_delta%g_h%g_ep%g_heat_x%d_y%d.csv", d, L, buffer, S, fabs(delta), h, epsilon, samples->x, samples->y);
+    } else {
+        sprintf(file_name, "%dD_L%d_%s_XY_S%g_h%g_ep%g_heat_x%d_y%d.csv", d, L, buffer, S, h, epsilon, samples->x, samples->y);
+    }
+    #endif
+#endif
 
     FILE *output_file;
     output_file = fopen(file_name, "w");
@@ -155,8 +175,20 @@ char *write_outputs(sampled_quantities *samples,
         fprintf(output_file, "cpu_time,n_threads\n");
         fprintf(output_file, "%lf,%d\n", cpu_time_used, n_threads);
 
-        fprintf(output_file, "n_betas,n_k,x,y\n");
-        fprintf(output_file, "%d,%d,%d,%d\n", samples->betas, samples->k_max, samples->x, samples->y);
+#if defined(SPIN_CONDUCTANCE) && defined(HEAT_CONDUCTANCE)
+        char cond[5] = "both";
+#else 
+    #if defined(SPIN_CONDUCTANCE)
+        char cond[5] = "spin";
+    #elif defined(HEAT_CONDUCTANCE)
+        char cond[5] = "heat";
+    #else
+        char cond[5] = ".";
+    #endif
+#endif
+
+        fprintf(output_file, "n_betas,n_k,x,y,cond\n");
+        fprintf(output_file, "%d,%d,%d,%d,%s\n", samples->betas, samples->k_max, samples->x, samples->y, cond);
 
         fprintf(output_file, "beta,n,n2,n_std,E,E_std,C,C_std,m,m_std,m2,m2_std,m4,m4_std,ms,ms_std,m2s,m2s_std,m4s,m4s_std,sus,sus_std,S_mean,S_std\n");
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
@@ -195,7 +227,7 @@ char *write_outputs(sampled_quantities *samples,
                 fprintf(output_file, "%lf,%lf\n", samples->corr_mean[t_idx][i], samples->corr_std[t_idx][i]);
             }
         }
-#ifdef CONDUCTANCE
+#ifdef SPIN_CONDUCTANCE
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
             fprintf(output_file, "beta\n");
             fprintf(output_file, "%lf\n", samples->beta_vals[t_idx]);
@@ -204,6 +236,8 @@ char *write_outputs(sampled_quantities *samples,
                 fprintf(output_file, "%lf,%lf,%lf\n", samples->w_k[t_idx][k], samples->g_spin_mean[t_idx][k], samples->g_spin_std[t_idx][k]);
             }
         }
+#endif // SPIN_CONDUCTANCE
+#ifdef HEAT_CONDUCTANCE
         for (int t_idx = 0; t_idx < samples->betas; t_idx++) {
             fprintf(output_file, "beta\n");
             fprintf(output_file, "%lf\n", samples->beta_vals[t_idx]);
@@ -212,7 +246,7 @@ char *write_outputs(sampled_quantities *samples,
                 fprintf(output_file, "%lf,%lf,%lf\n", samples->w_k[t_idx][k], samples->g_heat_mean[t_idx][k], samples->g_heat_std[t_idx][k]);
             }
         }
-#endif // CONDUCTANCE
+#endif // HEAT_CONDUCTANCE
     } else {
         printf("Error in opening the %s file. \n", file_name);
         exit(1);

@@ -17,8 +17,8 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state)
         if (state->op_string[p] == 0) {
             // no operator -> insert
 
-            int b = next() % system->Nb;
-            if (next_double() <= (system->Nb * beta * prob(b, system, state)) / (state->M - state->n)) {
+            int b = pcg32_boundedrand(system->Nb);
+            if (pcg32_double() <= (system->Nb * beta * prob(b, system, state)) / (state->M - state->n)) {
                 state->op_string[p] = 3 * (b + 1);
                 state->n++;
             }
@@ -26,7 +26,7 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state)
             // diagonal operator -> remove
 
             int b = (state->op_string[p] / 3) - 1;
-            if (next_double() <= (state->M - state->n + 1) / (beta * system->Nb * prob(b, system, state))) {
+            if (pcg32_double() <= (state->M - state->n + 1) / (beta * system->Nb * prob(b, system, state))) {
                 state->op_string[p] = 0;
                 state->n--;
             }
@@ -57,27 +57,29 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state)
  *      (heisenberg_system *) system: simulated system
  *      (sse_state *) state: SSE state
  */
-void loop_update(heisenberg_system *system, sse_state *state) 
+void loop_update(heisenberg_system *system, sse_state *state, int *loop) 
 {
     // if no operators just randomize the spins with 1/2 probability
     if (state->n == 0) {
         for (int i = 0; i < system->N; i++) {
-            if (next_double() <= 0.5) {
+            if (pcg32_double() <= 0.5) {
                 int prev_state = system->spin[i];
-                do { system->spin[i] = system->Sz[next() % system->n_proj];
+                do { system->spin[i] = system->Sz[pcg32_boundedrand(system->n_proj)];
                 } while(system->spin[i] == prev_state);
             }
         }
+
+        (*loop)++;
         return;
     }
 
-    int j0 = next() % (4 * state->n); /* select the first in leg randomly */
+    int j0 = pcg32_boundedrand(4 * state->n); /* select the first in leg randomly */
     int j = j0;
 
     // select first update randomly
     int update = 2;
     int update_idx = 1;
-    if (next_double() <= 0.5) { update = -2; update_idx = 0; }
+    if (pcg32_double() <= 0.5) { update = -2; update_idx = 0; }
 
     // if the update is not allowed on the selected vertex, quit the loop update
     if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) { 
@@ -91,7 +93,7 @@ void loop_update(heisenberg_system *system, sse_state *state)
         state->loop_size++;
 
         // select an exit leg
-        double r = next_double();
+        double r = pcg32_double();
         for (int le = 0; le < 4; le++) {
             if (r <= state->vtx_type[state->vtx[p]].prob_exit[update_idx][li][le]) {
                 // the new update is given by (state_new[le] - state_old[le])
@@ -134,12 +136,14 @@ void loop_update(heisenberg_system *system, sse_state *state)
             int l = state->first[i] % 4;
             system->spin[i] = state->vtx_type[state->vtx[p]].spin[l];
         }
-        else if (next_double() <= 0.5) {
+        else if (pcg32_double() <= 0.5) {
             int prev_state = system->spin[i];
-            do { system->spin[i] = system->Sz[next() % system->n_proj]; 
+            do { system->spin[i] = system->Sz[pcg32_boundedrand(system->n_proj)]; 
             } while(system->spin[i] == prev_state);
         }
     }
+
+    (*loop)++;
 }
 
 /* 
@@ -256,7 +260,7 @@ void init_heisenberg_system(int d, int L, int boundary_cond, double S, double de
  */
 void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state) 
 {
-    for (int i = 0; i < 4; i++) { s[i] = seed * (i + 1); }
+    pcg32_srandom(seed ^ (intptr_t)state, seed ^ (intptr_t)system);
 
     state->n = 0;
     state->M = MAX_(4, system->N / 4);
@@ -280,7 +284,7 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
 void reset_sse_state(heisenberg_system *system, sse_state *state) 
 {
     for (int i = 0; i < system->N; i++) {
-        system->spin[i] = system->Sz[next() % system->n_proj];
+        system->spin[i] = system->Sz[pcg32_boundedrand(system->n_proj)];
     }
 
     state->n = 0;
@@ -452,5 +456,5 @@ void free_memory(heisenberg_system *system, sse_state *state)
  */
 double get_rng() 
 {
-    return next_double();
+    return pcg32_double();
 }
