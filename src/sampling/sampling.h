@@ -138,4 +138,34 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
  */
 void free_samples(sampled_quantities *samples);
 
+#if defined(SPIN_CONDUCTANCE) || defined(HEAT_CONDUCTANCE)
+
+#include "acb_hypgeom.h"
+
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the spin conductance formula. 
+ */
+double prefactor_spin_cond(int m, int n, int k);
+
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the heat conductance formula. 
+ */
+double prefactor_heat_cond(int q, int n, int k);
+
+/*
+ * Computes the 1F1(a, b, x) hypergeometric function for an imaginary 
+ *  argument x. 
+ * Uses the ARB library for the calculation. (https://arblib.org)
+ * parameters:
+ *      (double *) re: real part of the result
+ *      (double *) im: imaginary part of the result
+ *      (double) a: parameter for F
+ *      (double) b: parameter for F
+ *      (double) x: imaginary part of the input
+ */
+void hyp1f1ix(double* re, double* im, double a, double b, double x);
+#endif // CONDUCTANCE
+
 #endif // SAMPLING_H

@@ -84,188 +84,145 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // sample the spin and heat conductances
 #ifdef SPIN_CONDUCTANCE
-    // New sampling of Spin Conductance
-    for (int samp = 0; samp < samples->max_samp; samp++) {
-        // Assign random numbers to the imaginary times
-        // state->n = 10000;
-        double tau_spin[state->n + 2];
-        tau_spin[0] = 0.0;
-        for (int i = 1; i <= state->n; i++) {
-            double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
+    if (state->n > 1) {
+        int spinsum_x[state->n];
+        int spinsum_y[state->n];
+        int spin_prod[state->n + 1];
+        memset(spinsum_x, 0, state->n * sizeof(int));
+        memset(spinsum_y, 0, state->n * sizeof(int));
+        memset(spin_prod, 0.0, (state->n + 1) * sizeof(int));
 
-            int j;
-            for (j = i - 1; (j >= 1 && tau_spin[j] > tmp); j--)
-                tau_spin[j + 1] = tau_spin[j];
-        
-            tau_spin[j + 1] = tmp;
+        for (int p = 0; p < state->n; p++) {
+            for (int i = samples->x + 1; i < system->L; i++) {
+                spinsum_x[p] += system->spin[i];
+            }
+            for (int i = samples->y + 1; i < system->L; i++) {
+                spinsum_y[p] += system->spin[i];
+            }
+
+            if (red_op_string[p] % 3 != 0) {
+                int b = (red_op_string[p] / 3) - 1;
+                int a = red_op_string[p] % 3;
+
+                if (a == 1) {
+                    system->spin[system->bond[b][0]] += 2;
+                    system->spin[system->bond[b][1]] += -2;
+                } else if (a == 2) {
+                    system->spin[system->bond[b][0]] += -2;
+                    system->spin[system->bond[b][1]] += 2;
+                }
+            }
         }
-        tau_spin[state->n + 1] = samples->beta_vals[t_idx];
 
-        int sum_x = 0.0;
-        for (int a = samples->x + 1; a < system->L; a++) {
-            sum_x += system->spin[a];
-        }
-
-        int sum_y = 0.0;
-        for (int b = samples->y + 1; b < system->L; b++) {
-            sum_y += system->spin[b];
+        for (int p = 0; p < state->n; p++) {
+            int m = 0;
+            for (int p_prime = p; p_prime < p + state->n + 1; p_prime++) {
+                spin_prod[m] += spinsum_y[p] * spinsum_x[p_prime % state->n];
+                m++;
+            }
         }
 
         for (int k = 0; k < samples->k_max; k++) {
-            double Ka[2] = {};
-            double Kb[2] = {};
-
-            for (int p = 0; p <= state->n; p++) {
-                Ka[0] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1]) - sin(samples->w_k[t_idx][k] * tau_spin[p])) * 0.5 * sum_x;
-                Ka[1] += (cos(samples->w_k[t_idx][k] * tau_spin[p]) - cos(samples->w_k[t_idx][k] * tau_spin[p + 1])) * 0.5 * sum_x;
-
-                Kb[0] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1]) - sin(samples->w_k[t_idx][k] * tau_spin[p])) * 0.5 * sum_y;
-                Kb[1] += (cos(samples->w_k[t_idx][k] * tau_spin[p]) - cos(samples->w_k[t_idx][k] * tau_spin[p + 1])) * 0.5 * sum_y;
-
-                if (p < state->n) {
-                    int bond = (red_op_string[p] / 3) - 1;
-                    int type = red_op_string[p] % 3;
-                    if (bond == samples->x && type != 0) {
-                        if (type == 1) {
-                            sum_x += -2;
-                        } else if (type == 2) {
-                            sum_x += 2;
-                        }
-                    }
-                    if (bond == samples->y && type != 0) {
-                        if (type == 1) {
-                            sum_y += -2;
-                        } else if (type == 2) {
-                            sum_y += 2;
-                        }
-                    }
-                }
+            for (int m = 0; m < state->n + 1; m++) { 
+                samples->g_spin_bins[t_idx][n][k] += samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * 
+                    prefactor_spin_cond(m, state->n, k + 1) * spin_prod[m] * 0.25;
             }
-
-            samples->g_spin_bins[t_idx][n][k] += (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * samples->max_samp);
         }
     }
 #endif //SPIN_CONDUCTANCE
 
 #ifdef HEAT_CONDUCTANCE
-    // New Sampling of Heat Conductance
-    if (state->n >= 2) {
-        for (int samp = 0; samp < samples->max_samp; samp++) {
-            // Assign random numbers to the imaginary times
-            double tau_heat[state->n];
-            for (int i = 0; i < state->n; i++) {
-                double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
+    if (state->n > 3) {
+        int vtx_counter[state->n - 1];
+        for (int q = 0; q < state->n - 1; q++) { vtx_counter[q] = 0; }
+        
+        for (int p = 0; p < state->n; p++) {
+            int b1 = (red_op_string[p] / 3) - 1;
 
-                int j;
-                for (j = i - 1; (j >= 0 && tau_heat[j] > tmp); j--)
-                    tau_heat[j + 1] = tau_heat[j];
+            if (b1 > samples->x) {
+                int q = 0;
 
-                tau_heat[j + 1] = tmp;
-            }
+                for (int p_prime = p + 1; p_prime < p + state->n; p_prime++) {
+                    int b2 = (red_op_string[p_prime % state->n] / 3) - 1;
 
-            int count_x[state->n];
-            int count_y[state->n];
-            int Cab = 0;
-            for (int p = 0; p < state->n; p++) {
-                int bond = (red_op_string[p] / 3) - 1;
-                
-                count_x[p] = 0;
-                if (bond > samples->x) {
-                    count_x[p] = 1;
-                }
-                
-                count_y[p] = 0;
-                if (bond > samples->y) {
-                    count_y[p] = 1;
-                }
-                
-                if (bond > samples->x && bond > samples->y) {
-                    Cab++;
+                    if (b2 > samples->y) {
+                        vtx_counter[q]++;
+                    }
+                    q++;
                 }
             }
+        }
 
-            for (int k = 0; k < samples->k_max; k++) {
-                double Ka[2] = {};
-                double Kb[2] = {};
-
-                for (int p = 0; p < state->n; p++) {
-                    Ka[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]) * count_x[p];
-                    Ka[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_x[p];
-                    
-                    Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
-                    Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
-                }
-
-                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
+        for (int k = 0; k < samples->k_max; k++) {
+            for (int q = 0; q < state->n - 1; q++) {
+                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * vtx_counter[q] * 
+                    prefactor_heat_cond(q, state->n, k + 1) / samples->beta_vals[t_idx];
             }
         }
     }
-
 #endif // HEAT_CONDUCTANCE
-
-    // Sampling of Spin-Seebeck Conductance
-    // if (state->n >= 1) {
-    //     for (int samp = 0; samp < max_samp; samp++) {
-    //         // Assign random numbers to the imaginary times
-    //         double tau_heat[state->n + 2];
-    //         tau_heat[0] = 0.0;
-    //         for (int i = 1; i <= state->n; i++) {
-    //             double tmp = get_rng() * samples->beta_vals[t_idx];
-
-    //             int j;
-    //             for (j = i - 1; (j >= 1 && tau_heat[j] > tmp); j--)
-    //                 tau_heat[j + 1] = tau_heat[j];
-            
-    //             tau_heat[j + 1] = tmp;
-    //         }
-    //         tau_heat[state->n + 1] = samples->beta_vals[t_idx];
-
-    //         for (int k = 0; k < samples->k_max; k++) {
-    //             double sum_1 = 0.0;
-    //             double sum_2 = 0.0;
-
-    //             int Hb[state->n];
-    //             double Sa[state->n + 1];
-
-    //             for (int p = 0; p <= state->n; p++) {
-    //                 int bond = (red_op_string[p] / 3) - 1;
-
-    //                 Sa[p] = 0.0;
-    //                 for (int a = samples->x + 1; a < system->L; a++) {
-    //                     Sa[p] += 0.5 * system->spin[a];
-    //                 }
-
-    //                 Hb[p] = 0;
-    //                 if (p < state->n && bond > samples->y) {
-    //                     Hb[p] = 1;
-    //                 }
-
-    //                 if (p < state->n && red_op_string[p] % 3 != 0) {
-    //                     int b_ = (red_op_string[p] / 3) - 1;
-    //                     int a_ = red_op_string[p] % 3;
-
-    //                     if (a_ == 1) {
-    //                         system->spin[system->bond[b_][0]] += 2;
-    //                         system->spin[system->bond[b_][1]] += -2;
-    //                     } else if (a_ == 2) {
-    //                         system->spin[system->bond[b_][0]] += -2;
-    //                         system->spin[system->bond[b_][1]] += 2;
-    //                     }
-    //                 }
-    //             }
-
-    //             for (int p = 0; p <= state->n - 1; p++) {
-    //                 for (int l = 0; l <= state->n - 1 - p; l++) {
-    //                     sum_1 += (Sa[p + l] * Hb[p + 1]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l + 1] - tau_heat[p + 1])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
-    //                     sum_2 += (Sa[p] * Hb[p + l + 1]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
-    //                 }
-    //             }
-
-    //             samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (sum_1 + sum_2) / (samples->beta_vals[t_idx] * max_samp);
-    //         }
-    //     }
-    // }
 }
+
+#if defined(SPIN_CONDUCTANCE) || defined(HEAT_CONDUCTANCE)
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the spin conductance formula. 
+ */
+double prefactor_spin_cond(int m, int n, int k) 
+{
+    double re, im;
+    hyp1f1ix(&re, &im, m + 1, n + 2, 2 * M_PI * k);
+
+    return re / (n * (n + 1));
+}
+
+/*
+ * Functions to help computing the integral and factorial
+ *  prefactors in the heat conductance formula. 
+ */
+double prefactor_heat_cond(int q, int n, int k) 
+{
+    double re, im;
+    hyp1f1ix(&re, &im, q + 1, n, 2 * M_PI * k);
+
+    return re;
+}
+
+/*
+ * Computes the 1F1(a, b, x) hypergeometric function for an imaginary 
+ *  argument x. 
+ * Uses the ARB library for the calculation. (https://arblib.org)
+ * parameters:
+ *      (double *) re: real part of the result
+ *      (double *) im: imaginary part of the result
+ *      (double) a: parameter for F
+ *      (double) b: parameter for F
+ *      (double) x: imaginary part of the input
+ */
+void hyp1f1ix(double* re, double* im, double a, double b, double x)
+{
+    long prec;
+    acb_t aa, bb, xx, rr;
+    acb_init(aa); acb_init(bb); acb_init(xx); acb_init(rr);
+
+    acb_set_d(aa, a);
+    acb_set_d(bb, b);
+    acb_set_d(xx, x);
+    acb_mul_onei(xx, xx);
+
+    for (prec = 64; ; prec *= 2)
+    {
+        acb_hypgeom_m(rr, aa, bb, xx, 0, prec);
+        if (acb_rel_accuracy_bits(rr) >= 53)
+            break;
+    }
+
+    *re = arf_get_d(arb_midref(acb_realref(rr)), ARF_RND_DOWN);
+    *im = arf_get_d(arb_midref(acb_imagref(rr)), ARF_RND_DOWN);
+
+    acb_clear(aa); acb_clear(bb); acb_clear(xx); acb_clear(rr);
+}
+#endif // CONDUCTANCE
 
 /* 
  * function: normalize 
