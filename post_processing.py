@@ -32,6 +32,7 @@ def read_sse_output(filename):
         sim_info["therm_cycles"]= int(line[0])
         sim_info["mc_cycles"] = int(line[1])
         sim_info["n_bins"] = int(line[2])
+        sim_info["cond"] = line[3]
         
         file.readline()
         line = file.readline().strip().split(',')
@@ -96,29 +97,30 @@ def read_sse_output(filename):
                 sampled["corr_mean"][j, i], sampled["corr_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
 
         # spin conductivity
-        if sim_info["n_k"] != 0:
+        if sim_info["n_k"] != 0 and sim_info["cond"] != ".":
             sampled["w_k"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
             sampled["g_spin_mean"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
             sampled["g_spin_std"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
             sampled["g_heat_mean"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
             sampled["g_heat_std"] = np.zeros((sim_info["n_betas"], sim_info["n_k"]))
 
-        
-            for j in range(sim_info["n_betas"]):
-                file.readline()
-                file.readline()
-                file.readline()
-                
-                for i in range(sim_info["n_k"]):
-                    sampled["w_k"][j, i], sampled["g_spin_mean"][j, i], sampled["g_spin_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
-                
-            for j in range(sim_info["n_betas"]):
-                file.readline()
-                file.readline()
-                file.readline()
-                
-                for i in range(sim_info["n_k"]):
-                    sampled["w_k"][j, i], sampled["g_heat_mean"][j, i], sampled["g_heat_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+            if sim_info["cond"] == "both" or sim_info["cond"] == "spin":
+                for j in range(sim_info["n_betas"]):
+                    file.readline()
+                    file.readline()
+                    file.readline()
+                    
+                    for i in range(sim_info["n_k"]):
+                        sampled["w_k"][j, i], sampled["g_spin_mean"][j, i], sampled["g_spin_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
+
+            if sim_info["cond"] == "both" or sim_info["cond"] == "heat": 
+                for j in range(sim_info["n_betas"]):
+                    file.readline()
+                    file.readline()
+                    file.readline()
+                    
+                    for i in range(sim_info["n_k"]):
+                        sampled["w_k"][j, i], sampled["g_heat_mean"][j, i], sampled["g_heat_std"][j, i] = [float(x) for x in file.readline().strip().split(',')]
 
 
     return sim_info, sampled
