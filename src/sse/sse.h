@@ -154,7 +154,7 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state, pcg32
  *      (heisenberg_system *) system: simulated system
  *      (sse_state *) state: SSE state
  */
-void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_random_t* rng);
+void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rng);
 
 /* 
  * function: ajust_cutoff

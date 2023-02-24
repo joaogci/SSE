@@ -61,10 +61,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
             diag_update(beta, system, state, &rng);
 
             create_vtx_list(system, state);
-            int loop = 0;
-            while (loop != state->n_loops) {
-                loop_update(system, state, &loop, &rng);
-            }
+            loop_update(system, state, &rng);
 
             ajust_cutoff(state, (t+1) % 100 == 0);
         }
@@ -75,10 +72,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                 
                 state->loop_size = 0;
                 create_vtx_list(system, state);
-                int loop = 0;
-                while (loop != state->n_loops) {
-                    loop_update(system, state, &loop, &rng);
-                }
+                loop_update(system, state, &rng);
 
                 sample(n, t_idx, system, state, samples, &rng);
             }
