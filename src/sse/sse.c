@@ -57,88 +57,84 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state, pcg32
  *      (heisenberg_system *) system: simulated system
  *      (sse_state *) state: SSE state
  */
-void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_random_t* rng) 
+void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rng) 
 {
     // if no operators just randomize the spins with 1/2 probability
     if (state->n == 0) {
-        for (int i = 0; i < system->N; i++) {
-            if (pcg32_double_r(rng) <= 0.5) {
-                int prev_state = system->spin[i];
-                do { system->spin[i] = system->Sz[pcg32_boundedrand_r(rng, system->n_proj)];
-                } while(system->spin[i] == prev_state);
+        for (int loop = 0; loop < state->n_loops; loop++) {
+            for (int i = 0; i < system->N; i++) {
+                if (pcg32_double_r(rng) <= 0.5) {
+                    int prev_state = system->spin[i];
+                    do { system->spin[i] = system->Sz[pcg32_boundedrand_r(rng, system->n_proj)];
+                    } while(system->spin[i] == prev_state);
+                }
             }
         }
 
-        (*loop)++;
         return;
     }
 
-    int j0 = pcg32_boundedrand_r(rng, 4 * state->n); /* select the first in leg randomly */
-    int j = j0;
+    int loop = 0;
+    while (loop != state->n_loops) {
+        int j0 = pcg32_boundedrand_r(rng, 4 * state->n); /* select the first in leg randomly */
+        int j = j0;
 
-    // select first update randomly
-    int update = 2;
-    int update_idx = 1;
-    if (pcg32_double_r(rng) <= 0.5) { update = -2; update_idx = 0; }
+        // select first update randomly
+        int update = 2;
+        int update_idx = 1;
+        if (pcg32_double_r(rng) <= 0.5) { update = -2; update_idx = 0; }
 
-    // if the update is not allowed on the selected vertex, quit the loop update
-    if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) { 
-        return; 
-    }
+        // if the update is not allowed on the selected vertex, quit the loop update
+        if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) { 
+            continue; 
+        }
 
-    int loop_size = 0;
-    int vtx_copy[state->n];
-    memcpy(vtx_copy, state->vtx, state->n * sizeof(int));
-    // for (int i = 0; i < state->n; i++) {
-    //     vtx_copy[i] = state->vtx[i];
-    // }
+        int loop_size = 0;
 
-    // begin the loop 
-    while (true) {
-        int p = j / 4;
-        int li = j % 4;
-        int le;
+        // begin the loop 
+        while (true) {
+            int p = j / 4;
+            int li = j % 4;
+            int le;
 
-        // select an exit leg
-        double r = pcg32_double_r(rng);
-        for (le = 0; le < 4; le++) {
-            if (r <= state->vtx_type[vtx_copy[p]].prob_exit[update_idx][li][le]) {
-                // the new update is given by (state_new[le] - state_old[le])
-                int old_state = state->vtx_type[vtx_copy[p]].spin[le];
-                vtx_copy[p] = state->vtx_type[vtx_copy[p]].new_vtx_type[update_idx][li][le];
-
-                if (state->vtx_type[vtx_copy[p]].spin[le] - old_state == -2) {
-                    update_idx = 0;
-                } else if (state->vtx_type[vtx_copy[p]].spin[le] - old_state == 2) {
-                    update_idx = 1;
-                } else {
-                    if (update_idx == 1) { update_idx = 0; }
-                    else if (update_idx == 0) { update_idx = 1; }
+            // select an exit leg
+            double r = pcg32_double_r(rng);
+            for (le = 0; le < 4; le++) {
+                if (state->vtx_type[state->vtx[p]].prob_exit[update_idx][li][le] == 1.0 || 
+                        r < state->vtx_type[state->vtx[p]].prob_exit[update_idx][li][le]) {
+                    break;
                 }
+            } 
 
-                j = 4 * p + le;
-                break;
+            // the new update is given by (state_new[le] - state_old[le])
+            int old_state = state->vtx_type[state->vtx[p]].spin[le];
+            state->vtx[p] = state->vtx_type[state->vtx[p]].new_vtx_type[update_idx][li][le];
+            int new_state = state->vtx_type[state->vtx[p]].spin[le];
+
+            if (new_state - old_state == -2) {
+                update_idx = 0;
+            } else if (new_state - old_state == 2) {
+                update_idx = 1;
+            } else if (new_state - old_state == 0) {
+                if (update_idx == 1) { update_idx = 0; }
+                else if (update_idx == 0) { update_idx = 1; }
             }
+
+            j = 4 * p + le;
+
+            // record the loop size if no bounce happens
+            if (li != le) { loop_size++; }
+
+            if (j == j0) { break; }
+            
+            // go to linking vertex
+            j = state->link[j];
+            if (j == j0) { break; }
         }
 
-        if (vtx_copy[p] == -1) {
-            return;
-        }
-
-        // record the loop size if no bounce happens
-        if (li != le) { loop_size++; }
-
-        if (j == j0) { break; }
-        
-        // go to linking vertex
-        j = state->link[j];
-        if (j == j0) { break; }
+        state->loop_size += loop_size;
+        loop++;
     }
-
-    memcpy(state->vtx, vtx_copy, state->n * sizeof(int));
-    // for (int i = 0; i < state->n; i++) {
-    //     state->vtx[i] = vtx_type_copy[i];
-    // }
 
     // translate the updated vertex list to the string operator
     for (int p = 0; p < state->n; p++) {
@@ -160,9 +156,6 @@ void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_r
             } while(system->spin[i] == prev_state);
         }
     }
-
-    state->loop_size += loop_size;
-    (*loop)++;
 }
 
 /* 
