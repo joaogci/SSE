@@ -270,6 +270,7 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
     state->n_loops = MAX_(4, system->N / 4);
     state->loop_size = 0;
     state->first = (int *) malloc(system->N * sizeof(int));
+    state->vtx = NULL;
 }
 
 /* 
@@ -295,6 +296,7 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
     free(state->op_string);
     state->op_string = (int *) malloc(state->M * sizeof(int));
     memset(state->op_string, 0, state->M * sizeof(int));
+    state->vtx = NULL;
 }
 
 /* 
