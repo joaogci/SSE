@@ -142,7 +142,7 @@ void reset_sse_state(heisenberg_system *system, sse_state *state);
  *      (heisenberg_system *) system: simulated system
  *      (sse_state *) state: SSE state
  */
-void diag_update(double beta, heisenberg_system *system, sse_state *state);
+void diag_update(double beta, heisenberg_system *system, sse_state *state, pcg32_random_t* rng);
 
 /* 
  * function: loop_update
@@ -154,7 +154,7 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state);
  *      (heisenberg_system *) system: simulated system
  *      (sse_state *) state: SSE state
  */
-void loop_update(heisenberg_system *system, sse_state *state, int *loop);
+void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_random_t* rng);
 
 /* 
  * function: ajust_cutoff
@@ -200,14 +200,5 @@ double prob(int b, heisenberg_system *system, sse_state *state);
  *      (sse_state *) state: sse_state struct
  */
 void free_memory(heisenberg_system *system, sse_state *state);
-
-/* 
- * function: get_rng
- *  returns a random number from the stream
- * 
- *  returns:
- *      (double) random number
- */
-double get_rng();
 
 #endif // SSE_H

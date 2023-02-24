@@ -44,6 +44,10 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
     init_heisenberg_system(d, L, boundary_cond, S, delta, h, epsilon, system);
     init_sse_state(SEED * t_id, system, state);
+
+    pcg32_random_t rng;
+    pcg32_srandom_r(&rng, (SEED * t_id) ^ (intptr_t)&rng, (SEED * t_id));
+
     #pragma omp critical 
     read_vtx_info(vtx_file, &(state->vtx_type), &(state->n_diagrams));
 
@@ -54,12 +58,12 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
         if (t_idx > 0) { reset_sse_state(system, state); }
 
         for (long t = 0; t < therm_cycles; t++) {
-            diag_update(beta, system, state);
+            diag_update(beta, system, state, &rng);
 
             create_vtx_list(system, state);
             int loop = 0;
             while (loop != state->n_loops) {
-                loop_update(system, state, &loop);
+                loop_update(system, state, &loop, &rng);
             }
 
             ajust_cutoff(state, t % 100 == 0);
@@ -67,16 +71,16 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
-                diag_update(beta, system, state);
+                diag_update(beta, system, state, &rng);
                 
                 state->loop_size = 0;
                 create_vtx_list(system, state);
                 int loop = 0;
                 while (loop != state->n_loops) {
-                    loop_update(system, state, &loop);
+                    loop_update(system, state, &loop, &rng);
                 }
 
-                sample(n, t_idx, system, state, samples);
+                sample(n, t_idx, system, state, samples, &rng);
             }
         }
 

@@ -109,7 +109,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L,
  *      (sampled_quantities *) samples: store the samples
  */
 void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, 
-    sampled_quantities *samples);
+    sampled_quantities *samples, pcg32_random_t* rng);
 
 /* 
  * function: normalize 

@@ -11,7 +11,7 @@
  *      (sse_state *) state: simulation state
  *      (sampled_quantities *) samples: store the samples
  */
-void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples) 
+void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampled_quantities *samples, pcg32_random_t* rng) 
 {
     double m1 = 0.0;
     double m2 = 0.0;
@@ -91,7 +91,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         double tau_spin[state->n + 2];
         tau_spin[0] = 0.0;
         for (int i = 1; i <= state->n; i++) {
-            double tmp = get_rng() * samples->beta_vals[t_idx];
+            double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
 
             int j;
             for (j = i - 1; (j >= 1 && tau_spin[j] > tmp); j--)
@@ -149,12 +149,12 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
 #ifdef HEAT_CONDUCTANCE
     // New Sampling of Heat Conductance
-    if (state->n >= 2) {        
+    if (state->n >= 2) {
         for (int samp = 0; samp < samples->max_samp; samp++) {
             // Assign random numbers to the imaginary times
             double tau_heat[state->n];
             for (int i = 0; i < state->n; i++) {
-                double tmp = get_rng() * samples->beta_vals[t_idx];
+                double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
 
                 int j;
                 for (j = i - 1; (j >= 0 && tau_heat[j] > tmp); j--)
