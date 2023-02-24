@@ -132,7 +132,7 @@ void init_samples(double *beta_vals, int len_beta, int n_bins, int d, int L, str
         memset(samples->corr_mean[i], 0.0, L * sizeof(double));
         memset(samples->corr_std[i], 0.0, L * sizeof(double));
 
-        memset(samples->S_bins[i], 0.0, len_beta * sizeof(double));
+        memset(samples->S_bins[i], 0.0, n_bins * sizeof(double));
 
     }
 

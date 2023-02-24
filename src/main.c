@@ -66,7 +66,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                 loop_update(system, state, &loop, &rng);
             }
 
-            ajust_cutoff(state, t % 100 == 0);
+            ajust_cutoff(state, (t+1) % 100 == 0);
         }
 
         for (int n = start_bin; n < end_bin; n++) {

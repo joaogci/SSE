@@ -86,23 +86,30 @@ void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_r
         return; 
     }
 
+    int loop_size = 0;
+    int vtx_copy[state->n];
+    memcpy(vtx_copy, state->vtx, state->n * sizeof(int));
+    // for (int i = 0; i < state->n; i++) {
+    //     vtx_copy[i] = state->vtx[i];
+    // }
+
     // begin the loop 
     while (true) {
         int p = j / 4;
         int li = j % 4;
-        state->loop_size++;
+        int le;
 
         // select an exit leg
         double r = pcg32_double_r(rng);
-        for (int le = 0; le < 4; le++) {
-            if (r <= state->vtx_type[state->vtx[p]].prob_exit[update_idx][li][le]) {
+        for (le = 0; le < 4; le++) {
+            if (r <= state->vtx_type[vtx_copy[p]].prob_exit[update_idx][li][le]) {
                 // the new update is given by (state_new[le] - state_old[le])
-                int old_state = state->vtx_type[state->vtx[p]].spin[le];
-                state->vtx[p] = state->vtx_type[state->vtx[p]].new_vtx_type[update_idx][li][le];
+                int old_state = state->vtx_type[vtx_copy[p]].spin[le];
+                vtx_copy[p] = state->vtx_type[vtx_copy[p]].new_vtx_type[update_idx][li][le];
 
-                if (state->vtx_type[state->vtx[p]].spin[le] - old_state == -2) {
+                if (state->vtx_type[vtx_copy[p]].spin[le] - old_state == -2) {
                     update_idx = 0;
-                } else if (state->vtx_type[state->vtx[p]].spin[le] - old_state == 2) {
+                } else if (state->vtx_type[vtx_copy[p]].spin[le] - old_state == 2) {
                     update_idx = 1;
                 } else {
                     if (update_idx == 1) { update_idx = 0; }
@@ -113,14 +120,25 @@ void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_r
                 break;
             }
         }
-        
-        state->loop_size++;
+
+        if (vtx_copy[p] == -1) {
+            return;
+        }
+
+        // record the loop size if no bounce happens
+        if (li != le) { loop_size++; }
+
         if (j == j0) { break; }
         
         // go to linking vertex
         j = state->link[j];
         if (j == j0) { break; }
     }
+
+    memcpy(state->vtx, vtx_copy, state->n * sizeof(int));
+    // for (int i = 0; i < state->n; i++) {
+    //     state->vtx[i] = vtx_type_copy[i];
+    // }
 
     // translate the updated vertex list to the string operator
     for (int p = 0; p < state->n; p++) {
@@ -143,6 +161,7 @@ void loop_update(heisenberg_system *system, sse_state *state, int *loop, pcg32_r
         }
     }
 
+    state->loop_size += loop_size;
     (*loop)++;
 }
 
@@ -268,7 +287,10 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
     state->n_loops = MAX_(4, system->N / 4);
     state->loop_size = 0;
     state->first = (int *) malloc(system->N * sizeof(int));
-    state->vtx = NULL;
+    state->vtx = (int *) malloc(state->n * sizeof(int));
+    state->link = (int *) malloc(4 * state->n * sizeof(int)); 
+    state->red_op_string = (int *) malloc(state->n * sizeof(int));
+    state->trans_op_string = (int *) malloc(state->n * sizeof(int));
 }
 
 /* 
@@ -294,7 +316,6 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
     free(state->op_string);
     state->op_string = (int *) malloc(state->M * sizeof(int));
     memset(state->op_string, 0, state->M * sizeof(int));
-    state->vtx = NULL;
 }
 
 /* 
@@ -307,12 +328,10 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
  */
 void create_vtx_list(heisenberg_system *system, sse_state *state) 
 {
-    if (state->vtx != NULL) {
-        free(state->vtx);
-        free(state->link);
-        free(state->red_op_string);
-        free(state->trans_op_string);
-    }
+    free(state->vtx);
+    free(state->link);
+    free(state->red_op_string);
+    free(state->trans_op_string);
     state->vtx = (int *) malloc(state->n * sizeof(int));
     state->link = (int *) malloc(4 * state->n * sizeof(int)); 
     state->red_op_string = (int *) malloc(state->n * sizeof(int));
