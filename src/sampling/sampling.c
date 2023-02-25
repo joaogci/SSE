@@ -163,37 +163,27 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 tau_heat[j + 1] = tmp;
             }
 
-            int count_x[state->n];
-            int count_y[state->n];
-            int Cab = 0;
-            for (int p = 0; p < state->n; p++) {
-                int bond = (red_op_string[p] / 3) - 1;
-                
-                count_x[p] = 0;
-                if (bond > samples->x) {
-                    count_x[p] = 1;
-                }
-                
-                count_y[p] = 0;
-                if (bond > samples->y) {
-                    count_y[p] = 1;
-                }
-                
-                if (bond > samples->x && bond > samples->y) {
-                    Cab++;
-                }
-            }
-
             for (int k = 0; k < samples->k_max; k++) {
                 double Ka[2] = {};
                 double Kb[2] = {};
+                int Cab = 0;
 
                 for (int p = 0; p < state->n; p++) {
-                    Ka[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]) * count_x[p];
-                    Ka[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_x[p];
+                    int bond = (red_op_string[p] / 3) - 1;
+
+                    if (bond > samples->x){
+                        Ka[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]);
+                        Ka[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]);
+                    }
                     
-                    Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
-                    Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
+                    if (bond > samples->y) {
+                        Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]);
+                        Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]);
+                    }
+
+                    if (bond > samples->x && bond > samples->y) {
+                        Cab++;
+                    }
                 }
 
                 samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
