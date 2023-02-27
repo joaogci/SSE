@@ -32,7 +32,6 @@ def read_sse_output(filename):
         sim_info["therm_cycles"]= int(line[0])
         sim_info["mc_cycles"] = int(line[1])
         sim_info["n_bins"] = int(line[2])
-        sim_info["cond"] = line[3]
         
         file.readline()
         line = file.readline().strip().split(',')
@@ -45,6 +44,7 @@ def read_sse_output(filename):
         sim_info["n_k"] = int(line[1])
         sim_info["x"] = int(line[2])
         sim_info["y"] = int(line[3])
+        sim_info["cond"] = line[4]
         
         # read sampled quantities
         sampled["beta"] = np.zeros(sim_info["n_betas"])
