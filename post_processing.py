@@ -179,7 +179,7 @@ def read_exact_output(filename):
             sampled["T"][j] = 1.0 / sampled["beta"][j]
         
         # spin conductivity
-        if sim_info["boundary_cond"] != "PCB":
+        if sim_info["boundary_cond"] != "PBC":
             sampled["beta_k"] = np.zeros(sim_info["n_betas_k"])
             sampled["w_k"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
             sampled["g_spin"] = np.zeros((sim_info["n_betas_k"], sim_info["n_k"]))
