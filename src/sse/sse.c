@@ -59,15 +59,12 @@ void diag_update(double beta, heisenberg_system *system, sse_state *state, pcg32
  */
 void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rng) 
 {
-    // if no operators just randomize the spins with 1/2 probability
+    // if no operators just randomize the spins
     if (state->n == 0) {
         for (int loop = 0; loop < state->n_loops; loop++) {
             for (int i = 0; i < system->N; i++) {
-                if (pcg32_double_r(rng) <= 0.5) {
-                    int prev_state = system->spin[i];
-                    do { system->spin[i] = system->Sz[pcg32_boundedrand_r(rng, system->n_proj)];
-                    } while(system->spin[i] == prev_state);
-                }
+                // update always but choose an update randomly
+                system->spin[i] = system->Sz[pcg32_boundedrand_r(rng, system->n_proj)];
             }
         }
 
@@ -85,7 +82,8 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
         if (pcg32_double_r(rng) <= 0.5) { update = -2; update_idx = 0; }
 
         // if the update is not allowed on the selected vertex, quit the loop update
-        if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) { 
+        if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) {
+            loop++; 
             continue; 
         }
 
@@ -138,9 +136,8 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
 
     // translate the updated vertex list to the string operator
     for (int p = 0; p < state->n; p++) {
-        state->op_string[state->trans_op_string[p]] = 
-            3 * (state->red_op_string[p] / 3) 
-            + state->vtx_type[state->vtx[p]].type;
+        state->red_op_string[p] = 3 * (state->red_op_string[p] / 3) + state->vtx_type[state->vtx[p]].type;
+        state->op_string[state->trans_op_string[p]] = state->red_op_string[p];
     }
 
     // flip the update spins and flip randomly the non-updated ones
@@ -150,10 +147,8 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
             int l = state->first[i] % 4;
             system->spin[i] = state->vtx_type[state->vtx[p]].spin[l];
         }
-        else if (pcg32_double_r(rng) <= 0.5) {
-            int prev_state = system->spin[i];
-            do { system->spin[i] = system->Sz[pcg32_boundedrand_r(rng, system->n_proj)]; 
-            } while(system->spin[i] == prev_state);
+        else {
+            system->spin[i] = system->Sz[pcg32_boundedrand_r(rng, system->n_proj)];
         }
     }
 }
