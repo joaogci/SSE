@@ -12,4 +12,4 @@ for i, h in enumerate(h_vals):
     with open("read.in", "w") as file:
         file.write(read_in(S, np.round(h, 6), delta))
 
-    subprocess.call(f"./preprare_job.sh -n 20 -r 5-0 -j L6_h{i}", shell=True)
+    subprocess.call(f"./prepare_job.sh -n 20 -r 5-0 -j L6_h{i}", shell=True)
