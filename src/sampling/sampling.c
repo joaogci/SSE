@@ -45,6 +45,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         if (a == 1) {
             ms_tmp += pow(-1.0, system->bond[b][0]) - pow(-1.0, system->bond[b][1]);
         } else if (a == 2) {
+            ms_tmp += pow(-1.0, system->bond[b][1]) - pow(-1.0, system->bond[b][0]);
         }
         ms += ms_tmp;
         m2s += pow(ms_tmp, 2.0);
@@ -290,7 +291,7 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
             samples->m2s_bins[t_idx][n] /= mc_cycles;
             samples->m4s_bins[t_idx][n] /= mc_cycles;
             samples->m_sus_bins[t_idx][n] = samples->beta_vals[t_idx] 
-                * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
+                * N * (samples->m2_bins[t_idx][n] - samples->m_bins[t_idx][n] 
                 * samples->m_bins[t_idx][n]);
 
             for (int i = 0; i < N; i++) {
