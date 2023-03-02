@@ -235,7 +235,7 @@ with open(SAVE_DIR + SAVE_FILENAME, "w") as f:
                 
             for e in range(N_LEGS):
                 for x in range(N_LEGS):
-                    f.write(str(vtx[i]["prob"][j][e, x]) + " ")
+                    f.write(str(np.round(vtx[i]["prob"][j][e, x], 9)) + " ")
                 f.write("\n")
         
         f.write("\n")
