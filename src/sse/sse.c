@@ -71,6 +71,7 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
         return;
     }
 
+    state->loop_size = 0;
     for (int loop = 0; loop < state->n_loops; loop++) {
         int j0 = pcg32_boundedrand_r(rng, 4 * state->n); /* select the first in leg randomly */
         int j = j0;
@@ -162,9 +163,8 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
  * 
  *  parameters:
  *      (sse_state *) state: SSE state
- *      (bool) adjust_loop
  */
-void ajust_cutoff(sse_state *state, bool adjust_loop) 
+void ajust_cutoff(sse_state *state) 
 {
     u_int64_t M_new = state->n * 1.33;
 
@@ -179,10 +179,10 @@ void ajust_cutoff(sse_state *state, bool adjust_loop)
         state->M = M_new;
     }
 
-    if (adjust_loop) {
+    if (state->loop_size != 0) {
         state->n_loops = 2 * state->M * state->n_loops / state->loop_size;
-        state->loop_size = 0;
     }
+    
 }
 
 /* 

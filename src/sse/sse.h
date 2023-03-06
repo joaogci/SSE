@@ -163,9 +163,8 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
  * 
  *  parameters:
  *      (sse_state *) state: SSE state
- *      (bool) adjust_loop
  */
-void ajust_cutoff(sse_state *state, bool adjust_loop);
+void ajust_cutoff(sse_state *state);
 
 /* 
  * function: create_vtx_list

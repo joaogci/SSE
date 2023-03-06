@@ -63,14 +63,13 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
             create_vtx_list(system, state);
             loop_update(system, state, &rng);
 
-            ajust_cutoff(state, true);
+            ajust_cutoff(state);
         }
 
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state, &rng);
                 
-                state->loop_size = 0;
                 create_vtx_list(system, state);
                 loop_update(system, state, &rng);
 
