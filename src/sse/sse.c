@@ -129,6 +129,7 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
             // end it loop is too large
             if (loop_size >= 100 * state->M) {
                 printf("aborted loop update \n");
+                fflush(stdout);
                 return;
             }
         }
