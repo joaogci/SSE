@@ -71,8 +71,7 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
         return;
     }
 
-    int loop = 0;
-    while (loop != state->n_loops) {
+    for (int loop = 0; loop < state->n_loops; loop++) {
         int j0 = pcg32_boundedrand_r(rng, 4 * state->n); /* select the first in leg randomly */
         int j = j0;
 
@@ -83,12 +82,10 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
 
         // if the update is not allowed on the selected vertex, quit the loop update
         if (abs(state->vtx_type[state->vtx[j / 4]].spin[j % 4] + update) > 2 * system->S) {
-            loop++; 
             continue; 
         }
 
         int loop_size = 0;
-
         // begin the loop 
         while (true) {
             int p = j / 4;
@@ -128,10 +125,15 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
             // go to linking vertex
             j = state->link[j];
             if (j == j0) { break; }
+
+            // end it loop is too large
+            if (loop_size >= 60 * state->M) {
+                printf("aborted loop update \n");
+                return;
+            }
         }
 
         state->loop_size += loop_size;
-        loop++;
     }
 
     // translate the updated vertex list to the string operator
@@ -164,21 +166,21 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
  */
 void ajust_cutoff(sse_state *state, bool adjust_loop) 
 {
-    int M_new = state->n * 1.33;
+    u_int64_t M_new = state->n * 1.33;
 
     if (M_new > state->M) {
-        int opstring_cpy[state->M];
-        memcpy(opstring_cpy, state->op_string, state->M * sizeof(int));
+        u_int64_t opstring_cpy[state->M];
+        memcpy(opstring_cpy, state->op_string, state->M * sizeof(u_int64_t));
         free(state->op_string); 
-        state->op_string = (int*) malloc(M_new * sizeof(int));
-        memset(state->op_string, 0, M_new * sizeof(int));
-        memcpy(state->op_string, opstring_cpy, state->M * sizeof(int));
+        state->op_string = (u_int64_t*) malloc(M_new * sizeof(u_int64_t));
+        memset(state->op_string, 0, M_new * sizeof(u_int64_t));
+        memcpy(state->op_string, opstring_cpy, state->M * sizeof(u_int64_t));
 
         state->M = M_new;
     }
 
     if (adjust_loop) {
-        if (state->loop_size > 100) { state->n_loops = 200 * state->M * state->n_loops / state->loop_size; }
+        state->n_loops = 2 * state->M * state->n_loops / state->loop_size;
         state->loop_size = 0;
     }
 }
@@ -269,16 +271,16 @@ void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state)
 {
     state->n = 0;
     state->M = MAX_(4, system->N / 4);
-    state->op_string = (int *) malloc(state->M * sizeof(int));
-    memset(state->op_string, 0, state->M * sizeof(int));
+    state->op_string = (u_int64_t *) malloc(state->M * sizeof(u_int64_t));
+    memset(state->op_string, 0, state->M * sizeof(u_int64_t));
 
     state->n_loops = MAX_(4, system->N / 4);
     state->loop_size = 0;
-    state->first = (int *) malloc(system->N * sizeof(int));
-    state->vtx = (int *) malloc(state->n * sizeof(int));
-    state->link = (int *) malloc(4 * state->n * sizeof(int)); 
-    state->red_op_string = (int *) malloc(state->n * sizeof(int));
-    state->trans_op_string = (int *) malloc(state->n * sizeof(int));
+    state->first = (u_int64_t *) malloc(system->N * sizeof(u_int64_t));
+    state->vtx = (u_int64_t *) malloc(state->n * sizeof(u_int64_t));
+    state->link = (u_int64_t *) malloc(4 * state->n * sizeof(u_int64_t)); 
+    state->red_op_string = (u_int64_t *) malloc(state->n * sizeof(u_int64_t));
+    state->trans_op_string = (u_int64_t *) malloc(state->n * sizeof(u_int64_t));
 }
 
 /* 
@@ -302,8 +304,8 @@ void reset_sse_state(heisenberg_system *system, sse_state *state)
     state->n_loops = MAX_(4, system->N / 4);
 
     free(state->op_string);
-    state->op_string = (int *) malloc(state->M * sizeof(int));
-    memset(state->op_string, 0, state->M * sizeof(int));
+    state->op_string = (u_int64_t *) malloc(state->M * sizeof(u_int64_t));
+    memset(state->op_string, 0, state->M * sizeof(u_int64_t));
 }
 
 /* 
@@ -320,18 +322,18 @@ void create_vtx_list(heisenberg_system *system, sse_state *state)
     free(state->link);
     free(state->red_op_string);
     free(state->trans_op_string);
-    state->vtx = (int *) malloc(state->n * sizeof(int));
-    state->link = (int *) malloc(4 * state->n * sizeof(int)); 
-    state->red_op_string = (int *) malloc(state->n * sizeof(int));
-    state->trans_op_string = (int *) malloc(state->n * sizeof(int));
+    state->vtx = (u_int64_t *) malloc(state->n * sizeof(u_int64_t));
+    state->link = (u_int64_t *) malloc(4 * state->n * sizeof(u_int64_t)); 
+    state->red_op_string = (u_int64_t *) malloc(state->n * sizeof(u_int64_t));
+    state->trans_op_string = (u_int64_t *) malloc(state->n * sizeof(u_int64_t));
     
-    int last[system->N];
-    memset(last, -1, system->N * sizeof(int));
-    memset(state->first, -1, system->N * sizeof(int));
-    memset(state->link, -1, 4 * state->n * sizeof(int));
-    memset(state->vtx, -1, state->n * sizeof(int));
-    memset(state->red_op_string, 0, state->n * sizeof(int));
-    memset(state->trans_op_string, 0, state->n * sizeof(int));
+    u_int64_t last[system->N];
+    memset(last, -1, system->N * sizeof(u_int64_t));
+    memset(state->first, -1, system->N * sizeof(u_int64_t));
+    memset(state->link, -1, 4 * state->n * sizeof(u_int64_t));
+    memset(state->vtx, -1, state->n * sizeof(u_int64_t));
+    memset(state->red_op_string, 0, state->n * sizeof(u_int64_t));
+    memset(state->trans_op_string, 0, state->n * sizeof(u_int64_t));
     
     // reduce the operator string to the times where it has an operator
     // create a translatio between the full and reduced one

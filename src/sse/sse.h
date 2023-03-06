@@ -76,20 +76,20 @@ typedef struct heisenberg_system
  */
 typedef struct sse_state 
 {
-    int *op_string;
-    int M;
-    int n;
+    u_int64_t *op_string;
+    u_int64_t M;
+    u_int64_t n;
 
-    int n_loops;
-    int loop_size;
-    int *link;
-    int *first;
-    int *vtx;
+    u_int64_t n_loops;
+    u_int64_t loop_size;
+    u_int64_t *link;
+    u_int64_t *first;
+    u_int64_t *vtx;
     vtx_element *vtx_type;
     int n_diagrams;
 
-    int* red_op_string;
-    int* trans_op_string;
+    u_int64_t* red_op_string;
+    u_int64_t* trans_op_string;
 } sse_state;
 
 /* 

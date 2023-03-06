@@ -63,9 +63,9 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
             create_vtx_list(system, state);
             loop_update(system, state, &rng);
 
-            ajust_cutoff(state, (t+1) % 100 == 0);
+            ajust_cutoff(state, true);
         }
-
+        printf("%d \n", state->n_loops);
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state, &rng);
@@ -104,8 +104,8 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
             }
             avg_n_loops /= n_threads;
 
-            printf("%s | beta: %.4lf | n_loops: %d | max_time: %.5lfs (T_id: %d) \n", 
-                buff, beta, avg_n_loops, max / n_threads, max_id);
+            printf("%s | beta: %.4lf | n_loops: %d %d %d | max_time: %.5lfs (T_id: %d) \n", 
+                buff, beta, avg_n_loops, state->loop_size, 2 * state->M, max / n_threads, max_id);
             fflush(stdout);
         }
         #pragma omp barrier
