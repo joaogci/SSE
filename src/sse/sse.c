@@ -180,7 +180,8 @@ void ajust_cutoff(sse_state *state, long t)
     }
 
     if ((t + 1) % 10 == 0) {
-        state->n_loops = 2 * state->M * state->n_loops / (state->loop_size / 10);   
+        if (state->loop_size > 10) state->n_loops = 20 * state->M * state->n_loops / state->loop_size;   
+        if (state->n_loops < 4) state->n_loops = 4;
         state->loop_size = 0;
     }
 }
