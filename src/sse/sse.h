@@ -163,8 +163,9 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
  * 
  *  parameters:
  *      (sse_state *) state: SSE state
+ *      (long) t: mc time
  */
-void ajust_cutoff(sse_state *state);
+void ajust_cutoff(sse_state *state, long t);
 
 /* 
  * function: create_vtx_list
