@@ -65,7 +65,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
             ajust_cutoff(state, true);
         }
-        printf("%d \n", state->n_loops);
+
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state, &rng);
