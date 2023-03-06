@@ -36,9 +36,6 @@ sampled_quantities *samples;
 double *cpu_time;
 int *loop_size;
 int *n_loops;
-#ifdef CLUSTER
-FILE *cluster;
-#endif // CLUSTER
 
 void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 {
@@ -109,10 +106,7 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
 
             printf("%s | beta: %.4lf | n_loops: %d | max_time: %.5lfs (T_id: %d) \n", 
                 buff, beta, avg_n_loops, max / n_threads, max_id);
-#ifdef CLUSTER
-            fprintf(cluster, "%s | beta: %.4lf | n_loops: %d | max_time: %.5lfs (T_id: %d) \n", 
-                buff, beta, avg_n_loops, max / n_threads, max_id);
-#endif // CLUSTER
+            fflush(stdout);
         }
         #pragma omp barrier
     }
@@ -174,21 +168,7 @@ int main(int argc, char **argv)
 #endif // CONDUCTANCE
     printf("   Simulation started at: %s ", ctime(&t));
     printf("\n");
-
-#ifdef CLUSTER
-    cluster = fopen("debug_output.txt", "w");
-
-    fprintf(cluster, " -- Starting SSE simulation of the spin-S XXZ model -- \n");
-    fprintf(cluster, "   d: %d | L: %d | %s | S: %.1lf | delta: %.2lf | h: %.2lf | epsilon: %.2lf \n", 
-        d, L, (boundary_cond == 0) ? "PBC" : "OBC" , S, delta, h, epsilon);
-    fprintf(cluster, "   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", 
-        n_threads, therm_cycles, mc_cycles, n_bins);
-#if defined(HEAT_CONDUCTANCE) || defined(SPIN_CONDUCTANCE)
-    fprintf(cluster, "   Computing conductance | Max Matsubara Freq: %d | x: %d | y: %d | samples: %d \n", samples->k_max, samples->x, samples->y, samples->max_samp);
-#endif // CONDUCTANCE
-    fprintf(cluster, "   Simulation started at: %s ", ctime(&t));
-    fprintf(cluster, "\n");
-#endif // CLUSTER
+    fflush(stdout);
 
     clock_t start_clock = clock();
     #pragma omp parallel shared(samples, cpu_time, loop_size, n_loops)
@@ -210,20 +190,14 @@ int main(int argc, char **argv)
     printf("\n");
     printf("Simulation finished in %.5lfs \n", cpu_time_used);
     printf(" -- Writing simulation results to file -- \n");
-
-#ifdef CLUSTER
-    fprintf(cluster, "\n");
-    fprintf(cluster, "Simulation finished in %.5lfs \n", cpu_time_used);
-    fprintf(cluster, " -- Writing simulation results to file -- \n");
-
-    fclose(cluster);
-#endif // CLUSTER
+    fflush(stdout);
 
     normalize(mc_cycles, samples, pow(L, d), d, boundary_cond, S, delta, h, epsilon);
     char *file_name = write_outputs(samples, d, L, boundary_cond, S, delta, h, epsilon,
         therm_cycles, mc_cycles, cpu_time_used, n_threads);
     
     printf(" -- Results written with success to file: %s -- \n", file_name);
+    fflush(stdout);
 
     free_samples(samples);
     free(samples);
