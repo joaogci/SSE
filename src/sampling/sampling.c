@@ -195,64 +195,65 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // Sampling of Spin-Seebeck Conductance
     // if (state->n >= 1) {
-    //     for (int samp = 0; samp < max_samp; samp++) {
-    //         // Assign random numbers to the imaginary times
-    //         double tau_heat[state->n + 2];
-    //         tau_heat[0] = 0.0;
-    //         for (int i = 1; i <= state->n; i++) {
-    //             double tmp = get_rng() * samples->beta_vals[t_idx];
+    //     // Assign random numbers to the imaginary times
+    //     double tau_heat[state->n + 2];
+    //     tau_heat[0] = 0.0;
+    //     for (int i = 1; i <= state->n; i++) {
+    //         double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
 
-    //             int j;
-    //             for (j = i - 1; (j >= 1 && tau_heat[j] > tmp); j--)
-    //                 tau_heat[j + 1] = tau_heat[j];
+    //         int j;
+    //         for (j = i - 1; (j >= 1 && tau_heat[j] > tmp); j--)
+    //             tau_heat[j + 1] = tau_heat[j];
+        
+    //         tau_heat[j + 1] = tmp;
+    //     }
+    //     tau_heat[state->n + 1] = samples->beta_vals[t_idx];
+
+    //     for (int k = 0; k < samples->k_max; k++) {
+    //         double Ka[2] = {};
+    //         double Kb[2] = {};
+
+    //         int Hb[state->n];
+    //         double Sa[state->n + 1];
+
+    //         for (int p = 0; p <= state->n; p++) {
+    //             int bond = (state->red_op_string[p] / 3) - 1;
+
+    //             Sa[p] = 0.0;
+    //             for (int a = samples->x + 1; a < system->L; a++) {
+    //                 Sa[p] += 0.5 * system->spin[a];
+    //             }
+
+    //             Hb[p] = 0;
+    //             if (p < state->n && bond > samples->y) {
+    //                 Hb[p] = 1;
+    //             }
+
+    //             if (p < state->n && state->red_op_string[p] % 3 != 0) {
+    //                 int b_ = (state->red_op_string[p] / 3) - 1;
+    //                 int a_ = state->red_op_string[p] % 3;
+
+    //                 if (a_ == 1) {
+    //                     system->spin[system->bond[b_][0]] += 2;
+    //                     system->spin[system->bond[b_][1]] += -2;
+    //                 } else if (a_ == 2) {
+    //                     system->spin[system->bond[b_][0]] += -2;
+    //                     system->spin[system->bond[b_][1]] += 2;
+    //                 }
+    //             }
+    //         }
+
+    //         for (int p = 0; p <= state->n; p++) {
+    //             Ka[0] += (sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) - sin(samples->w_k[t_idx][k] * tau_heat[p])) * Sa[p] / samples->w_k[t_idx][k];
+    //             Ka[1] += (cos(samples->w_k[t_idx][k] * tau_heat[p]) - cos(samples->w_k[t_idx][k] * tau_heat[p + 1])) * Sa[p] / samples->w_k[t_idx][k];
+
+    //             if (p < state->n) {
+    //                 Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
+    //                 Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
+    //             }
+    //         }
             
-    //             tau_heat[j + 1] = tmp;
-    //         }
-    //         tau_heat[state->n + 1] = samples->beta_vals[t_idx];
-
-    //         for (int k = 0; k < samples->k_max; k++) {
-    //             double sum_1 = 0.0;
-    //             double sum_2 = 0.0;
-
-    //             int Hb[state->n];
-    //             double Sa[state->n + 1];
-
-    //             for (int p = 0; p <= state->n; p++) {
-    //                 int bond = (red_op_string[p] / 3) - 1;
-
-    //                 Sa[p] = 0.0;
-    //                 for (int a = samples->x + 1; a < system->L; a++) {
-    //                     Sa[p] += 0.5 * system->spin[a];
-    //                 }
-
-    //                 Hb[p] = 0;
-    //                 if (p < state->n && bond > samples->y) {
-    //                     Hb[p] = 1;
-    //                 }
-
-    //                 if (p < state->n && red_op_string[p] % 3 != 0) {
-    //                     int b_ = (red_op_string[p] / 3) - 1;
-    //                     int a_ = red_op_string[p] % 3;
-
-    //                     if (a_ == 1) {
-    //                         system->spin[system->bond[b_][0]] += 2;
-    //                         system->spin[system->bond[b_][1]] += -2;
-    //                     } else if (a_ == 2) {
-    //                         system->spin[system->bond[b_][0]] += -2;
-    //                         system->spin[system->bond[b_][1]] += 2;
-    //                     }
-    //                 }
-    //             }
-
-    //             for (int p = 0; p <= state->n - 1; p++) {
-    //                 for (int l = 0; l <= state->n - 1 - p; l++) {
-    //                     sum_1 += (Sa[p + l] * Hb[p + 1]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l + 1] - tau_heat[p + 1])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
-    //                     sum_2 += (Sa[p] * Hb[p + l + 1]) * (sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p])) - sin(samples->w_k[t_idx][k] * (tau_heat[p + l] - tau_heat[p + 1]))) / samples->w_k[t_idx][k];
-    //                 }
-    //             }
-
-    //             samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (sum_1 + sum_2) / (samples->beta_vals[t_idx] * max_samp);
-    //         }
+    //         samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->beta_vals[t_idx]);
     //     }
     // }
 }
