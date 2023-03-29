@@ -6,8 +6,8 @@ usage() {
 
 Usage               : $PROGNAME [-c <option>] [-h] [-n <n_threads>] [-m <max_samp>] [-t]
 
--c <option>         : Run conductivity calculations. Options: "both", "heat", "spin"
 -h                  : Help. Shows this text.
+-k <option>         : Compute kinetic coefficients. Options: "full", "ss", "hh", "diag", "offd", "sssh", "hhsh"
 -n <n_threads>      : Set number of threads for openMP. Default value: "4"
 -m <max_samp>       : Number of maximum samples for conductance
 -t                  : Test mode. Uses a pre-fixed seed (2)
@@ -18,12 +18,12 @@ EOF
 
 n_threads="4"
 test=""
-cond=""
+kinetic=""
 max_samp="1"
 
-while getopts c:hn:m:t opts; do
+while getopts k:hn:m:t opts; do
     case $opts in 
-        (c) cond=$OPTARG;;
+        (k) kinetic=$OPTARG;;
         (h) usage;;
         (n) n_threads=$OPTARG;;
         (m) max_samp=$OPTARG;;
@@ -46,7 +46,7 @@ vtx_name=$(python3 src/vtx/gen_vtx.py read.in)
 echo "Saved to file $vtx_name"
 
 echo "[3] - Compiling program."
-make $cond $test
+make $kinetic $test
 
 echo "[4] - Running the simulation."
 echo

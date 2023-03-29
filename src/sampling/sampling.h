@@ -73,12 +73,18 @@ typedef struct sampled_quantities
     int y;
     int max_samp;
     double **w_k;
-    double ***g_spin_bins;
-    double **g_spin_mean;
-    double **g_spin_std;
-    double ***g_heat_bins;
-    double **g_heat_mean;
-    double **g_heat_std;
+    double ***L_SS_bins;
+    double **L_SS_mean;
+    double **L_SS_std;
+    double ***L_HH_bins;
+    double **L_HH_mean;
+    double **L_HH_std;
+    double ***L_SH_bins;
+    double **L_SH_mean;
+    double **L_SH_std;
+    double ***L_HS_bins;
+    double **L_HS_mean;
+    double **L_HS_std;
 } sampled_quantities;
 
 /* 

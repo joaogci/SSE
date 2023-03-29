@@ -137,13 +137,13 @@ int main(int argc, char **argv)
         printf("OBC can only be used in a one-dimensional system. \n");
         exit(1);
     }
-#if defined(HEAT_CONDUCTANCE) || defined(SPIN_CONDUCTANCE)
+#if KINETIC
     if (boundary_cond != 1 || d != 1) {
         printf("Conductances can only be computed in a one-dimensional system"
                 " with OBC. \n");
         exit(1);
     }
-#endif // CONDUCTANCE
+#endif // KINETIC
 
     samples = (sampled_quantities *) malloc(sizeof(sampled_quantities));
     int max_samp = 1;
@@ -163,9 +163,9 @@ int main(int argc, char **argv)
         d, L, (boundary_cond == 0) ? "PBC" : "OBC" , S, delta, h, epsilon);
     printf("   n_threads: %d | therm_cycles: %ld | mc_cycles: %ld | n_bins: %d \n", 
         n_threads, therm_cycles, mc_cycles, n_bins);
-#if defined(HEAT_CONDUCTANCE) || defined(SPIN_CONDUCTANCE)
-    printf("   Computing conductance | Max Matsubara Freq: %d | x: %d | y: %d | samples: %d \n", samples->k_max, samples->x, samples->y, samples->max_samp);
-#endif // CONDUCTANCE
+#ifdef KINETIC
+    printf("   Computing kinetic coefficients | Max Matsubara Freq: %d | x: %d | y: %d | samples: %d \n", samples->k_max, samples->x, samples->y, samples->max_samp);
+#endif // KINETIC
     printf("   Simulation started at: %s ", ctime(&t));
     printf("\n");
     fflush(stdout);

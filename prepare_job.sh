@@ -15,10 +15,10 @@ usage() {
 
 Usage               : $PROGNAME [-c] [-h] [-n <n_threads>] [-m <max_samp>] [-t]
 
--c <option>         : Run conductivity calculations. Options: "both", "heat", "spin"
 -h                  : Help. Shows this text.
 -j <job_name>       : Job name.
 -n <n_threads>      : Set number of threads for openMP. Default value: "4"
+-k <option>         : Compute kinetic coefficients. Options: "full", "ss", "hh", "diag", "offd", "sssh", "hhsh"
 -m <max_samp>       : Number of maximum samples for conductance
 -t                  : Test mode. Uses a pre-fixed seed (2)
 -r <DD-HH:MM:SS>    : Time for the job to run.
@@ -29,14 +29,14 @@ EOF
 
 n_threads="4"
 test=""
-cond=""
+kinetic=""
 job_name=""
 time=""
 max_samp="1"
 
 while getopts c:hj:n:m:tr: opts; do
     case $opts in 
-        (c) cond=$OPTARG;;
+        (c) kinetic=$OPTARG;;
         (h) usage;;
         (j) job_name=$OPTARG;;
         (n) n_threads=$OPTARG;;
@@ -61,7 +61,7 @@ vtx_name=$(python3 src/vtx/gen_vtx.py read.in)
 echo "Saved to file $vtx_name"
 
 echo "[3] - Compiling program."
-make $cond $test 
+make $kinetic $test 
 
 echo "[4] - Moving files to another directory."
 mkdir $job_name

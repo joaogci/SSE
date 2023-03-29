@@ -73,7 +73,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     // }
 
     // sample the spin and heat conductances
-#ifdef SPIN_CONDUCTANCE
+#ifdef L_SS
     // New sampling of Spin Conductance
     for (int samp = 0; samp < samples->max_samp; samp++) {
         // Assign random numbers to the imaginary times
@@ -132,12 +132,12 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 }
             }
 
-            samples->g_spin_bins[t_idx][n][k] += (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * samples->max_samp);
+            samples->L_SS_bins[t_idx][n][k] += (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * samples->max_samp);
         }
     }
-#endif //SPIN_CONDUCTANCE
+#endif //L_SS
 
-#ifdef HEAT_CONDUCTANCE
+#ifdef L_HH
     // New Sampling of Heat Conductance
     if (state->n >= 2) {
         for (int samp = 0; samp < samples->max_samp; samp++) {
@@ -186,76 +186,100 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                     Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
                 }
 
-                samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
+                samples->L_HH_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
             }
         }
     }
+#endif // L_HH
 
-#endif // HEAT_CONDUCTANCE
-
+#ifdef L_SH
     // Sampling of Spin-Seebeck Conductance
-    // if (state->n >= 1) {
-    //     // Assign random numbers to the imaginary times
-    //     double tau_heat[state->n + 2];
-    //     tau_heat[0] = 0.0;
-    //     for (int i = 1; i <= state->n; i++) {
-    //         double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
+    if (state->n >= 1) {
+        // Assign random numbers to the imaginary times
+        double tau_heat[state->n + 2];
+        tau_heat[0] = 0.0;
+        for (int i = 1; i <= state->n; i++) {
+            // double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
+            double tmp = rand() * samples->beta_vals[t_idx] / RAND_MAX;
 
-    //         int j;
-    //         for (j = i - 1; (j >= 1 && tau_heat[j] > tmp); j--)
-    //             tau_heat[j + 1] = tau_heat[j];
+            int j;
+            for (j = i - 1; (j >= 1 && tau_heat[j] > tmp); j--)
+                tau_heat[j + 1] = tau_heat[j];
         
-    //         tau_heat[j + 1] = tmp;
-    //     }
-    //     tau_heat[state->n + 1] = samples->beta_vals[t_idx];
+            tau_heat[j + 1] = tmp;
+        }
+        tau_heat[state->n + 1] = samples->beta_vals[t_idx];
 
-    //     for (int k = 0; k < samples->k_max; k++) {
-    //         double Ka[2] = {};
-    //         double Kb[2] = {};
+        for (int k = 0; k < samples->k_max; k++) {
+            double Ka[2] = {};
+            double Kb[2] = {};
 
-    //         int Hb[state->n];
-    //         double Sa[state->n + 1];
+            double Ga[2] = {};
+            double Gb[2] = {};
 
-    //         for (int p = 0; p <= state->n; p++) {
-    //             int bond = (state->red_op_string[p] / 3) - 1;
+            int Ha[state->n];
+            int Hb[state->n];
+            double Sa[state->n + 1];
+            double Sb[state->n + 1];
 
-    //             Sa[p] = 0.0;
-    //             for (int a = samples->x + 1; a < system->L; a++) {
-    //                 Sa[p] += 0.5 * system->spin[a];
-    //             }
+            for (int p = 0; p <= state->n; p++) {
+                int bond = (state->red_op_string[p] / 3) - 1;
 
-    //             Hb[p] = 0;
-    //             if (p < state->n && bond > samples->y) {
-    //                 Hb[p] = 1;
-    //             }
+                Sa[p] = 0.0;
+                for (int a = samples->x + 1; a < system->L; a++) {
+                    Sa[p] += 0.5 * system->spin[a];
+                }
 
-    //             if (p < state->n && state->red_op_string[p] % 3 != 0) {
-    //                 int b_ = (state->red_op_string[p] / 3) - 1;
-    //                 int a_ = state->red_op_string[p] % 3;
+                Sb[p] = 0.0;
+                for (int a = samples->y + 1; a < system->L; a++) {
+                    Sb[p] += 0.5 * system->spin[a];
+                }
 
-    //                 if (a_ == 1) {
-    //                     system->spin[system->bond[b_][0]] += 2;
-    //                     system->spin[system->bond[b_][1]] += -2;
-    //                 } else if (a_ == 2) {
-    //                     system->spin[system->bond[b_][0]] += -2;
-    //                     system->spin[system->bond[b_][1]] += 2;
-    //                 }
-    //             }
-    //         }
+                Ha[p] = 0;
+                if (p < state->n && bond > samples->x) {
+                    Ha[p] = 1;
+                }
 
-    //         for (int p = 0; p <= state->n; p++) {
-    //             Ka[0] += (sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) - sin(samples->w_k[t_idx][k] * tau_heat[p])) * Sa[p] / samples->w_k[t_idx][k];
-    //             Ka[1] += (cos(samples->w_k[t_idx][k] * tau_heat[p]) - cos(samples->w_k[t_idx][k] * tau_heat[p + 1])) * Sa[p] / samples->w_k[t_idx][k];
+                Hb[p] = 0;
+                if (p < state->n && bond > samples->y) {
+                    Hb[p] = 1;
+                }
 
-    //             if (p < state->n) {
-    //                 Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
-    //                 Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
-    //             }
-    //         }
+                if (p < state->n && state->red_op_string[p] % 3 != 0) {
+                    int b_ = (state->red_op_string[p] / 3) - 1;
+                    int a_ = state->red_op_string[p] % 3;
+
+                    if (a_ == 1) {
+                        system->spin[system->bond[b_][0]] += 2;
+                        system->spin[system->bond[b_][1]] += -2;
+                    } else if (a_ == 2) {
+                        system->spin[system->bond[b_][0]] += -2;
+                        system->spin[system->bond[b_][1]] += 2;
+                    }
+                }
+            }
+
+            for (int p = 0; p <= state->n; p++) {
+                Ka[0] += (sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) - sin(samples->w_k[t_idx][k] * tau_heat[p])) * Sa[p] / samples->w_k[t_idx][k];
+                Ka[1] += (cos(samples->w_k[t_idx][k] * tau_heat[p]) - cos(samples->w_k[t_idx][k] * tau_heat[p + 1])) * Sa[p] / samples->w_k[t_idx][k];
+
+                Kb[0] += (sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) - sin(samples->w_k[t_idx][k] * tau_heat[p])) * Sb[p] / samples->w_k[t_idx][k];
+                Kb[1] += (cos(samples->w_k[t_idx][k] * tau_heat[p]) - cos(samples->w_k[t_idx][k] * tau_heat[p + 1])) * Sb[p] / samples->w_k[t_idx][k];
+
+                if (p < state->n) {
+                    Ga[0] += cos(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Ha[p];
+                    Ga[1] += sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Ha[p];
+
+                    Gb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
+                    Gb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
+                }
+            }
             
-    //         samples->g_heat_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->beta_vals[t_idx]);
-    //     }
-    // }
+            samples->L_SH_bins[t_idx][n][k] += - samples->w_k[t_idx][k] * (Ka[0] * Gb[0] + Ka[1] * Gb[1]) / (samples->beta_vals[t_idx]);
+            samples->L_HS_bins[t_idx][n][k] += - samples->w_k[t_idx][k] * (Ga[0] * Kb[0] + Ga[1] * Kb[1]) / (samples->beta_vals[t_idx]);
+        }
+    }
+#endif // L_SH
 }
 
 /* 
@@ -301,8 +325,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
             samples->S_bins[t_idx][n] /= mc_cycles;
 
             for (int k = 0; k < samples->k_max; k++) {
-                samples->g_spin_bins[t_idx][n][k] /= mc_cycles;
-                samples->g_heat_bins[t_idx][n][k] /= mc_cycles;
+                samples->L_SS_bins[t_idx][n][k] /= mc_cycles;
+                samples->L_HH_bins[t_idx][n][k] /= mc_cycles;
+                samples->L_SH_bins[t_idx][n][k] /= mc_cycles;
+                samples->L_HS_bins[t_idx][n][k] /= mc_cycles;
             }
 
             samples->n_mean[t_idx] += samples->n_bins[t_idx][n];
@@ -324,8 +350,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
             samples->S_mean[t_idx] += samples->S_bins[t_idx][n];
 
             for (int k = 0; k < samples->k_max; k++) {
-                samples->g_spin_mean[t_idx][k] += samples->g_spin_bins[t_idx][n][k];
-                samples->g_heat_mean[t_idx][k] += samples->g_heat_bins[t_idx][n][k];
+                samples->L_SS_mean[t_idx][k] += samples->L_SS_bins[t_idx][n][k];
+                samples->L_HH_mean[t_idx][k] += samples->L_HH_bins[t_idx][n][k];
+                samples->L_SH_mean[t_idx][k] += samples->L_SH_bins[t_idx][n][k];
+                samples->L_HS_mean[t_idx][k] += samples->L_HS_bins[t_idx][n][k];
             }
         }
         samples->n_mean[t_idx] /= samples->bins;
@@ -347,8 +375,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
         samples->S_mean[t_idx] /= samples->bins;
 
         for (int k = 0; k < samples->k_max; k++) {
-            samples->g_spin_mean[t_idx][k] /= samples->bins;
-            samples->g_heat_mean[t_idx][k] /= samples->bins;
+            samples->L_SS_mean[t_idx][k] /= samples->bins;
+            samples->L_HH_mean[t_idx][k] /= samples->bins;
+            samples->L_SH_mean[t_idx][k] /= samples->bins;
+            samples->L_HS_mean[t_idx][k] /= samples->bins;
         }
 
         for (int n = 0; n < samples->bins; n++) {
@@ -370,8 +400,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
             samples->S_std[t_idx] += pow(samples->S_bins[t_idx][n] - samples->S_mean[t_idx], 2.0);
 
             for (int k = 0; k < samples->k_max; k++) {
-                samples->g_spin_std[t_idx][k] += pow(samples->g_spin_bins[t_idx][n][k] - samples->g_spin_mean[t_idx][k], 2.0);
-                samples->g_heat_std[t_idx][k] += pow(samples->g_heat_bins[t_idx][n][k] - samples->g_heat_mean[t_idx][k], 2.0);
+                samples->L_SS_std[t_idx][k] += pow(samples->L_SS_bins[t_idx][n][k] - samples->L_SS_mean[t_idx][k], 2.0);
+                samples->L_HH_std[t_idx][k] += pow(samples->L_HH_bins[t_idx][n][k] - samples->L_HH_mean[t_idx][k], 2.0);
+                samples->L_SH_std[t_idx][k] += pow(samples->L_SH_bins[t_idx][n][k] - samples->L_SH_mean[t_idx][k], 2.0);
+                samples->L_HS_std[t_idx][k] += pow(samples->L_HS_bins[t_idx][n][k] - samples->L_HS_mean[t_idx][k], 2.0);
             }
         }
         samples->n_std[t_idx] = sqrt(samples->n_std[t_idx] / samples->bins);
@@ -392,8 +424,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
         samples->S_std[t_idx] = sqrt(samples->S_std[t_idx] / samples->bins);
 
         for (int k = 0; k < samples->k_max; k++) {
-            samples->g_spin_std[t_idx][k] = sqrt(samples->g_spin_std[t_idx][k] / samples->bins);
-            samples->g_heat_std[t_idx][k] = sqrt(samples->g_heat_std[t_idx][k] / samples->bins);
+            samples->L_SS_std[t_idx][k] = sqrt(samples->L_SS_std[t_idx][k] / samples->bins);
+            samples->L_HH_std[t_idx][k] = sqrt(samples->L_HH_std[t_idx][k] / samples->bins);
+            samples->L_SH_std[t_idx][k] = sqrt(samples->L_SH_std[t_idx][k] / samples->bins);
+            samples->L_HS_std[t_idx][k] = sqrt(samples->L_HS_std[t_idx][k] / samples->bins);
         }
     }
 }
