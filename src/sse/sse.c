@@ -85,7 +85,7 @@ void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rn
             continue; 
         }
 
-        int loop_size = 0;
+        uint64_t loop_size = 0;
         // begin the loop 
         while (true) {
             int p = j / 4;
