@@ -34,9 +34,9 @@ job_name=""
 time=""
 max_samp="1"
 
-while getopts c:hj:n:m:tr: opts; do
+while getopts k:hj:n:m:tr: opts; do
     case $opts in 
-        (c) kinetic=$OPTARG;;
+        (k) kinetic=$OPTARG;;
         (h) usage;;
         (j) job_name=$OPTARG;;
         (n) n_threads=$OPTARG;;
