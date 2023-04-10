@@ -24,7 +24,7 @@ test: $(SOURCES) $(INCLUDES)
 
 # "full", "ss", "hh", "diag", "offd", "sssh", "hhsh"
 full: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SS -DL_HH -DL_SH 
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SS -DL_HH -DL_SH -DL_HS
 
 ss: $(SOURCES) $(INCLUDES)
 	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SS
@@ -36,13 +36,13 @@ diag: $(SOURCES) $(INCLUDES)
 	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SS -DL_HH
 
 offd: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SH 
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SH -DL_HS
 
 sssh: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SS -DL_SH 
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_SS -DL_SH -DL_HS 
 
 hhsh: $(SOURCES) $(INCLUDES)
-	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_HH -DL_SH 
+	$(CC) -o $(PROGRAM) $(FLAGS) $(SOURCES) $(LIBS) -DKINETIC -DL_HH -DL_SH -DL_HS
 
 clean: 
 	rm $(PROGRAM)

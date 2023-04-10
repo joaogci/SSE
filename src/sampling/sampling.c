@@ -72,214 +72,125 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
     //     samples->S_bins[t_idx][n] += pow(- 1.0, i) * corr[i] / system->L;
     // }
 
-    // sample the spin and heat conductances
-#ifdef L_SS
-    // New sampling of Spin Conductance
+    // sample the kinetic coefficients
+#ifdef KINETIC
+    int Sa[state->n + 1];
+    int Sb[state->n + 1];
+    int Ha[state->n];
+    int Hb[state->n];
+    int Cab = 0;
+
+#if defined(L_SS) || defined(L_SH)
+    Sa[0] = 0.0;
+    for (int a = samples->x + 1; a < system->L; a++) {
+        Sa[0] += system->spin[a];
+    }
+#endif
+#if defined(L_SS) || defined(L_HS)
+    Sb[0] = 0.0;
+    for (int b = samples->y + 1; b < system->L; b++) {
+        Sb[0] += system->spin[b];
+    }
+#endif
+
+    for (int p = 0; p < state->n; p++) {
+        int bond = (state->red_op_string[p] / 3) - 1;
+        int type = state->red_op_string[p] % 3;
+
+        int change_a = 0;
+        int change_b = 0;
+        if (bond == samples->x && type != 0) {
+            if (type == 1) {
+                change_a = -2;
+            } else if (type == 2) {
+                change_a = 2;
+            }
+        }
+        if (bond == samples->y && type != 0) {
+            if (type == 1) {
+                change_b = -2;
+            } else if (type == 2) {
+                change_b = 2;
+            }
+        }
+
+#if defined(L_SS) || defined(L_SH)
+        Sa[p + 1] = Sa[p] + change_a;
+#endif
+#if defined(L_SS) || defined(L_HS)
+        Sb[p + 1] = Sb[p] + change_b;
+#endif
+#if defined(L_HH) || defined(L_HS)
+        Ha[p] = (bond > samples->x) ? 1 : 0;
+#endif
+#if defined(L_HH) || defined(L_SH)
+        Hb[p] = (bond > samples->y) ? 1 : 0;
+#endif
+#if defined(L_HH) 
+        Cab += (bond > samples->y && bond > samples->x) ? 1 : 0;
+#endif 
+    }
+
     for (int samp = 0; samp < samples->max_samp; samp++) {
-        // Assign random numbers to the imaginary times
-        // state->n = 10000;
-        double tau_spin[state->n + 2];
-        tau_spin[0] = 0.0;
+        // assing times to the operators
+        double tau[state->n + 2];
+        tau[0] = 0.0;
         for (int i = 1; i <= state->n; i++) {
             double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
-
             int j;
-            for (j = i - 1; (j >= 1 && tau_spin[j] > tmp); j--)
-                tau_spin[j + 1] = tau_spin[j];
-        
-            tau_spin[j + 1] = tmp;
+            for (j = i - 1; (j >= 1 && tau[j] > tmp); j--)
+                tau[j + 1] = tau[j];
+            tau[j + 1] = tmp;
         }
-        tau_spin[state->n + 1] = samples->beta_vals[t_idx];
-
-        int sum_x = 0.0;
-        for (int a = samples->x + 1; a < system->L; a++) {
-            sum_x += system->spin[a];
-        }
-
-        int sum_y = 0.0;
-        for (int b = samples->y + 1; b < system->L; b++) {
-            sum_y += system->spin[b];
-        }
+        tau[state->n + 1] = samples->beta_vals[t_idx];
 
         for (int k = 0; k < samples->k_max; k++) {
             double Ka[2] = {};
             double Kb[2] = {};
-
-            for (int p = 0; p <= state->n; p++) {
-                Ka[0] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1]) - sin(samples->w_k[t_idx][k] * tau_spin[p])) * 0.5 * sum_x;
-                Ka[1] += (cos(samples->w_k[t_idx][k] * tau_spin[p]) - cos(samples->w_k[t_idx][k] * tau_spin[p + 1])) * 0.5 * sum_x;
-
-                Kb[0] += (sin(samples->w_k[t_idx][k] * tau_spin[p + 1]) - sin(samples->w_k[t_idx][k] * tau_spin[p])) * 0.5 * sum_y;
-                Kb[1] += (cos(samples->w_k[t_idx][k] * tau_spin[p]) - cos(samples->w_k[t_idx][k] * tau_spin[p + 1])) * 0.5 * sum_y;
-
-                if (p < state->n) {
-                    int bond = (state->red_op_string[p] / 3) - 1;
-                    int type = state->red_op_string[p] % 3;
-                    if (bond == samples->x && type != 0) {
-                        if (type == 1) {
-                            sum_x += -2;
-                        } else if (type == 2) {
-                            sum_x += 2;
-                        }
-                    }
-                    if (bond == samples->y && type != 0) {
-                        if (type == 1) {
-                            sum_y += -2;
-                        } else if (type == 2) {
-                            sum_y += 2;
-                        }
-                    }
-                }
-            }
-
-            samples->L_SS_bins[t_idx][n][k] += (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->w_k[t_idx][k] * samples->beta_vals[t_idx] * samples->max_samp);
-        }
-    }
-#endif //L_SS
-
-#ifdef L_HH
-    // New Sampling of Heat Conductance
-    if (state->n >= 2) {
-        for (int samp = 0; samp < samples->max_samp; samp++) {
-            // Assign random numbers to the imaginary times
-            double tau_heat[state->n];
-            for (int i = 0; i < state->n; i++) {
-                double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
-
-                int j;
-                for (j = i - 1; (j >= 0 && tau_heat[j] > tmp); j--)
-                    tau_heat[j + 1] = tau_heat[j];
-
-                tau_heat[j + 1] = tmp;
-            }
-
-            int count_x[state->n];
-            int count_y[state->n];
-            int Cab = 0;
-            for (int p = 0; p < state->n; p++) {
-                int bond = (state->red_op_string[p] / 3) - 1;
-                
-                count_x[p] = 0;
-                if (bond > samples->x) {
-                    count_x[p] = 1;
-                }
-                
-                count_y[p] = 0;
-                if (bond > samples->y) {
-                    count_y[p] = 1;
-                }
-                
-                if (bond > samples->x && bond > samples->y) {
-                    Cab++;
-                }
-            }
-
-            for (int k = 0; k < samples->k_max; k++) {
-                double Ka[2] = {};
-                double Kb[2] = {};
-
-                for (int p = 0; p < state->n; p++) {
-                    Ka[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]) * count_x[p];
-                    Ka[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_x[p];
-                    
-                    Kb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
-                    Kb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p]) * count_y[p];
-                }
-
-                samples->L_HH_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
-            }
-        }
-    }
-#endif // L_HH
-
-#ifdef L_SH
-    // Sampling of Spin-Seebeck Conductance
-    if (state->n >= 1) {
-        // Assign random numbers to the imaginary times
-        double tau_heat[state->n + 2];
-        tau_heat[0] = 0.0;
-        for (int i = 1; i <= state->n; i++) {
-            // double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
-            double tmp = rand() * samples->beta_vals[t_idx] / RAND_MAX;
-
-            int j;
-            for (j = i - 1; (j >= 1 && tau_heat[j] > tmp); j--)
-                tau_heat[j + 1] = tau_heat[j];
-        
-            tau_heat[j + 1] = tmp;
-        }
-        tau_heat[state->n + 1] = samples->beta_vals[t_idx];
-
-        for (int k = 0; k < samples->k_max; k++) {
-            double Ka[2] = {};
-            double Kb[2] = {};
-
             double Ga[2] = {};
             double Gb[2] = {};
 
-            int Ha[state->n];
-            int Hb[state->n];
-            double Sa[state->n + 1];
-            double Sb[state->n + 1];
-
             for (int p = 0; p <= state->n; p++) {
-                int bond = (state->red_op_string[p] / 3) - 1;
-
-                Sa[p] = 0.0;
-                for (int a = samples->x + 1; a < system->L; a++) {
-                    Sa[p] += 0.5 * system->spin[a];
-                }
-
-                Sb[p] = 0.0;
-                for (int a = samples->y + 1; a < system->L; a++) {
-                    Sb[p] += 0.5 * system->spin[a];
-                }
-
-                Ha[p] = 0;
-                if (p < state->n && bond > samples->x) {
-                    Ha[p] = 1;
-                }
-
-                Hb[p] = 0;
-                if (p < state->n && bond > samples->y) {
-                    Hb[p] = 1;
-                }
-
-                if (p < state->n && state->red_op_string[p] % 3 != 0) {
-                    int b_ = (state->red_op_string[p] / 3) - 1;
-                    int a_ = state->red_op_string[p] % 3;
-
-                    if (a_ == 1) {
-                        system->spin[system->bond[b_][0]] += 2;
-                        system->spin[system->bond[b_][1]] += -2;
-                    } else if (a_ == 2) {
-                        system->spin[system->bond[b_][0]] += -2;
-                        system->spin[system->bond[b_][1]] += 2;
-                    }
-                }
-            }
-
-            for (int p = 0; p <= state->n; p++) {
-                Ka[0] += (sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) - sin(samples->w_k[t_idx][k] * tau_heat[p])) * Sa[p] / samples->w_k[t_idx][k];
-                Ka[1] += (cos(samples->w_k[t_idx][k] * tau_heat[p]) - cos(samples->w_k[t_idx][k] * tau_heat[p + 1])) * Sa[p] / samples->w_k[t_idx][k];
-
-                Kb[0] += (sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) - sin(samples->w_k[t_idx][k] * tau_heat[p])) * Sb[p] / samples->w_k[t_idx][k];
-                Kb[1] += (cos(samples->w_k[t_idx][k] * tau_heat[p]) - cos(samples->w_k[t_idx][k] * tau_heat[p + 1])) * Sb[p] / samples->w_k[t_idx][k];
-
+#if defined(L_SS) || defined(L_SH)
+                Ka[0] += (sin(samples->w_k[t_idx][k] * tau[p + 1]) - sin(samples->w_k[t_idx][k] * tau[p])) * 0.5 * Sa[p] / samples->w_k[t_idx][k];
+                Ka[1] += (cos(samples->w_k[t_idx][k] * tau[p]) - cos(samples->w_k[t_idx][k] * tau[p + 1])) * 0.5 * Sa[p] / samples->w_k[t_idx][k];
+#endif
+#if defined(L_SS) || defined(L_HS)
+                Kb[0] += (sin(samples->w_k[t_idx][k] * tau[p + 1]) - sin(samples->w_k[t_idx][k] * tau[p])) * 0.5 * Sb[p] / samples->w_k[t_idx][k];
+                Kb[1] += (cos(samples->w_k[t_idx][k] * tau[p]) - cos(samples->w_k[t_idx][k] * tau[p + 1])) * 0.5 * Sb[p] / samples->w_k[t_idx][k];
+#endif
+#if defined(L_HH) || defined(L_HS) || defined(L_SH)
                 if (p < state->n) {
-                    Ga[0] += cos(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Ha[p];
-                    Ga[1] += sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Ha[p];
-
-                    Gb[0] += cos(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
-                    Gb[1] += sin(samples->w_k[t_idx][k] * tau_heat[p + 1]) * Hb[p];
+#if defined(L_HH) || defined(L_HS)
+                    Ga[0] += cos(samples->w_k[t_idx][k] * tau[p + 1]) * Ha[p];
+                    Ga[1] += sin(samples->w_k[t_idx][k] * tau[p + 1]) * Ha[p];
+#endif
+#if defined(L_HH) || defined(L_SH)
+                    Gb[0] += cos(samples->w_k[t_idx][k] * tau[p + 1]) * Hb[p];
+                    Gb[1] += sin(samples->w_k[t_idx][k] * tau[p + 1]) * Hb[p];
+#endif
                 }
+#endif
             }
             
-            samples->L_SH_bins[t_idx][n][k] += - samples->w_k[t_idx][k] * (Ka[0] * Gb[0] + Ka[1] * Gb[1]) / (samples->beta_vals[t_idx]);
-            samples->L_HS_bins[t_idx][n][k] += - samples->w_k[t_idx][k] * (Ga[0] * Kb[0] + Ga[1] * Kb[1]) / (samples->beta_vals[t_idx]);
+#if defined(L_SS)
+            samples->L_SS_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ka[0] * Kb[0] + Ka[1] * Kb[1]) / (samples->beta_vals[t_idx] * samples->max_samp);
+#endif 
+#if defined(L_SH)
+            if (state->n >= 1)
+                samples->L_SH_bins[t_idx][n][k] += - samples->w_k[t_idx][k] * (Ka[0] * Gb[0] + Ka[1] * Gb[1]) / (samples->beta_vals[t_idx] * samples->max_samp);
+#endif 
+#if defined(L_HS)
+            if (state->n >= 1)
+                samples->L_HS_bins[t_idx][n][k] += - samples->w_k[t_idx][k] * (Ga[0] * Kb[0] + Ga[1] * Kb[1]) / (samples->beta_vals[t_idx] * samples->max_samp);
+#endif
+#if defined(L_HH)
+            if (state->n >= 2)
+                samples->L_HH_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ga[0] * Gb[0] + Ga[1] * Gb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
+#endif
         }
     }
-#endif // L_SH
+#endif // KINETIC
 }
 
 /* 
