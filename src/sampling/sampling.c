@@ -74,10 +74,10 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     // sample the kinetic coefficients
 #ifdef KINETIC
-    int Sa[state->n + 1];
-    int Sb[state->n + 1];
-    int Ha[state->n];
-    int Hb[state->n];
+    int *Sa = (int *) malloc((state->n + 1) * sizeof(int));
+    int *Sb = (int *) malloc((state->n + 1) * sizeof(int));
+    int *Ha = (int *) malloc(state->n * sizeof(int));
+    int *Hb = (int *) malloc(state->n * sizeof(int));
     int Cab = 0;
 
 #if defined(L_SS) || defined(L_SH)
@@ -133,7 +133,7 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
 
     for (int samp = 0; samp < samples->max_samp; samp++) {
         // assing times to the operators
-        double tau[state->n + 2];
+        double *tau = (double *) malloc((state->n + 2) * sizeof(double));
         tau[0] = 0.0;
         for (int i = 1; i <= state->n; i++) {
             tau[i] = pcg32_double_r(rng) * samples->beta_vals[t_idx];
@@ -193,7 +193,13 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
                 samples->L_HH_bins[t_idx][n][k] += samples->w_k[t_idx][k] * (Ga[0] * Gb[0] + Ga[1] * Gb[1] - Cab) / (samples->beta_vals[t_idx] * samples->max_samp);
 #endif
         }
+        free(tau);
     }
+
+    free(Sa);
+    free(Sb);
+    free(Ha);
+    free(Hb);
 #endif // KINETIC
 }
 
