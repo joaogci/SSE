@@ -12,7 +12,7 @@
 # Other parameters:
 #SBATCH --ntasks=1
 # no SBATCH --cpus-per-task=10
-#SBATCH --mem-per-cpu=500M
+#SBATCH --mem-per-cpu=750M
 
 ## Set up job environment:
 set -o errexit  # Exit the script on any error
