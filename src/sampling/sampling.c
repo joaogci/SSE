@@ -136,13 +136,17 @@ void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, sampl
         double tau[state->n + 2];
         tau[0] = 0.0;
         for (int i = 1; i <= state->n; i++) {
-            double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
-            int j;
-            for (j = i - 1; (j >= 1 && tau[j] > tmp); j--)
-                tau[j + 1] = tau[j];
-            tau[j + 1] = tmp;
+            tau[i] = pcg32_double_r(rng) * samples->beta_vals[t_idx];
         }
         tau[state->n + 1] = samples->beta_vals[t_idx];
+        qsort(tau, state->n + 2, sizeof(double), compare);
+        // for (int i = 1; i <= state->n; i++) {
+        //     double tmp = pcg32_double_r(rng) * samples->beta_vals[t_idx];
+        //     int j;
+        //     for (j = i - 1; (j >= 1 && tau[j] > tmp); j--)
+        //         tau[j + 1] = tau[j];
+        //     tau[j + 1] = tmp;
+        // }
 
         for (int k = 0; k < samples->k_max; k++) {
             double Ka[2] = {};
@@ -341,4 +345,24 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
             samples->L_HS_std[t_idx][k] = sqrt(samples->L_HS_std[t_idx][k] / samples->bins);
         }
     }
+}
+
+/*
+ * function: compare
+ * compares two numbers for the imaginary time assignments
+ */
+int compare( const void* num1, const void* num2)
+{
+    double a = *(double*) num1;  
+    double b = *(double*) num2;  
+
+    if(a > b)
+    {  
+        return 1;  
+    }  
+    else if(a < b)  
+    {  
+        return -1;  
+    }  
+    return 0;  
 }

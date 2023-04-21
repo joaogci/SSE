@@ -66,6 +66,10 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
             ajust_cutoff(state, t);
         }
 
+        clock_t end_clock = clock();
+        printf("therm ended: %lu time: %lf \n", state->n, ((double) (end_clock - start_clock)) / CLOCKS_PER_SEC/ n_threads);
+
+        start_clock = clock();
         for (int n = start_bin; n < end_bin; n++) {
             for (long t = 0; t < mc_cycles; t++) {
                 diag_update(beta, system, state, &rng);
@@ -77,8 +81,11 @@ void simulate(int start_bin, int end_bin, int t_id, char *vtx_file)
                 sample(n, t_idx, system, state, samples, &rng);
             }
         }
+        end_clock = clock();
+        printf("mc cycles ended: %lu time: %lf \n", state->n, ((double) (end_clock - start_clock)) / CLOCKS_PER_SEC/ n_threads);
 
-        clock_t end_clock = clock();
+
+        // clock_t end_clock = clock();
 
         time_t t = time(NULL);
         char *buff = ctime(&t);

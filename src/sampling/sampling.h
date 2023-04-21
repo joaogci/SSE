@@ -144,4 +144,10 @@ void normalize(long mc_cycles, sampled_quantities *samples, int N, int d, int bo
  */
 void free_samples(sampled_quantities *samples);
 
+/*
+ * function: compare
+ * compares two numbers for the imaginary time assignments
+ */
+int compare( const void* num1, const void* num2);
+
 #endif // SAMPLING_H
