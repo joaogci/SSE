@@ -170,12 +170,13 @@ void ajust_cutoff(sse_state *state, long t)
     u_int64_t M_new = state->n * 1.33;
 
     if (M_new > state->M) {
-        u_int64_t opstring_cpy[state->M];
+        u_int64_t *opstring_cpy = (u_int64_t *)malloc(state->M * sizeof(u_int64_t));
         memcpy(opstring_cpy, state->op_string, state->M * sizeof(u_int64_t));
         free(state->op_string); 
         state->op_string = (u_int64_t*) malloc(M_new * sizeof(u_int64_t));
         memset(state->op_string, 0, M_new * sizeof(u_int64_t));
         memcpy(state->op_string, opstring_cpy, state->M * sizeof(u_int64_t));
+        free(opstring_cpy);
 
         state->M = M_new;
     }
