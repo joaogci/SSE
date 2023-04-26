@@ -22,7 +22,7 @@ h = float(line[4])
 epsilon = float(line[5])
 
 hb = h / (2 * d)
-C = S**2 * np.abs(delta) + 2 * S * hb + epsilon
+C = S**2 * np.abs(delta) + 2 * np.abs(hb) * S**2 + epsilon
 
 SAVE_FILENAME = "vtx_S" + str(S) + "_delta" + str(delta) + "_h" + str(h) + "_epsilon" + str(epsilon) + ".txt"
 print(SAVE_FILENAME)
@@ -73,7 +73,7 @@ def H(state1, state2):
         allowed = True
 
     if vtx_type == 0:
-        term += hb * (Sz_op(spin_i) + Sz_op(spin_j))
+        term += - hb * (Sz_op(spin_i)**2 + Sz_op(spin_j)**2)
         term += C
     
     term += term1 + term2 + term3

@@ -14,7 +14,7 @@
 #define MAX_(a, b) ((a) > (b) ? (a) : (b))
 #define MIN_(a, b) ((a) < (b) ? (a) : (b))
 
-#define C_ ( S * S * fabs(delta) + 2.0 * S * hb_ )
+#define C_ ( S * S * fabs(delta) + 2.0 * S * S * fabs(hb_) )
 #define hb_ ( h / (2.0 * d) )
 
 /* 
