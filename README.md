@@ -1,5 +1,7 @@
 # Stochastic Series Expansion - SSE
 
+Please cite the code uising the citation file provided in the repository.
+
 Implementation of Stochastic Series Expansion (SSE) Monte Carlo method for the spin-S XXZ model. This version uses the Directed Loops [1] method for the loop update.
 The Hamiltonian of the simulated system is given by
 
