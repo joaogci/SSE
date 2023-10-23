@@ -1,0 +1,29 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: SSE for 1D spin-S XXZ model
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: João
+    family-names: Carvalho Inácio
+    email: inacio.joao@proton.me
+identifiers:
+  - type: url
+    value: 'https://github.com/joaogci/SSE'
+repository-code: 'https://github.com/joaogci/SSE'
+abstract: >-
+  Implementation of Stochastic Series Expansion (SSE) Monte
+  Carlo method for the spin-S XXZ model.
+keywords:
+  - stochastic-series-expansion
+  - quantum-monte-carlo
+  - quantum-spin-model
+  - xxz-model
+license: MIT
+commit: 93fd676
+version: '1'
+date-released: '2023-07-21'
