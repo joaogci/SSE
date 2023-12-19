@@ -12,7 +12,7 @@ else
 		CC = gcc
 	endif
 	ifeq ($(UNAME_S),Darwin)
-		CC = gcc-12
+		CC = gcc-13
 	endif
 endif
 
