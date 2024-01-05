@@ -82,13 +82,13 @@ int main(int argc, char **argv)
     int thread_id, start_bin, end_bin;
     int n;    
     long t;
+    pcg32_random_t rng;
 
     thread_id = omp_get_thread_num();
     start_bin = (thread_id * sim.n_bins) / sim.n_threads;
     end_bin = ((thread_id + 1) * sim.n_bins) / sim.n_threads; 
 
     init_sse_config(beta, ham.latt->N, &state);
-    pcg32_random_t rng;
     pcg32_srandom_r(&rng, (SEED * (thread_id + 1)) ^ (intptr_t)&rng, (SEED * (thread_id + 1)));
 
     n_scal = 2;
@@ -125,16 +125,22 @@ int main(int argc, char **argv)
       #pragma omp critical
       write_observables(obs_scal, n_scal);
     }
+
+    free_sse_config(&state);
+    free_obs_latt(obs_eq);
+    free(obs_eq);
+    free(obs_scal);
   }
 
   end_clock = clock();
   sim.wall_time = ((double) (end_clock - start_clock)) / (CLOCKS_PER_SEC * sim.n_threads);
   
-  printf("\n");
   printf("Simulation finished in %.5lfs \n", sim.wall_time);
   fflush(stdout);
 
   // FREE THE VARIABLES
+  free_ham(&ham);
+  free_lattice(&latt);
 
-  return 0;
+  exit(0);
 }

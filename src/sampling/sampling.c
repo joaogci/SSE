@@ -4,23 +4,23 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
 {
   int n;
 
-  for (n = 1; n <= n_scal; n++) {
+  for (n = 0; n < n_scal; n++) {
     switch (n)
     {
+    case 0:
+      init_obs_scalar("E", &(obs_scalar[n]));
+      break;
     case 1:
-      init_obs_scalar("E", &(obs_scalar[n-1]));
+      init_obs_scalar("Sz", &(obs_scalar[n]));
       break;
     case 2:
-      init_obs_scalar("Sz", &(obs_scalar[n-1]));
+      init_obs_scalar("n2", &(obs_scalar[n]));
       break;
     case 3:
-      init_obs_scalar("n2", &(obs_scalar[n-1]));
+      init_obs_scalar("n", &(obs_scalar[n]));
       break;
     case 4:
-      init_obs_scalar("n", &(obs_scalar[n-1]));
-      break;
-    case 5:
-      init_obs_scalar("C", &(obs_scalar[n-1]));
+      init_obs_scalar("C", &(obs_scalar[n]));
       break;
 
     default:
@@ -30,11 +30,11 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
     }
   }
 
-  for (n = 1; n <= n_eq; n++) {
-    switch (n+1)
+  for (n = 0; n < n_eq; n++) {
+    switch (n)
     {
-    case 1:
-      init_obs_latt("Sz", latt, &(obs_eq[n-1]));
+    case 0:
+      init_obs_latt("Sz", latt, &(obs_eq[n]));
       break;
     default:
       printf("Observable not found. \n");
@@ -59,8 +59,13 @@ void reset_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int
 
 void sample(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq, XXZ_ham* ham, SSE_config* state)
 {
-  sample_obs_scalar(obs_scal, n_scal, ham, state);
-  sample_obs_eq(obs_eq, n_eq, ham, state);
+  if (n_scal > 0) {
+    sample_obs_scalar(obs_scal, n_scal, ham, state);
+  }
+
+  if (n_eq > 0) {
+    sample_obs_eq(obs_eq, n_eq, ham, state);
+  }
 }
 
 void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* state)
@@ -83,7 +88,11 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
 
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)
 {
+  int i;
 
+  for (i = 0; i < n_eq; i++) {
+    obs[i].N++;
+  }
 }
 
 // /* 
