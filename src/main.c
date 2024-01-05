@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     }
 
     free_sse_config(&state);
-    free_obs_latt(obs_eq);
+    reset_observables(obs_scal, n_scal, obs_eq, n_eq);
     free(obs_eq);
     free(obs_scal);
   }

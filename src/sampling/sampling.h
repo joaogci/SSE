@@ -41,20 +41,10 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
  */
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state);
 
-
-// /* 
-//  * function: sample 
-//  *  samples the currect state in the simulation
-//  * 
-//  *  parameters:
-//  *      (int) n: bin number
-//  *      (int) t_idx: temperature index
-//  *      (heisenberg_system *) system: system to sample from
-//  *      (sse_state *) state: simulation state
-//  *      (sampled_quantities *) samples: store the samples
-//  */
-// void sample(int n, int t_idx, heisenberg_system *system, sse_state *state, 
-//     sampled_quantities *samples, pcg32_random_t* rng);
+/* 
+ * Free the observable structs
+ */
+void free_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq);
 
 /*
  * function: compare

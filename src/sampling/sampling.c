@@ -95,6 +95,15 @@ void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)
   }
 }
 
+void free_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq)
+{
+  int n;
+
+  for (n = 0; n < n_eq; n++) {
+    free_obs_latt(&(obs_eq[n]));
+  }
+}
+
 // /* 
 //  * function: sample 
 //  *  samples the currect state in the simulation
