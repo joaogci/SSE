@@ -6,199 +6,90 @@
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
-#include <stdint.h>
 
-#include "../vtx/vtx_type.h"
+#include "../hamiltonian/hamiltonian.h"
+#include "../hamiltonian/lattice.h"
 #include "../rng/pcg_basic.h"
 
-#define MAX_(a, b) ((a) > (b) ? (a) : (b))
-#define MIN_(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#define C_ ( S * S * fabs(delta) + 2.0 * S * hb_ )
-#define hb_ ( h / (2.0 * d) )
-
-/* 
- * struct: heisenberg_system
- *  information about the simulated system
- *
- *  parameters
- *      (int) d: dimension
- *      (int) L: number of unit cells
- *      (int) N: number of particles (pow(L, d))
- *      (int) Nb: number of bonds 
- *      (int) boundary_cond: boundary_cond of the system
- *      (double) S: spin quantum number
- *      (int) n_proj: number of spin projections in the z-direction
- *      (int *) Sz: spin values in the z-direction
- *      (double) delta: z-axis anisotropy strength
- *      (double) h: z-axis magnetic field strength
- *      (double) epsilon: constant added to the Hamiltonian
- *      (int *) spin: spin state (length N)
- *      (int **) bond: lattice information (length Nb x 2) 
- */
-typedef struct heisenberg_system 
-{
-    int d;
-    int L;
-    int N;
-    int Nb;
-    int boundary_cond;
-
-    double S;
-    int n_proj;
-    int *Sz;
-    
-    double delta;
-    double h;
-    double epsilon;
-
-    int *spin;
-    int **bond;
-} heisenberg_system;
+#define MAX_LOOP_SIZE (100 * state->M)
 
 /* 
- * struct: sse_state
  *  information about the state of the SSE simulation
- * 
- *  parameters:
- *      (int *) op_string: operator string (length M) 
- *      (int) M: maximum expansion of the partiton function
- *      (int) n: number of operators in the operator string
- *      (int) n_loops: number of loops to construct each MCS
- *      (int) loop_size: size of the loops
- *      (int *) link: linked list for the loop construction (length 4*n)
- *      (int *) first: first imaginary time which the spins appear (length N)
- *      (int *) vtx: vertex type at each imaginery time (length n)
- *      (vtx_element *) vtx_type: information about each vertex type (length n_diagrams) 
- *      (int) n_diagrams: number of available vtx_elements
- *      (int *) red_op_string: reduced operator string (length n)
- *      (int *) trans_op_string: translation between the reduced and normal operator string (length n) 
  */
-typedef struct sse_state 
+typedef struct SSE_config 
 {
-    u_int64_t *op_string;
-    u_int64_t M;
-    u_int64_t n;
+  double beta;
+  int* spin_config;
 
-    u_int64_t n_loops;
-    u_int64_t loop_size;
-    u_int64_t *link;
-    u_int64_t *first;
-    u_int64_t *vtx;
-    vtx_element *vtx_type;
-    int n_diagrams;
+  long M;
+  long n;
+  int* op_string;
+  int* reduced_op_string;
+  int* trans_op_string;
 
-    u_int64_t* red_op_string;
-    u_int64_t* trans_op_string;
-} sse_state;
+  long n_loops;
+  long loop_size;
+  int* link;
+  int* first;
+  int* vertex_list;
+} SSE_config;
 
 /* 
- * function: init_heisenberg_system 
- *  initializes the heisenberg_system struct
- * 
- *  parameters:
- *      (int) d: dimension
- *      (int) L: number of unit cells
- *      (int) boundary_cond: boundary condition of the lattice
- *      (double) S: spin quantum number
- *      (double) delta: z-axis anisotropy strength
- *      (double) h: z-axis magnetic field strength
- *      (double) epsilon: constant added to the Hamiltonian
- *      (heisenberg_system *) system: system to be initialized
+ *  information about the SSE simulation
  */
-void init_heisenberg_system(int d, int L, int boundary_cond, double S, double delta, double h, 
-    double epsilon, heisenberg_system *system);
+typedef struct Sim_info
+{
+  long therm_cycles;
+  long mc_sweeps;
+  int n_bins;
+  int n_threads;
+
+  double wall_time;
+  double avg_n_loops;
+} Sim_info;
+
 
 /* 
- * function: init_sse_state 
  *  initializes the sse_state struct
- * 
- *  parameters:
- *      (uint64_t) seed: seed for the RNG
- *      (heisenberg_system *) system: simulated system
- *      (sse_state *) state: sse_state to be initialized
  */
-void init_sse_state(uint64_t seed, heisenberg_system *system, sse_state *state);
+void init_sse_config(double beta, int N, SSE_config *state);
 
 /* 
- * function: reset_sse_state
+ *  frees allocated memory in the sse_state struct
+ */
+void free_sse_config(SSE_config *state);
+
+/* 
  *  resets the SSE state
- *  deletes all of the operator string and spin states
- * 
- *  parameters:
- *      (heisenberg_system *) system: simulated system
- *      (sse_state *) state: SSE state
  */
-void reset_sse_state(heisenberg_system *system, sse_state *state);
+void reset_sse_config(int N, double Sz, SSE_config *state);
 
 /* 
- * function: diag_update
  *  diagonal update for the SSE MCS
- *  inserts or removes a diagonal operator from the operator string
- *   with some probablity
- * 
- *  paramters:
- *      (double) beta: temperature
- *      (heisenberg_system *) system: simulated system
- *      (sse_state *) state: SSE state
  */
-void diag_update(double beta, heisenberg_system *system, sse_state *state, pcg32_random_t* rng);
+void diag_update(XXZ_ham *system, SSE_config *state, pcg32_random_t* rng);
 
 /* 
- * function: loop_update
  *  loop update for the SSE MCS
- *  creates a loop within the vertex list and updates the configuration
- *  off-diagonal update
- * 
- *  parameters:
- *      (heisenberg_system *) system: simulated system
- *      (sse_state *) state: SSE state
  */
-void loop_update(heisenberg_system *system, sse_state *state, pcg32_random_t* rng);
+void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng);
 
 /* 
- * function: ajust_cutoff
  *  dinamically adjusts the expansion cutoff during the thermalization
- *   part of the simulation
- * 
- *  parameters:
- *      (sse_state *) state: SSE state
- *      (long) t: mc time
  */
-void ajust_cutoff(sse_state *state, long t);
+void ajust_cutoff(SSE_config* state, long t);
 
 /* 
- * function: create_vtx_list
  *  tranlates the operator string in to a doubly linked list of vertecies
- * 
- *  parameters:
- *      (heisenberg_system *) system: simulated system
- *      (sse_state *) state: SSE state
  */
-void create_vtx_list(heisenberg_system *system, sse_state *state);
+void create_vtx_list(XXZ_ham* ham, SSE_config* state);
 
 /* 
- * function: prob
  *  computes probability for diagonal updates
- *  
- *  parameters:
- *      (int) b: bond for the insertion/removal of operator
- *      (heisenberg_system *) system: system
- *      (sse_state* ) state: SSE state
- *  
- *  returns:
- *      (double) prob: probability for the update
  */
-double prob(int b, heisenberg_system *system, sse_state *state);
-
-/* 
- * function: free_memory
- *  frees allocated memory in the heisenberg_system and sse_state structs
- * 
- *  parameters:
- *      (heisenberg_system *) system: heisenberg_system struct
- *      (sse_state *) state: sse_state struct
- */
-void free_memory(heisenberg_system *system, sse_state *state);
+double prob(int state1, int state2, XXZ_ham* ham);
 
 #endif // SSE_H

@@ -4,57 +4,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+
 #include "../sampling/sampling.h"
-#include "../vtx/vtx_type.h"
+#include "../hamiltonian/hamiltonian.h"
+
+#define BUFFER_SIZE 256
 
 /*
- * function: read_inputs
- *  reads input file for the simulation and stores them in the 
- * parameters of the function
- *  
- *  parameters:
- *      (int *) d: dimension
- *      (int *) L: length of the system
- *      (int *) boundary_cond: boundary condition of the lattice
- *      (double *) S: spin quantum number
- *      (double *) delta: anisotropy
- *      (double *) h: applied magnetic field
- *      (double *) epsilon: constant added to the Hamiltonian
- *      (long *) therm_cycles: MCS for thermalization
- *      (long *) mc_cycles: MCS for sampling
- *      (int *) n_bins: number of sampling bins
- *      (double **) beta_vals: array to store simulation temperatures
- *      (int *) len_betas: number of temperatures 
+ *  reads input file for the simulation - Fortran function 
  */
-void read_inputs(int *d, int *L, int *boundary_cond, double *S, double *delta, 
-    double *h, double *epsilon, long *therm_cycles, long *mc_cycles, 
-    int *n_bins, double **beta_vals, int *len_beta);
+void read_parameters(int* Lx, int* Ly, char* boundary_condition, double* beta, double* epsilon, long* therm_cycles, int* n_bins, long* mc_sweeps, double* S, double* J_perp, double* J_par, double* h, double* D);
 
 /*
- * function: read_vtx_info
- *  reads vertex information for the simulation and 
- * stores it in the parameters of the function
- *  
- *  parameters:
- *      (char *) file_name: file name
- *      (vtx_element **) d: dimension
- *      (int *) n_diagrams: number of diagrams
+ *  reads vertex information for the simulation 
  */
-void read_vtx_info(char *file_name, vtx_element **vtx, int *n_diagrams);
+void read_vtx_info(Vertices** vtx, int* n_diagrams);
+
+// /*
+//  *  writes the simulation outputs to file
+//  */
+// char *write_outputs(sampled_quantities *samples, 
+//     int d, int L, int boundary_cond, double S, double delta, double h, double epsilon,
+//     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads);
 
 /*
- * function: write_outputs
- *  writes the simulation outputs to file
- *  
- *  parameters:
- *      (sampled_quantities *) samples: sampled quantities
- * during the simulation
- *  returns:
- *      (char *) file_name: name of save file
+ * writes observables
  */
-char *write_outputs(sampled_quantities *samples, 
-    int d, int L, int boundary_cond, double S, double delta, double h, double epsilon,
-    long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads);
+void write_observables(Obs_scalar* obs, int n_scal);
 
 #endif // IO_H

@@ -33,22 +33,21 @@ while getopts k:hn:m:t opts; do
     esac
 done
 
-echo "[1] - Checking if tmp directory exists."
-if [ -d "tmp" ]; then
-    echo "tmp directoty exists."
-else 
-    echo "tmp directory does not exist. Creating directory."
-    mkdir tmp
+if [[ -z "${SSE_DIR}" ]]; then
+  echo "The enviroment variable SSE_DIR does not exist."
+  echo "Please run the build.sh script on the main directory: "
+  echo "source build.sh"
+  exit 1 
 fi
 
-echo "[2] - Generating vertex information."
-vtx_name=$(python3 src/vtx/gen_vtx.py read.in)
-echo "Saved to file $vtx_name"
+if [[ ! -f "parameters" ]]; then
+  echo "The parameters files does not exist in the current directory. "
+  echo "Please copy the file from the main folder, ${SSE_DIR}."
+fi
 
-echo "[3] - Compiling program."
-make $kinetic $test
+echo "[1] - Generating vertex information."
+python3 $SSE_DIR/src/hamiltonian/gen_vtx.py parameters
 
-echo "[4] - Running the simulation."
-echo
-./main $n_threads tmp/$vtx_name $max_samp
-echo "[4] - Finished the simulation."
+echo "[2] - Running the simulation."
+$SSE_DIR/src/main $n_threads
+echo "[2] - Finished the simulation."
