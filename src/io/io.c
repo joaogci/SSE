@@ -2,7 +2,29 @@
 
 void read_vtx_info(Vertices** vtx, int* n_diagrams)
 {
-  FILE *vtx_file;
+  int status;
+  char* sse_path;
+  char command[BUFFER_SIZE];
+  FILE* vtx_file;
+
+  sse_path = getenv("SSE_DIR");
+  if (sse_path == NULL) {
+    printf("The SSE_DIR enviroment variable is not set. Please run the build.sh script in the SSE directory. \n");
+    printf("source build.sh \n");
+    exit(1);
+  }
+
+  strcpy(command, "");
+  strcat(command, "python3 ");
+  strcat(command, sse_path);
+  strcat(command, "/src/hamiltonian/gen_vtx.py parameters");
+  status = system(command);
+  if (status != 0) {
+    printf("Error executing %s.\n", command);
+    printf("Error core: %d\n", status);
+    exit(1);
+  }
+
   vtx_file = fopen("vertices_info", "r");
 
   if (vtx_file != NULL) {
