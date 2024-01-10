@@ -20,13 +20,6 @@ void read_parameters(int* Lx, int* Ly, char* boundary_condition, double* beta, d
  */
 void read_vtx_info(Vertices** vtx, int* n_diagrams);
 
-// /*
-//  *  writes the simulation outputs to file
-//  */
-// char *write_outputs(sampled_quantities *samples, 
-//     int d, int L, int boundary_cond, double S, double delta, double h, double epsilon,
-//     long therm_cycles, long mc_cycles, double cpu_time_used, int n_threads);
-
 /*
  * writes observables
  */
