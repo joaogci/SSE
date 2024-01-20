@@ -91,9 +91,9 @@ int main(int argc, char **argv)
     init_sse_config(beta, ham.latt->N, &state);
     pcg32_srandom_r(&rng, (SEED * (thread_id + 1)) ^ (intptr_t)&rng, (SEED * (thread_id + 1)));
 
-    n_scal = 2;
+    n_scal = 3;
     obs_scal = (Obs_scalar*) malloc(n_scal * sizeof(Obs_scalar));
-    n_eq = 0;
+    n_eq = 1;
     obs_eq = (Obs_latt*) malloc(n_eq * sizeof(Obs_latt));
     set_observables(obs_scal, n_scal, obs_eq, n_eq, &latt);
 
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
       // Write bin to file
       #pragma omp critical
-      write_observables(obs_scal, n_scal);
+      write_observables(obs_scal, n_scal, obs_eq, n_eq);
     }
 
     free_sse_config(&state);

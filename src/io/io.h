@@ -23,6 +23,6 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams);
 /*
  * writes observables
  */
-void write_observables(Obs_scalar* obs, int n_scal);
+void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq);
 
 #endif // IO_H

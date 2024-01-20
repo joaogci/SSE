@@ -59,8 +59,8 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
   n = 0;
   for (j = 0; j < L2; j++) {
     for (i = 0; i < L1; i++) {
-      lattice->r[n][0] = i - lattice->N/2;
-      lattice->r[n][1] = j - lattice->N/2;
+      lattice->r[n][0] = (i + 1) - lattice->L1/2;
+      lattice->r[n][1] = (j + 1) - lattice->L2/2;
       lattice->inv_r[i][j] = n;
       n++;
     }
@@ -68,8 +68,8 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
 
   for (i = 0; i < lattice->N; i++) {
     for (j = 0; j < lattice->N; j++) {
-      lattice->r_ij[i][j][0] = lattice->r[i][1] - lattice->r[j][1];
-      lattice->r_ij[i][j][1] = lattice->r[i][2] - lattice->r[j][2];
+      lattice->r_ij[i][j][0] = lattice->r[i][0] - lattice->r[j][0];
+      lattice->r_ij[i][j][1] = lattice->r[i][1] - lattice->r[j][1];
     }
   }
 
@@ -92,10 +92,11 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
     }
   }
 
+  n = 0;
   for (j = 0; j < L2; j++) {
     for (i = 0; i < L1; i++) {
-      lattice->k[n][0] = i - lattice->N/2;
-      lattice->k[n][1] = j - lattice->N/2;
+      lattice->k[n][0] = (i + 1) - lattice->L1/2;
+      lattice->k[n][1] = (j + 1) - lattice->L2/2;
       lattice->inv_k[i][j] = n;
       n++;
     }

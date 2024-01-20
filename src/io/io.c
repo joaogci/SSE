@@ -55,19 +55,36 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams)
   fclose(vtx_file);
 }
 
-void write_observables(Obs_scalar* obs, int n_scal)
+void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq)
 {
   int i;
   FILE* out;
+  FILE* out_i;
+  FILE* out_k;
   char filename[BUFFER_SIZE];
 
   for (i = 0; i < n_scal; i++) {
-    strcpy(filename, obs[i].filename);
+    strcpy(filename, obs_scal[i].filename);
     strcat(filename, "_scal");
 
     out = fopen(filename, "a");
-    write_obs_scalar(out, &(obs[i]));
+    write_obs_scalar(out, &(obs_scal[i]));
     fclose(out);
+  }
+
+  for (i = 0; i < n_eq; i++) {
+    strcpy(filename, obs_eq[i].filename);
+    strcat(filename, "_eqR");
+    out_i = fopen(filename, "a");
+
+    strcpy(filename, obs_eq[i].filename);
+    strcat(filename, "_eqK");
+    out_k = fopen(filename, "a");
+
+    write_obs_latt(out_i, out_k, &(obs_eq[i]));
+
+    fclose(out_i);
+    fclose(out_k);
   }
 }
 

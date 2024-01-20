@@ -1,6 +1,6 @@
 SOURCES = main.c sse/sse.c sampling/sampling.c io/io.c sampling/observables.c hamiltonian/hamiltonian.c hamiltonian/lattice.c rng/pcg_basic.c 
 INCLUDES = sse/sse.h sampling/sampling.h io/io.h sampling/observables.h hamiltonian/hamiltonian.h hamiltonian/lattice.h rng/pcg_basic.h
-FLAGS = -fopenmp -O2 
+FLAGS = -g -fopenmp -O2 
 DEBUG_FLAGS = -Wall -Wshadow
 LIBS = -lm -lgfortran
 PROGRAM = main
