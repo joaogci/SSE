@@ -15,8 +15,7 @@ export SSE_DIR=$(pwd)
 
 echo "[2] - Compiling SSE code"
 cd src
-make clean
-make 
+make
 cd ..
 echo "[3] -  Successful compilation"
 
