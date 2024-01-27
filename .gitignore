@@ -5,6 +5,8 @@ tmp
 isotropic_zero_field
 comparison_with_old_version
 main
+ana
+*.dSYM
 *.csv
 testing_python
 results_olav
