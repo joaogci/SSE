@@ -16,10 +16,9 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
     case 2:
       init_obs_scalar("Sz2", &(obs_scalar[n]));
       break;
-
-    // case 2:
-    //   init_obs_scalar("n", &(obs_scalar[n]));
-    //   break;
+    case 3:
+      init_obs_scalar("n", &(obs_scalar[n]));
+      break;
     // case 3:
     //   init_obs_scalar("n2", &(obs_scalar[n]));
     //   break;
@@ -89,6 +88,8 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
   }
   obs[1].obs_vec += Sz / ham->latt->N;
   obs[2].obs_vec += (Sz / ham->latt->N) * (Sz / ham->latt->N);
+
+  obs[3].obs_vec += state->n;
 }
 
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)

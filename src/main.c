@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     init_sse_config(beta, ham.latt->N, &state);
     pcg32_srandom_r(&rng, (SEED * (thread_id + 1)) ^ (intptr_t)&rng, (SEED * (thread_id + 1)));
 
-    n_scal = 3;
+    n_scal = 4;
     obs_scal = (Obs_scalar*) malloc(n_scal * sizeof(Obs_scalar));
     n_eq = 1;
     obs_eq = (Obs_latt*) malloc(n_eq * sizeof(Obs_latt));
