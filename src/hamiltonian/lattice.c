@@ -151,7 +151,7 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
 
   /* bonds */
   lattice->bond_list = (int**) malloc(lattice->Nb * sizeof(int*));
-  for (i = 0; i < lattice->N; i++) {
+  for (i = 0; i < lattice->Nb; i++) {
     lattice->bond_list[i] = (int*) malloc(2 * sizeof(int));
   }
 
@@ -159,8 +159,8 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
   for (n = 0; n < lattice->N; n++) {
     for (i = 0; i < lattice->z / 2; i++) {
       if (lattice->nn_list[n][2*i+1] != -1) {
-        lattice->bond_list[n][0] = n;
-        lattice->bond_list[n][1] = lattice->nn_list[n][2*i+1];
+        lattice->bond_list[b][0] = n;
+        lattice->bond_list[b][1] = lattice->nn_list[n][2*i+1];
         b++;
       }
     }
