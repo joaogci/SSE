@@ -25,4 +25,9 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams);
  */
 void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq);
 
+/*
+ * Writes transport observables
+ */
+void write_transport_obeservables(Obs_transport* obs, int n_transp);
+
 #endif // IO_H

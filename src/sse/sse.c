@@ -8,6 +8,7 @@ void init_sse_config(double beta, int N, SSE_config *state)
   state->loop_size = 0;
 
   state->op_string = (int*) malloc(state->M * sizeof(int));
+  state->op_tau = (double*) malloc((state->n + 2) * sizeof(double));
   state->reduced_op_string = (int*) malloc(state->n * sizeof(int));
   state->trans_op_string = (int*) malloc(state->n * sizeof(int));
 
@@ -42,6 +43,10 @@ void free_sse_config(SSE_config *state)
   free(state->link);
   free(state->reduced_op_string);
   free(state->trans_op_string);
+
+  if (state->op_tau != NULL) {
+    free(state->op_tau);
+  }
 }
 
 void diag_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng) 
@@ -315,3 +320,33 @@ double prob(int state1, int state2, XXZ_ham* ham)
   return 0.0;
 }
 
+void assign_times(SSE_config* state, pcg32_random_t* rng)
+{
+  int i;
+
+  free(state->op_tau);
+  state->op_tau = (double*) malloc((state->n + 2) * sizeof(double));
+
+  state->op_tau[0] = 0.0;
+  for (i = 1; i <= state->n; i++) {
+    state->op_tau[i] = pcg32_double_r(rng) * state->beta;    
+  }
+  state->op_tau[state->n + 1] = state->beta;
+  qsort(state->op_tau, state->n + 2, sizeof(double), compare);
+}
+
+int compare( const void* num1, const void* num2)
+{
+    double a = *(double*) num1;  
+    double b = *(double*) num2;  
+
+    if(a > b)
+    {  
+        return 1;  
+    }  
+    else if(a < b)  
+    {  
+        return -1;  
+    }  
+    return 0;  
+}

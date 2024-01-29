@@ -23,11 +23,6 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
 void reset_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq);
 
 /*
- * Sets the transport obervables to sample
- */
-void set_observables_transport(Obs_transport* obs);
-
-/*
  * Samples the set obsevables
  */
 void sample(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq, XXZ_ham* ham, SSE_config* state);
@@ -46,11 +41,5 @@ void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state);
  * Free the observable structs
  */
 void free_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq);
-
-/*
- * function: compare
- * compares two numbers for the imaginary time assignments
- */
-int compare( const void* num1, const void* num2);
 
 #endif // SAMPLING_H

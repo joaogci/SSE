@@ -88,3 +88,27 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
   }
 }
 
+void write_transport_obeservables(Obs_transport* obs, int n_transp)
+{
+  int i;
+  FILE* out;
+  char filename[BUFFER_SIZE], tmp[BUFFER_SIZE];
+
+  for (i = 0; i < n_transp; i++) {
+    strcpy(filename, obs[i].filename);
+    
+    strcat(filename, "_");
+    sprintf(tmp, "%d", obs[i].x);
+    strcat(filename, tmp);
+    
+    strcat(filename, "_");
+    sprintf(tmp, "%d", obs[i].y);
+    strcat(filename, tmp);
+
+    out = fopen(filename, "a");
+
+    write_obs_transport(out, &(obs[i]));
+
+    fclose(out);
+  }
+}

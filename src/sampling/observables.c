@@ -34,7 +34,7 @@ void init_obs_transport(char* filename, int x, int y, double beta, int n_max, Ob
 
   obs->omega_n = (double*) malloc(n_max * sizeof(double));
   for (n = 1; n <= n_max; n++) {
-    obs->omega_n[n] = 2.0 * M_PI * n / beta;
+    obs->omega_n[n - 1] = 2.0 * M_PI * n / beta;
   }
 
   obs->obs_transport = (double _Complex*) malloc(n_max * sizeof(double _Complex));
@@ -66,7 +66,7 @@ void reset_obs_transport(Obs_transport* obs)
   int n;
 
   obs->N = 0;
-  for (n = 1; n <= obs->n_max; n++) 
+  for (n = 0; n < obs->n_max; n++) 
     obs->obs_transport[n] = 0.0;
 }
 
@@ -107,7 +107,15 @@ void write_obs_latt(FILE* out_i, FILE* out_k, Obs_latt* obs)
 
 void write_obs_transport(FILE* out, Obs_transport* obs)
 {
+  int k; 
 
+  for (k = 0; k < obs->n_max; k++) {
+    obs->obs_transport[k] = obs->obs_transport[k] / obs->N;
+  }
+
+  for (k = 0; k < obs->n_max; k++) {
+    fprintf(out, "%lf (%lf, %lf) \n", obs->omega_n[k], creal(obs->obs_transport[k]), cimag(obs->obs_transport[k]));
+  }
 }
 
 void free_obs_latt(Obs_latt* obs)

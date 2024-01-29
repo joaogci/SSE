@@ -6,6 +6,7 @@
 #include "sse/sse.h"
 #include "sampling/sampling.h"
 #include "sampling/observables.h"
+#include "sampling/transport.h"
 #include "hamiltonian/hamiltonian.h"
 #include "hamiltonian/lattice.h"
 #include "io/io.h"
@@ -33,9 +34,12 @@ double S, J_perp, J_par, h, D;
 XXZ_ham ham;
 
 // Observables
-int n_eq, n_scal;
 Obs_scalar* obs_scal;
 Obs_latt* obs_eq;
+Obs_transport* obs_transp;
+int n_scal = 3;
+int n_eq = 2;
+int n_transp = 3;
 
 
 int main(int argc, char **argv)
@@ -77,7 +81,7 @@ int main(int argc, char **argv)
 
   start_clock = clock();
 
-  #pragma omp parallel private(state, obs_scal, obs_eq)
+  #pragma omp parallel private(state, obs_scal, obs_eq, obs_transp)
   {
     int thread_id, start_bin, end_bin;
     int n;    
@@ -91,11 +95,11 @@ int main(int argc, char **argv)
     init_sse_config(beta, ham.latt->N, &state);
     pcg32_srandom_r(&rng, (SEED * (thread_id + 1)) ^ (intptr_t)&rng, (SEED * (thread_id + 1)));
 
-    n_scal = 4;
     obs_scal = (Obs_scalar*) malloc(n_scal * sizeof(Obs_scalar));
-    n_eq = 1;
     obs_eq = (Obs_latt*) malloc(n_eq * sizeof(Obs_latt));
     set_observables(obs_scal, n_scal, obs_eq, n_eq, &latt);
+    obs_transp = (Obs_transport*) malloc(n_transp * sizeof(Obs_transport));
+    set_observables_transport(obs_transp, n_transp, beta, &ham);
 
     // Thermalization
     for (t = 0; t < sim.therm_cycles; t++) {
@@ -110,6 +114,7 @@ int main(int argc, char **argv)
     // Measurement sweeps
     for (n = start_bin; n < end_bin; n++) {
       reset_observables(obs_scal, n_scal, obs_eq, n_eq);
+      reset_observables_transport(obs_transp, n_transp);
 
       for (t = 0; t < sim.mc_sweeps; t++) {
         diag_update(&ham, &state, &rng);
@@ -119,17 +124,20 @@ int main(int argc, char **argv)
         loop_update(&ham, &state, &rng);
 
         sample(obs_scal, n_scal, obs_eq, n_eq, &ham, &state);
+        sample_transport(obs_transp, n_transp, &ham, &state, &rng);
       }
 
       // Write bin to file
       #pragma omp critical
       write_observables(obs_scal, n_scal, obs_eq, n_eq);
+      #pragma omp critical
+      write_transport_obeservables(obs_transp, n_transp);
     }
 
     free_sse_config(&state);
-    reset_observables(obs_scal, n_scal, obs_eq, n_eq);
     free(obs_eq);
     free(obs_scal);
+    free(obs_transp);
   }
 
   end_clock = clock();

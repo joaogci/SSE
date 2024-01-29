@@ -29,6 +29,7 @@ typedef struct SSE_config
   int* op_string;
   int* reduced_op_string;
   int* trans_op_string;
+  double* op_tau;
 
   long n_loops;
   long loop_size;
@@ -91,5 +92,15 @@ void create_vtx_list(XXZ_ham* ham, SSE_config* state);
  *  computes probability for diagonal updates
  */
 double prob(int state1, int state2, XXZ_ham* ham);
+
+/*
+ * randomly assigns times to the operators in the reduced operator string
+ */
+void assign_times(SSE_config* state, pcg32_random_t* rng);
+
+/*
+ * compares two numbers for the imaginary time assignments
+ */
+int compare( const void* num1, const void* num2);
 
 #endif // SSE_H
