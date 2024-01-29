@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "sse/sse.h"
+#include "rng/pcg_basic.h"
 #include "sampling/observables.h"
 #include "hamiltonian/hamiltonian.h"
 #include "hamiltonian/lattice.h"

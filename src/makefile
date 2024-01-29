@@ -1,9 +1,17 @@
-SOURCES = sse/sse.c sampling/sampling.c io/io.c sampling/observables.c hamiltonian/hamiltonian.c hamiltonian/lattice.c rng/pcg_basic.c analysis/analysis.c sampling/transport.c
-INCLUDES = sse/sse.h sampling/sampling.h io/io.h sampling/observables.h hamiltonian/hamiltonian.h hamiltonian/lattice.h rng/pcg_basic.h analysis/analysis.h sampling/transport.h
-FLAGS = -g -fopenmp -O2 
-DEBUG_FLAGS = -Wall -Wshadow
-LIBS = -lm -lgfortran
+INCLUDES_SSE = sse/sse.h sampling/observables.h sampling/sampling.h \
+	sampling/transport.h hamiltonian/hamiltonian.h hamiltonian/lattice.h \
+	io/io.h analysis/analysis.h rng/pcg_basic.h
+SOURCES_SSE = main.c sse/sse.c sampling/observables.c sampling/sampling.c \
+	sampling/transport.c hamiltonian/hamiltonian.c hamiltonian/lattice.c io/io.c \
+	analysis/analysis.c rng/pcg_basic.c
+INCLUDES_ANA = sse/sse.h sampling/observables.h hamiltonian/hamiltonian.h \
+	hamiltonian/lattice.h io/io.h analysis/analysis.h rng/pcg_basic.h
+SOURCES_ANA = ana.c sse/sse.c sampling/observables.c hamiltonian/hamiltonian.c \
+	hamiltonian/lattice.c io/io.c analysis/analysis.c rng/pcg_basic.c
 
+FLAGS = -fopenmp -O2 
+DEBUG_FLAGS = -g -Wall -Wshadow
+LIBS = -lm -lgfortran
 
 ifeq ($(OS),Windows_NT)
 	$(Windows is not supported. Use a UNIX OS.)
@@ -21,11 +29,11 @@ endif
 
 all: main ana
 
-main: read_parameters $(SOURCES) $(INCLUDES) main.c
-	$(CC) -o main $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o main.c $(SOURCES) $(LIBS)
+main: read_parameters $(SOURCES_SSE) $(INCLUDES_SSE)
+	$(CC) -o main $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o $(SOURCES_SSE) $(LIBS)
 
-ana: read_parameters $(SOURCES) $(INCLUDES) ana.c
-	$(CC) -o ana $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o ana.c $(SOURCES) $(LIBS)
+ana: read_parameters $(SOURCES_ANA) $(INCLUDES_ANA) 
+	$(CC) -o ana $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o $(SOURCES_ANA) $(LIBS)
 
 read_parameters: io/read_parameters.f90
 	$(FORT) -o io/read_parameters.o -c io/read_parameters.f90
