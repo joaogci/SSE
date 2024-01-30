@@ -1,7 +1,7 @@
 &Lattice
 Lx                  = 6   ! Number of unit lattices on the x direction
 Ly                  = 1   ! Number of unit lattices on the x direction
-boundary_condition  = "P" ! Boundary condition: P for PBC or O for OBC
+boundary_condition  = "O" ! Boundary condition: P for PBC or O for OBC
 /
 
 &Simulation

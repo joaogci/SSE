@@ -58,9 +58,7 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams)
 void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq)
 {
   int i;
-  FILE* out;
-  FILE* out_i;
-  FILE* out_k;
+  FILE* out,* out_i,* out_k,* info;
   char filename[BUFFER_SIZE];
 
   for (i = 0; i < n_scal; i++) {
@@ -70,6 +68,11 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
     out = fopen(filename, "a");
     write_obs_scalar(out, &(obs_scal[i]));
     fclose(out);
+
+    strcat(filename, "_info");
+    info = fopen(filename, "w");
+    write_obs_scalar_info(info, &(obs_scal[i]));
+    fclose(info);
   }
 
   for (i = 0; i < n_eq; i++) {
@@ -85,13 +88,19 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
 
     fclose(out_i);
     fclose(out_k);
+
+    strcpy(filename, obs_eq[i].filename);
+    strcat(filename, "_eq_info");
+    info = fopen(filename, "w");
+    write_obs_eq_info(info, &(obs_eq[i]));
+    fclose(info);
   }
 }
 
 void write_transport_obeservables(Obs_transport* obs, int n_transp)
 {
   int i;
-  FILE* out;
+  FILE* out,* info;
   char filename[BUFFER_SIZE], tmp[BUFFER_SIZE];
 
   for (i = 0; i < n_transp; i++) {
@@ -104,11 +113,32 @@ void write_transport_obeservables(Obs_transport* obs, int n_transp)
     strcat(filename, "_");
     sprintf(tmp, "%d", obs[i].y);
     strcat(filename, tmp);
+    strcat(filename, "_transp");
 
     out = fopen(filename, "a");
-
     write_obs_transport(out, &(obs[i]));
-
     fclose(out);
+
+    strcat(filename, "_info");
+    info = fopen(filename, "w");
+    write_obs_transport_info(info, &(obs[i]));
+    fclose(info);
   }
+}
+
+int num_lines(FILE* fp)
+{
+  int ch, lines;
+
+  lines = 0;
+  while(!feof(fp))
+  {
+    ch = fgetc(fp);
+    if(ch == '\n')
+    {
+      lines++;
+    }
+  }
+
+  return lines;
 }

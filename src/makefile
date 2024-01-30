@@ -4,13 +4,11 @@ INCLUDES_SSE = sse/sse.h sampling/observables.h sampling/sampling.h \
 SOURCES_SSE = main.c sse/sse.c sampling/observables.c sampling/sampling.c \
 	sampling/transport.c hamiltonian/hamiltonian.c hamiltonian/lattice.c io/io.c \
 	analysis/analysis.c rng/pcg_basic.c
-INCLUDES_ANA = sse/sse.h sampling/observables.h hamiltonian/hamiltonian.h \
-	hamiltonian/lattice.h io/io.h analysis/analysis.h rng/pcg_basic.h
-SOURCES_ANA = ana.c sse/sse.c sampling/observables.c hamiltonian/hamiltonian.c \
-	hamiltonian/lattice.c io/io.c analysis/analysis.c rng/pcg_basic.c
+INCLUDES_ANA = hamiltonian/lattice.h io/io.h analysis/analysis.h sampling/observables.h
+SOURCES_ANA = ana.c hamiltonian/lattice.c io/io.c analysis/analysis.c sampling/observables.c
 
 FLAGS = -fopenmp -O2 
-DEBUG_FLAGS = -g -Wall -Wshadow
+DEBUG_FLAGS = -Wall -Wshadow
 LIBS = -lm -lgfortran
 
 ifeq ($(OS),Windows_NT)

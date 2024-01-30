@@ -30,4 +30,9 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
  */
 void write_transport_obeservables(Obs_transport* obs, int n_transp);
 
+/*
+ * Returns the number of lines of a file
+ */
+int num_lines(FILE* fp);
+
 #endif // IO_H

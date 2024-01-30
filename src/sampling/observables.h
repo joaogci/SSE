@@ -71,6 +71,10 @@ void write_obs_scalar(FILE* out, Obs_scalar* obs);
 void write_obs_latt(FILE* out_i, FILE* out_k, Obs_latt* obs);
 void write_obs_transport(FILE* out, Obs_transport* obs);
 
+void write_obs_scalar_info(FILE* info, Obs_scalar* obs);
+void write_obs_eq_info(FILE* info, Obs_latt* obs);
+void write_obs_transport_info(FILE* out, Obs_transport* obs);
+
 void free_obs_latt(Obs_latt* obs);
 void free_obs_transport(Obs_transport* obs);
 

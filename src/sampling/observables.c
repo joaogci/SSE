@@ -76,6 +76,12 @@ void write_obs_scalar(FILE* out, Obs_scalar* obs)
   fprintf(out, "(%lf, %lf) \n", creal(obs->obs_vec), cimag(obs->obs_vec));
 }
 
+void write_obs_scalar_info(FILE* info, Obs_scalar* obs)
+{
+  fprintf(info, "-- Analysis Mode --\n");
+  fprintf(info, "identity\n");
+}
+
 void write_obs_latt(FILE* out_i, FILE* out_k, Obs_latt* obs)
 {
   int i, j;
@@ -105,6 +111,18 @@ void write_obs_latt(FILE* out_i, FILE* out_k, Obs_latt* obs)
   }
 }
 
+void write_obs_eq_info(FILE* info, Obs_latt* obs)
+{
+  fprintf(info, "-- Analysis Mode --\n");
+  fprintf(info, "equal time\n");
+  fprintf(info, "-- Lattice --\n");
+  fprintf(info, "L1: %d\n", obs->latt->L1);
+  fprintf(info, "L2: %d\n", obs->latt->L2);
+  fprintf(info, "a1: (%lf, %lf)\n", obs->latt->a_1[0], obs->latt->a_1[1]);
+  fprintf(info, "a2: (%lf, %lf)\n", obs->latt->a_2[0], obs->latt->a_2[1]);
+  fprintf(info, "boundary condition: %c\n", obs->latt->bc);
+}
+
 void write_obs_transport(FILE* out, Obs_transport* obs)
 {
   int k; 
@@ -116,6 +134,17 @@ void write_obs_transport(FILE* out, Obs_transport* obs)
   for (k = 0; k < obs->n_max; k++) {
     fprintf(out, "%lf (%lf, %lf) \n", obs->omega_n[k], creal(obs->obs_transport[k]), cimag(obs->obs_transport[k]));
   }
+}
+
+void write_obs_transport_info(FILE* info, Obs_transport* obs)
+{
+  fprintf(info, "-- Analysis Mode --\n");
+  fprintf(info, "transport\n");
+  fprintf(info, "-- Transport --\n");
+  fprintf(info, "x: %d\n", obs->x);
+  fprintf(info, "y: %d\n", obs->y);
+  fprintf(info, "n_max: %d\n", obs->n_max);
+  fprintf(info, "beta: %lf\n", obs->beta);
 }
 
 void free_obs_latt(Obs_latt* obs)
