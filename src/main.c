@@ -151,7 +151,9 @@ int main(int argc, char **argv)
 
   end_clock = clock();
   sim.wall_time = ((double) (end_clock - start_clock)) / (CLOCKS_PER_SEC * sim.n_threads);
-  
+
+  write_sim_info(sim);
+
   printf("Simulation finished in %.5lfs \n", sim.wall_time);
   fflush(stdout);
 
