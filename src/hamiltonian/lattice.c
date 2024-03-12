@@ -30,7 +30,7 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
     lattice->d = 1;
     lattice->z = 2;
   }
-  lattice->Nb = lattice->d * lattice->N;
+  lattice->Nb = lattice->z * lattice->N / 2;
 
   if (bc == 'O' && lattice->d == 1) {
     lattice->Nb = lattice->Nb - 1;
