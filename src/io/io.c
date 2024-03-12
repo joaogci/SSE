@@ -90,7 +90,13 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
     fclose(out_k);
 
     strcpy(filename, obs_eq[i].filename);
-    strcat(filename, "_eq_info");
+    strcat(filename, "_eqR_info");
+    info = fopen(filename, "w");
+    write_obs_eq_info(info, &(obs_eq[i]));
+    fclose(info);
+
+    strcpy(filename, obs_eq[i].filename);
+    strcat(filename, "_eqK_info");
     info = fopen(filename, "w");
     write_obs_eq_info(info, &(obs_eq[i]));
     fclose(info);

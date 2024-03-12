@@ -41,21 +41,23 @@ int main(int argc, char** argv)
 
   // Analysis
   for (i = 1; i < argc; i++) {
-    if (strstr(argv[i], "_info") != NULL && strcmp(argv[i], "vertices_info") != 0) {
+    if (strstr(argv[i], "_info") == NULL && strcmp(argv[i], "vertices_info") != 0 && strcmp(argv[i], "parameters") != 0) {
       if (access(argv[i], F_OK) != 0) {
         printf("%s file does not exist. \n", argv[i]);
         continue;
       }
       
-      info = fopen(argv[i], "r");
+      strcpy(filename, argv[i]);
+      strcat(filename, "_info");
+      info = fopen(filename, "r");
 
       line = NULL;
       getline(&line, &len, info);
       getline(&line, &len, info);
       line[strlen(line) - 1] = '\0';
 
-      strcpy(filename, argv[i]);
-      filename[strlen(filename) - 5] = '\0';
+      // strcpy(filename, argv[i]);
+      // filename[strlen(filename) - 5] = '\0';
       
       switch (line[0]) 
       {
@@ -63,6 +65,7 @@ int main(int argc, char** argv)
           obs_scal.obs_mean = 0.0;
           obs_scal.obs_std = 0.0;
 
+          strcpy(filename, argv[i]);
           res = fopen(filename, "r");
           len = num_lines(res);
           n_bins = len;
@@ -98,7 +101,8 @@ int main(int argc, char** argv)
             obs_eq.obs_std[n] = 0.0;
           }
 
-          strcat(filename, "R");
+          strcpy(filename, argv[i]);
+          // strcat(filename, "R");
           res = fopen(filename, "r");
           len = num_lines(res);
           n_bins = len / latt.N;
@@ -117,31 +121,31 @@ int main(int argc, char** argv)
           write_latt_r(out, &obs_eq, &latt);
           fclose(out);
 
-          for (n = 0; n < latt.N; n++) {
-            obs_eq.obs_mean[n] = 0.0;
-            obs_eq.obs_std[n] = 0.0;
-          }
+          // for (n = 0; n < latt.N; n++) {
+          //   obs_eq.obs_mean[n] = 0.0;
+          //   obs_eq.obs_std[n] = 0.0;
+          // }
 
-          filename[strlen(filename) - 2] = '\0';
-          strcat(filename, "K");
-          res = fopen(filename, "r");
-          len = num_lines(res);
-          n_bins = len / latt.N;
-          fclose(res);
+          // filename[strlen(filename) - 2] = '\0';
+          // strcat(filename, "K");
+          // res = fopen(filename, "r");
+          // len = num_lines(res);
+          // n_bins = len / latt.N;
+          // fclose(res);
 
-          printf("Analysing %s \n", filename);
-          printf("Number of bins: %d \n", n_bins);
+          // printf("Analysing %s \n", filename);
+          // printf("Number of bins: %d \n", n_bins);
 
-          res = fopen(filename, "r");
-          analyse_latt(res, &obs_eq, &latt, n_bins);
-          fclose(res);
+          // res = fopen(filename, "r");
+          // analyse_latt(res, &obs_eq, &latt, n_bins);
+          // fclose(res);
 
 
-          filename[strlen(filename) - 1] = '\0';
-          strcat(filename, "JK");
-          out = fopen(filename, "w");
-          write_latt_k(out, &obs_eq, &latt);
-          fclose(out);
+          // filename[strlen(filename) - 1] = '\0';
+          // strcat(filename, "JK");
+          // out = fopen(filename, "w");
+          // write_latt_k(out, &obs_eq, &latt);
+          // fclose(out);
 
           free(obs_eq.obs_mean);
           free(obs_eq.obs_std);
@@ -162,6 +166,7 @@ int main(int argc, char** argv)
             obs_transp.obs_std[n] = 0.0;
           }
 
+          strcpy(filename, argv[i]);
           res = fopen(filename, "r");
           len = num_lines(res);
           n_bins = len / n_max;
