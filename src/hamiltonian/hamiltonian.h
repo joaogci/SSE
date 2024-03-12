@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "lattice.h"
+#include "lattice_hyperbolic.h"
 
 #define N_LEGS      4
 #define N_TYPES     3
@@ -42,7 +43,7 @@ typedef struct XXZ_ham
   double C;
   double epsilon;
 
-  Lattice* latt;
+  Lattice_Hyperbolic* latt;
   Vertices* vertices;
   int n_diagrams;
   int n_type;

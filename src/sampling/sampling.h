@@ -10,12 +10,13 @@
 #include "../sse/sse.h"
 #include "observables.h"
 #include "../hamiltonian/lattice.h"
+#include "../hamiltonian/lattice_hyperbolic.h"
 #include "../hamiltonian/hamiltonian.h"
 
 /*
  * Sets the obervables to sample
  */
-void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq, Lattice* latt);
+void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq, Lattice_Hyperbolic* latt);
 
 /*
  * Reset observables
