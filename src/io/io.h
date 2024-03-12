@@ -7,6 +7,7 @@
 
 #include "../sampling/sampling.h"
 #include "../hamiltonian/hamiltonian.h"
+#include "../sse/sse.h"
 
 #define BUFFER_SIZE 256
 
@@ -29,6 +30,11 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
  * Writes transport observables
  */
 void write_transport_obeservables(Obs_transport* obs, int n_transp);
+
+/*
+ * writes simulation statistics to file
+ */
+void write_sim_info(Sim_info sim);
 
 /*
  * Returns the number of lines of a file

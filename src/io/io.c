@@ -132,6 +132,19 @@ void write_transport_obeservables(Obs_transport* obs, int n_transp)
   }
 }
 
+void write_sim_info(Sim_info sim)
+{
+  FILE* out;
+
+  out = fopen("info", "a");
+  fprintf(out, "  -------------------------------  \n");
+  fprintf(out, "Thermalization cycles:   %ld \n", sim.therm_cycles);
+  fprintf(out, "Number of bins, sweeps:  %d, %ld\n", sim.n_bins, sim.mc_sweeps);
+  fprintf(out, "Average number of loops: %lf \n", sim.avg_n_loops);
+  fprintf(out, "Wall Time:               %lfs \n", sim.wall_time);
+  fclose(out);
+}
+
 int num_lines(FILE* fp)
 {
   int ch, lines;
