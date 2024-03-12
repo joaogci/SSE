@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "../hamiltonian/lattice.h"
+#include "../hamiltonian/lattice_hyperbolic.h"
 
 #define BUFFER 32
 
@@ -38,7 +39,7 @@ typedef struct Obs_latt
   double _Complex* obs_k;
   double _Complex* obs_i;
 
-  Lattice* latt;
+  Lattice_Hyperbolic* latt;
 } Obs_latt;
 
 /* 
@@ -60,7 +61,7 @@ typedef struct Obs_transport
 
 
 void init_obs_scalar(char* filename, Obs_scalar* obs);
-void init_obs_latt(char* filename, Lattice* latt, Obs_latt* obs);
+void init_obs_latt(char* filename, Lattice_Hyperbolic* latt, Obs_latt* obs);
 void init_obs_transport(char* filename, int x, int y, double beta, int n_max, Obs_transport* obs);
 
 void reset_obs_scalar(Obs_scalar* obs);

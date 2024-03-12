@@ -5,7 +5,7 @@ void init_obs_scalar(char* filename, Obs_scalar* obs)
   strcpy(obs->filename, filename);
 }
 
-void init_obs_latt(char* filename, Lattice* latt, Obs_latt* obs)
+void init_obs_latt(char* filename, Lattice_Hyperbolic* latt, Obs_latt* obs)
 {
   int i;
 
@@ -93,22 +93,31 @@ void write_obs_latt(FILE* out_i, FILE* out_k, Obs_latt* obs)
     obs->obs_latt0[i] = obs->obs_latt0[i] / obs->N;
   }
 
-  fourier_trans(obs);
-  inv_fourier_trans(obs);
-
   for (i = 0; i < obs->latt->N; i++) {
-    fprintf(out_i, "(%lf, %lf) (%lf, %lf) \n", (double) obs->latt->r[i][0], 
-                                               (double) obs->latt->r[i][1], 
-                                               creal(obs->obs_i[i]), 
-                                               cimag(obs->obs_i[i]));
+    for (j = 0; j < obs->latt->N; j++) {
+      fprintf(out_i, "(%d, %d) (%lf, %lf) \n",  i, 
+                                                j, 
+                                                creal(obs->obs_latt[i][j]), 
+                                                cimag(obs->obs_latt[i][j]));
+    }
   }
 
-  for (i = 0; i < obs->latt->N; i++) {
-    fprintf(out_k, "(%lf, %lf) (%lf, %lf) \n", (double) (obs->latt->k[i][0] * obs->latt->b_1[0] + obs->latt->k[i][1] * obs->latt->b_2[0]), 
-                                               (double) (obs->latt->k[i][0] * obs->latt->b_1[1] + obs->latt->k[i][1] * obs->latt->b_2[1]), 
-                                               creal(obs->obs_k[i]), 
-                                               cimag(obs->obs_k[i]));
-  }
+  // fourier_trans(obs);
+  // inv_fourier_trans(obs);
+
+  // for (i = 0; i < obs->latt->N; i++) {
+  //   fprintf(out_i, "(%lf, %lf) (%lf, %lf) \n", (double) obs->latt->r[i][0], 
+  //                                              (double) obs->latt->r[i][1], 
+  //                                              creal(obs->obs_i[i]), 
+  //                                              cimag(obs->obs_i[i]));
+  // }
+
+  // for (i = 0; i < obs->latt->N; i++) {
+  //   fprintf(out_k, "(%lf, %lf) (%lf, %lf) \n", (double) (obs->latt->k[i][0] * obs->latt->b_1[0] + obs->latt->k[i][1] * obs->latt->b_2[0]), 
+  //                                              (double) (obs->latt->k[i][0] * obs->latt->b_1[1] + obs->latt->k[i][1] * obs->latt->b_2[1]), 
+  //                                              creal(obs->obs_k[i]), 
+  //                                              cimag(obs->obs_k[i]));
+  // }
 }
 
 void write_obs_eq_info(FILE* info, Obs_latt* obs)
@@ -116,11 +125,11 @@ void write_obs_eq_info(FILE* info, Obs_latt* obs)
   fprintf(info, "-- Analysis Mode --\n");
   fprintf(info, "equal time\n");
   fprintf(info, "-- Lattice --\n");
-  fprintf(info, "L1: %d\n", obs->latt->L1);
-  fprintf(info, "L2: %d\n", obs->latt->L2);
-  fprintf(info, "a1: (%lf, %lf)\n", obs->latt->a_1[0], obs->latt->a_1[1]);
-  fprintf(info, "a2: (%lf, %lf)\n", obs->latt->a_2[0], obs->latt->a_2[1]);
-  fprintf(info, "boundary condition: %c\n", obs->latt->bc);
+  // fprintf(info, "L1: %d\n", obs->latt->L1);
+  // fprintf(info, "L2: %d\n", obs->latt->L2);
+  // fprintf(info, "a1: (%lf, %lf)\n", obs->latt->a_1[0], obs->latt->a_1[1]);
+  // fprintf(info, "a2: (%lf, %lf)\n", obs->latt->a_2[0], obs->latt->a_2[1]);
+  // fprintf(info, "boundary condition: %c\n", obs->latt->bc);
 }
 
 void write_obs_transport(FILE* out, Obs_transport* obs)
@@ -168,37 +177,37 @@ void free_obs_transport(Obs_transport* obs)
 
 void fourier_trans(Obs_latt* obs) 
 {
-  int i, j, n;
-  double a[2], b[2];
+  // int i, j, n;
+  // double a[2], b[2];
 
-  for (n = 0; n < obs->latt->N; n++) {
-    for (i = 0; i < obs->latt->N; i++) {
-      for (j = 0; j < obs->latt->N; j++) {
-        a[0] = obs->latt->k[n][0] * obs->latt->b_1[0] + obs->latt->k[n][1] * obs->latt->b_2[0];
-        a[1] = obs->latt->k[n][0] * obs->latt->b_1[1] + obs->latt->k[n][1] * obs->latt->b_2[1];
-        b[0] = obs->latt->r_ij[i][j][0];
-        b[1] = obs->latt->r_ij[i][j][1];
+  // for (n = 0; n < obs->latt->N; n++) {
+  //   for (i = 0; i < obs->latt->N; i++) {
+  //     for (j = 0; j < obs->latt->N; j++) {
+  //       a[0] = obs->latt->k[n][0] * obs->latt->b_1[0] + obs->latt->k[n][1] * obs->latt->b_2[0];
+  //       a[1] = obs->latt->k[n][0] * obs->latt->b_1[1] + obs->latt->k[n][1] * obs->latt->b_2[1];
+  //       b[0] = obs->latt->r_ij[i][j][0];
+  //       b[1] = obs->latt->r_ij[i][j][1];
 
-        obs->obs_k[n] += cexp(- I * (a[0] * b[0] + a[1] * b[1])) * (obs->obs_latt[i][j] - obs->obs_latt0[i] * obs->obs_latt0[j]) / (obs->latt->N);
-      }
-    }
-  }
+  //       obs->obs_k[n] += cexp(- I * (a[0] * b[0] + a[1] * b[1])) * (obs->obs_latt[i][j] - obs->obs_latt0[i] * obs->obs_latt0[j]) / (obs->latt->N);
+  //     }
+  //   }
+  // }
 }
 
 void inv_fourier_trans(Obs_latt* obs)
 {
-  int i, n;
-  double a[2], b[2];
+  // int i, n;
+  // double a[2], b[2];
 
-  for (i = 0; i < obs->latt->N; i++) {
-    for (n = 0; n < obs->latt->N; n++) {
-      a[0] = obs->latt->k[n][0] * obs->latt->b_1[0] + obs->latt->k[n][1] * obs->latt->b_2[0];
-      a[1] = obs->latt->k[n][0] * obs->latt->b_1[1] + obs->latt->k[n][1] * obs->latt->b_2[1];
-      b[0] = obs->latt->r[i][0];
-      b[1] = obs->latt->r[i][1];
+  // for (i = 0; i < obs->latt->N; i++) {
+  //   for (n = 0; n < obs->latt->N; n++) {
+  //     a[0] = obs->latt->k[n][0] * obs->latt->b_1[0] + obs->latt->k[n][1] * obs->latt->b_2[0];
+  //     a[1] = obs->latt->k[n][0] * obs->latt->b_1[1] + obs->latt->k[n][1] * obs->latt->b_2[1];
+  //     b[0] = obs->latt->r[i][0];
+  //     b[1] = obs->latt->r[i][1];
 
-      obs->obs_i[i] += cexp(I * (a[0] * b[0] + a[1] * b[1])) * obs->obs_k[n] / (obs->latt->N);
-    }
-  }
+  //     obs->obs_i[i] += cexp(I * (a[0] * b[0] + a[1] * b[1])) * obs->obs_k[n] / (obs->latt->N);
+  //   }
+  // }
 }
 

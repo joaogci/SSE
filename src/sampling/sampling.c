@@ -1,6 +1,6 @@
 #include "sampling.h"
 
-void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq, Lattice* latt)
+void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq, Lattice_Hyperbolic* latt)
 {
   int n;
 

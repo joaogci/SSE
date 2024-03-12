@@ -9,15 +9,15 @@ N_LEGS = 4
 # Read the input file to get the system parameters
 parameters = f90nml.read(FILENAME)
 
-Lx = parameters["Lattice"]["Lx"]
-Ly = parameters["Lattice"]["Ly"]
-N = Lx * Ly
-if Ly == 1:
-  d = 1
-  z = 2
-else: 
-  d = 2
-  z = 4
+# Lx = parameters["Lattice"]["Lx"]
+# Ly = parameters["Lattice"]["Ly"]
+# N = Lx * Ly
+# if Ly == 1:
+#   d = 1
+#   z = 2
+# else: 
+#   d = 2
+#   z = 4
 
 epsilon = parameters["Simulation"]["epsilon"]
 
@@ -26,10 +26,10 @@ Sz = [m for m in np.arange(- S, S + 1, 1)]
 
 J_perp = parameters["Hamiltonian"]["J_perp"]
 J_par = parameters["Hamiltonian"]["J_par"]
-h = parameters["Hamiltonian"]["magnetic_field"]
-D = parameters["Hamiltonian"]["crystal_field"]
+# h = parameters["Hamiltonian"]["magnetic_field"]
+# D = parameters["Hamiltonian"]["crystal_field"]
 
-C = S**2 * np.abs(J_par) + 2 * (np.abs(h) * S + np.abs(D) * S**2) / z + epsilon
+C = S**2 * np.abs(J_par) + epsilon # + 2 * (np.abs(h) * S + np.abs(D) * S**2) / z + epsilon
 
 SAVE_FILENAME = "vertices_info"
 
@@ -80,7 +80,7 @@ def H(state1, state2):
 
   term4 = 0.0
   if vtx_type == 0:
-    term4 += h * (Sz_op(spin_i) + Sz_op(spin_j)) - D * (Sz_op(spin_i)**2 + Sz_op(spin_j)**2) / z
+    # term4 += h * (Sz_op(spin_i) + Sz_op(spin_j)) - D * (Sz_op(spin_i)**2 + Sz_op(spin_j)**2) / z
     term4 += C
   
   term += J_perp * (term1 + term2) + term4 - J_par * term3

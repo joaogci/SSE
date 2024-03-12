@@ -55,6 +55,43 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams)
   fclose(vtx_file);
 }
 
+void read_adjacency_matrix(int*** adj_mat, int* N, int p, int q, int nl)
+{
+  int i, j;
+  char filename[BUFFER_SIZE];
+  char *sse_path;
+  FILE* adj_file;
+
+  sse_path = getenv("SSE_DIR");
+  if (sse_path == NULL) {
+    printf("The SSE_DIR enviroment variable is not set. Please run the build.sh script in the SSE directory. \n");
+    printf("source build.sh \n");
+    exit(1);
+  }
+
+  sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/hopping_%d_%d_%d.dat", sse_path, p, q, nl);
+  adj_file = fopen(filename, "r");
+
+  if (adj_file != NULL) {
+    fscanf(adj_file, "%d \n", N);
+    (*adj_mat) = (int**) malloc((*N) * sizeof(int*));
+    
+    for (i = 0; i < (*N); i++) {
+      (*adj_mat)[i] = (int*) malloc((*N) * sizeof(int));
+
+      for (j = 0; j < (*N); j++) {
+        fscanf(adj_file, "%d.", &((*adj_mat)[i][j]));
+      }
+    }
+  } else {
+    printf("Error opening the adjacency matrix file. \n");
+    printf("The values of p, q and nl do not have an adjacency matrix assigned. \n");
+    exit(1);
+  }
+  
+  fclose(adj_file); 
+}
+
 void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq)
 {
   int i;
