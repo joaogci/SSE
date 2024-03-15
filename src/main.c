@@ -25,7 +25,6 @@
 // double a_1[2], a_2[2];
 // Lattice latt;
 int p, q, nl;
-int N;
 int** adj_mat;
 Lattice_Hyperbolic latt;
 
@@ -74,8 +73,8 @@ int main(int argc, char **argv)
   // a_1[0] = 1.0; a_1[1] = 0.0;
   // a_2[0] = 0.0; a_2[1] = 1.0;
   // make_lattice(Lx, Ly, a_1, a_2, boundary_condition, &latt);
-  read_adjacency_matrix(&adj_mat, &N, p, q, nl);
-  make_lattice_hyperbolic(p, q, nl, adj_mat, N, &latt);
+  read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), p, q, nl);
+  make_lattice_hyperbolic(p, q, nl, &(adj_mat), &latt);
 
   // Hamiltonian
   init_ham(S, J_par, J_perp, 0.0, 0.0, epsilon, &ham);

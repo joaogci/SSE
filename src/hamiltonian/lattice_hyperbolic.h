@@ -15,16 +15,22 @@ typedef struct Lattice_Hyperbolic
   int q;
   int nl;
 
+  double L;
   int N;
   int Nb;
 
-  int** bond_list;
+  double** r;
+
+  int** bond_list;  
+
+  int* bulk;
+  int* sublattice;
 } Lattice_Hyperbolic;
 
 /*
  * makes hyperbolic lattice
  */
-void make_lattice_hyperbolic(int p, int q, int nl, int** adj_mat, int N, Lattice_Hyperbolic* latt);
+void make_lattice_hyperbolic(int p, int q, int nl, int*** adj_mat, Lattice_Hyperbolic* latt);
 
 /*
  * frees hyperbolic lattice

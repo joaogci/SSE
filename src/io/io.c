@@ -55,12 +55,12 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams)
   fclose(vtx_file);
 }
 
-void read_adjacency_matrix(int*** adj_mat, int* N, int p, int q, int nl)
+void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int p, int q, int nl)
 {
   int i, j;
   char filename[BUFFER_SIZE];
   char *sse_path;
-  FILE* adj_file;
+  FILE* file;
 
   sse_path = getenv("SSE_DIR");
   if (sse_path == NULL) {
@@ -70,17 +70,17 @@ void read_adjacency_matrix(int*** adj_mat, int* N, int p, int q, int nl)
   }
 
   sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/hopping_%d_%d_%d.dat", sse_path, p, q, nl);
-  adj_file = fopen(filename, "r");
+  file = fopen(filename, "r");
 
-  if (adj_file != NULL) {
-    fscanf(adj_file, "%d \n", N);
+  if (file != NULL) {
+    fscanf(file, "%d \n", N);
     (*adj_mat) = (int**) malloc((*N) * sizeof(int*));
     
     for (i = 0; i < (*N); i++) {
       (*adj_mat)[i] = (int*) malloc((*N) * sizeof(int));
 
       for (j = 0; j < (*N); j++) {
-        fscanf(adj_file, "%d.", &((*adj_mat)[i][j]));
+        fscanf(file, "%d.", &((*adj_mat)[i][j]));
       }
     }
   } else {
@@ -88,8 +88,61 @@ void read_adjacency_matrix(int*** adj_mat, int* N, int p, int q, int nl)
     printf("The values of p, q and nl do not have an adjacency matrix assigned. \n");
     exit(1);
   }
+
+  fclose(file); 
+
+  sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/coord_%d_%d_%d.dat", sse_path, p, q, nl);
+  file = fopen(filename, "r");
+
+  if (file != NULL) {
+    (*pos) = (double**) malloc((*N) * sizeof(double*));
+    
+    for (i = 0; i < (*N); i++) {
+      (*pos)[i] = (double*) malloc(2 * sizeof(double));
+
+      fscanf(file, "%lf %lf\n", &((*pos)[i][0]), &((*pos)[i][1]));
+    }
+  } else {
+    printf("Error opening the coordinates file. \n");
+    printf("The values of p, q and nl do not have coordinates assigned. \n");
+    exit(1);
+  }
   
-  fclose(adj_file); 
+  fclose(file);
+  
+  sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/bulk_%d_%d_%d.dat", sse_path, p, q, nl);
+  file = fopen(filename, "r");
+
+  if (file != NULL) {
+    (*bulk) = (int*) malloc((*N) * sizeof(int));
+    
+    for (i = 0; i < (*N); i++) {
+      fscanf(file, " %d\n", &((*bulk)[i]));
+    }
+  } else {
+    printf("Error opening the bulk file. \n");
+    printf("The values of p, q and nl do not have bulk assigned. \n");
+    exit(1);
+  }
+  
+  fclose(file);
+
+  sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/sublattice_%d_%d_%d.dat", sse_path, p, q, nl);
+  file = fopen(filename, "r");
+
+  if (file != NULL) {
+    (*sublattice) = (int*) malloc((*N) * sizeof(int));
+    
+    for (i = 0; i < (*N); i++) {
+      fscanf(file, " %d\n", &((*sublattice)[i]));
+    }
+  } else {
+    printf("Error opening the sublattice file. \n");
+    printf("The values of p, q and nl do not have sublattice assigned. \n");
+    exit(1);
+  }
+  
+  fclose(file);
 }
 
 void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq)
