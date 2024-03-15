@@ -41,12 +41,16 @@ int main(int argc, char** argv)
 
   // Analysis
   for (i = 1; i < argc; i++) {
-    if (strstr(argv[i], "_info") == NULL && strcmp(argv[i], "vertices_info") != 0 && strcmp(argv[i], "parameters") != 0) {
+    if (strstr(argv[i], "_info") == NULL && strcmp(argv[i], "vertices_info") != 0 && strcmp(argv[i], "parameters") != 0 && strcmp(argv[i], "info") != 0) {
       if (access(argv[i], F_OK) != 0) {
         printf("%s file does not exist. \n", argv[i]);
         continue;
       }
       
+      if (strstr(argv[i], "J") != NULL || strstr(argv[i], "_eqJR") != NULL || strstr(argv[i], "_eqKJ") != NULL || strstr(argv[i], "_transpJ") != NULL) {
+        continue;
+      }
+
       strcpy(filename, argv[i]);
       strcat(filename, "_info");
       info = fopen(filename, "r");
