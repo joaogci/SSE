@@ -170,14 +170,15 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
     strcat(filename, "_eqR");
     out_i = fopen(filename, "a");
 
-    strcpy(filename, obs_eq[i].filename);
-    strcat(filename, "_eqK");
-    out_k = fopen(filename, "a");
+    // strcpy(filename, obs_eq[i].filename);
+    // strcat(filename, "_eqK");
+    // out_k = fopen(filename, "a");
+    out_k = NULL;
 
     write_obs_latt(out_i, out_k, &(obs_eq[i]));
 
     fclose(out_i);
-    fclose(out_k);
+    // fclose(out_k);
 
     strcpy(filename, obs_eq[i].filename);
     strcat(filename, "_eqR_info");
@@ -185,11 +186,11 @@ void write_observables(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n
     write_obs_eq_info(info, &(obs_eq[i]));
     fclose(info);
 
-    strcpy(filename, obs_eq[i].filename);
-    strcat(filename, "_eqK_info");
-    info = fopen(filename, "w");
-    write_obs_eq_info(info, &(obs_eq[i]));
-    fclose(info);
+    // strcpy(filename, obs_eq[i].filename);
+    // strcat(filename, "_eqK_info");
+    // info = fopen(filename, "w");
+    // write_obs_eq_info(info, &(obs_eq[i]));
+    // fclose(info);
   }
 }
 

@@ -25,7 +25,7 @@ void analyse_scal(FILE* fp, Ana_scalar* obs, int n_bins)
   free(measurements);
 }
 
-void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins)
+void analyse_latt(FILE* fp, Ana_latt* obs, Lattice_Hyperbolic* latt, int n_bins)
 {
   int i, n;
   double real, imag, x, y;
@@ -33,22 +33,22 @@ void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins)
 
   measurements = (double _Complex**) malloc(n_bins * sizeof(double _Complex*));
   for (i = 0; i < n_bins; i++) {
-    measurements[i] = (double _Complex*) malloc(latt->N * sizeof(double _Complex));
+    measurements[i] = (double _Complex*) malloc(latt->N * latt->N * sizeof(double _Complex));
 
-    for (n = 0; n < latt->N; n++) {
+    for (n = 0; n < latt->N * latt->N; n++) {
       fscanf(fp, "(%lf, %lf) (%lf, %lf) \n", &x, &y, &real, &imag);
       measurements[i][n] = real + I * imag;
     }
   }
 
-  for (n = 0; n < latt->N; n++) {
+  for (n = 0; n < latt->N * latt->N; n++) {
     for (i = 0; i < n_bins; i++) {
       obs->obs_mean[n] += measurements[i][n];
     }
     obs->obs_mean[n] = obs->obs_mean[n] / n_bins;
   }  
 
-  for (n = 0; n < latt->N; n++) {
+  for (n = 0; n < latt->N * latt->N; n++) {
     for (i = 0; i < n_bins; i++) {
       obs->obs_std[n] += cpow(measurements[i][n] - obs->obs_mean[n], 2.0);
     }
@@ -102,13 +102,15 @@ void write_scal(FILE* fp, Ana_scalar* obs)
   fprintf(fp, "%lf %lf %lf %lf \n", creal(obs->obs_mean), creal(obs->obs_std), cimag(obs->obs_mean), cimag(obs->obs_std));
 }
 
-void write_latt_r(FILE* fp, Ana_latt* obs, Lattice* latt)
+void write_latt_r(FILE* fp, Ana_latt* obs, Lattice_Hyperbolic* latt)
 {
-  int i;
+  int i, j;
 
   for (i = 0; i < latt->N; i++) {
-    fprintf(fp, "%lf %lf \n", (double) latt->r[i][0], (double) latt->r[i][1]);
-    fprintf(fp, "%lf, %lf %lf, %lf \n", creal(obs->obs_mean[i]), creal(obs->obs_std[i]), cimag(obs->obs_mean[i]), cimag(obs->obs_std[i]));
+    for (j = 0; j < latt->N; j++) {
+      fprintf(fp, "%d %d \n", i, j);
+      fprintf(fp, "%lf, %lf %lf, %lf \n", creal(obs->obs_mean[i * latt->N + j]), creal(obs->obs_std[i * latt->N + j]), cimag(obs->obs_mean[i * latt->N + j]), cimag(obs->obs_std[i * latt->N + j]));
+    }
   }
 }
 

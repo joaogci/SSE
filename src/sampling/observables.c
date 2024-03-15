@@ -125,6 +125,9 @@ void write_obs_eq_info(FILE* info, Obs_latt* obs)
   fprintf(info, "-- Analysis Mode --\n");
   fprintf(info, "equal time\n");
   fprintf(info, "-- Lattice --\n");
+  fprintf(info, "p: %d \n", obs->latt->p);
+  fprintf(info, "q: %d \n", obs->latt->q);
+  fprintf(info, "nl: %d \n", obs->latt->nl);
   // fprintf(info, "L1: %d\n", obs->latt->L1);
   // fprintf(info, "L2: %d\n", obs->latt->L2);
   // fprintf(info, "a1: (%lf, %lf)\n", obs->latt->a_1[0], obs->latt->a_1[1]);

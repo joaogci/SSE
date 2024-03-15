@@ -5,14 +5,18 @@
 
 #include "sampling/observables.h"
 #include "hamiltonian/lattice.h"
+#include "hamiltonian/lattice_hyperbolic.h"
 #include "io/io.h"
 #include "analysis/analysis.h"
 
 // Lattice
-int Lx, Ly;
-char boundary_condition;
-double a_1[2], a_2[2];
-Lattice latt;
+// int Lx, Ly;
+// char boundary_condition;
+// double a_1[2], a_2[2];
+// Lattice latt;
+int p, q, nl;
+int** adj_mat;
+Lattice_Hyperbolic latt;
 
 // Transport
 int x, y, n_max;
@@ -86,17 +90,16 @@ int main(int argc, char** argv)
           break;
         case 'e':
           getline(&line, &len, info);
-          fscanf(info, "L1: %d\n", &Lx);
-          fscanf(info, "L2: %d\n", &Ly);
-          fscanf(info, "a1: (%lf, %lf)\n", &(a_1[0]), &(a_1[1]));
-          fscanf(info, "a2: (%lf, %lf)\n", &(a_2[0]), &(a_2[1]));
-          fscanf(info, "boundary condition: %c\n", &boundary_condition);
+          fscanf(info, "p: %d\n", &p);
+          fscanf(info, "q: %d\n", &q);
+          fscanf(info, "nl: %d\n", &nl);
 
-          make_lattice(Lx, Ly, a_1, a_2, boundary_condition, &latt);
+          read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), p, q, nl);
+          make_lattice_hyperbolic(p, q, nl, &(adj_mat), &latt);
           
-          obs_eq.obs_mean = (double _Complex*) malloc(latt.N * sizeof(double _Complex));
-          obs_eq.obs_std = (double _Complex*) malloc(latt.N * sizeof(double _Complex));
-          for (n = 0; n < latt.N; n++) {
+          obs_eq.obs_mean = (double _Complex*) malloc(latt.N * latt.N * sizeof(double _Complex));
+          obs_eq.obs_std = (double _Complex*) malloc(latt.N * latt.N * sizeof(double _Complex));
+          for (n = 0; n < latt.N * latt.N; n++) {
             obs_eq.obs_mean[n] = 0.0;
             obs_eq.obs_std[n] = 0.0;
           }
@@ -105,7 +108,7 @@ int main(int argc, char** argv)
           // strcat(filename, "R");
           res = fopen(filename, "r");
           len = num_lines(res);
-          n_bins = len / latt.N;
+          n_bins = len / (latt.N * latt.N);
           fclose(res);
 
           printf("Analysing %s \n", filename);
@@ -150,7 +153,7 @@ int main(int argc, char** argv)
           free(obs_eq.obs_mean);
           free(obs_eq.obs_std);
 
-          free_lattice(&latt);
+          free_lattice_hyperbolic(&latt);
           break;
         case 't':
           getline(&line, &len, info);

@@ -42,7 +42,7 @@ XXZ_ham ham;
 Obs_scalar* obs_scal;
 Obs_latt* obs_eq;
 // Obs_transport* obs_transp;
-int n_scal = 4;
+int n_scal = 11;
 int n_eq = 1;
 // int n_transp = 0;
 
