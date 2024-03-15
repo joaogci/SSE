@@ -45,6 +45,14 @@ void free_lattice_hyperbolic(Lattice_Hyperbolic* latt)
 {
   int i;
 
+  free(latt->bulk);
+  free(latt->sublattice);
+
+  for (i = 0; i < latt->N; i++) {
+    free(latt->r[i]);
+  }
+  free(latt->r);
+
   for (i = 0; i < latt->Nb; i++) {
     free(latt->bond_list[i]);
   }
