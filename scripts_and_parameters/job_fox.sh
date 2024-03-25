@@ -10,6 +10,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=NCPU_R
 #SBATCH --mem-per-cpu=750M
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=joao.carvalho-inacio@uni-wuerzburg.de
+
 
 ## Set up job environment:
 set -o errexit  # Exit the script on any error
