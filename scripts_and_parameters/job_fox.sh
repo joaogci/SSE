@@ -17,10 +17,10 @@ set -o nounset  # Treat any unset variables as an error
 set -o pipefail
 
 module --quiet purge  # Reset the modules to the system default
-module load GCC/11.2.0
-module load GCCcore/11.2.0
-module load Python/3.9.6-GCCcore-11.2.0
-module load SciPy-bundle/2021.10-foss-2021b
+module load GCC/12.3.0
+module load GCCcore/12.3.0
+module load Python/3.11.3-GCCcore-12.3.0
+module load SciPy-bundle/2023.07-gfbf-2023a
 module list
 
 $SSE_DIR/src/main NCPU_R
