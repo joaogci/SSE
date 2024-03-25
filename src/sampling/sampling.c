@@ -14,17 +14,11 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
       init_obs_scalar("Sz", &(obs_scalar[n]));
       break;
     case 2:
-      init_obs_scalar("Sz2", &(obs_scalar[n]));
-      break;
-    case 3:
       init_obs_scalar("n", &(obs_scalar[n]));
       break;
-    // case 3:
-    //   init_obs_scalar("n2", &(obs_scalar[n]));
-    //   break;
-    // case 4:
-    //   init_obs_scalar("C", &(obs_scalar[n]));
-    //   break;
+    case 3:
+      init_obs_scalar("Sz_stag", &(obs_scalar[n]));
+      break;
 
     default:
       printf("Observable not found. \n");
@@ -74,7 +68,7 @@ void sample(Obs_scalar* obs_scal, int n_scal, Obs_latt* obs_eq, int n_eq, XXZ_ha
 void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* state)
 {
   int i;
-  double Sz;
+  double Sz, Sz_stag;
 
   for (i = 0; i < n_scal; i++) {
     obs[i].N++;
@@ -83,13 +77,15 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
   obs[0].obs_vec += - state->n / (state->beta * ham->latt->N) + ham->latt->Nb * ham->C / ham->latt->N;
   
   Sz = 0.0;
+  Sz_stag = 0.0;
   for (i = 0; i < ham->latt->N; i++) {
     Sz += state->spin_config[i] * 0.5;
+    Sz_stag += pow(-1.0, i) * state->spin_config[i] * 0.5;
   }
-  obs[1].obs_vec += Sz / ham->latt->N;
-  obs[2].obs_vec += (Sz / ham->latt->N) * (Sz / ham->latt->N);
 
-  obs[3].obs_vec += state->n;
+  obs[1].obs_vec += Sz / ham->latt->N;
+  obs[2].obs_vec += state->n;
+  obs[3].obs_vec += Sz_stag / ham->latt->N;
 }
 
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)
