@@ -49,9 +49,9 @@ int main(int argc, char **argv)
   time_t time_;
 
   // Read and process inputs
-  if (argc < 2) {
-    printf("Please provide the number of threads. \n");
-    printf("Usage: %s n_threads \n", argv[0]);
+  if (argc < 3) {
+    printf("Please provide the number of threads and the path to the main directory. \n");
+    printf("Usage: %s n_threads SSE_DIR \n", argv[0]);
     exit(1);
   }
 
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
   // Hamiltonian
   init_ham(S, J_par, J_perp, h, D, epsilon, &ham);
-  read_vtx_info(&(ham.vertices), &(ham.n_diagrams));
+  read_vtx_info(&(ham.vertices), &(ham.n_diagrams), argv[2]);
   ham.latt = &latt;
   ham.C = S*S * fabs(J_par) + 2.0 * (fabs(h) * S + fabs(D) * S*S) / latt.z + epsilon; 
 
@@ -124,15 +124,23 @@ int main(int argc, char **argv)
         create_vtx_list(&ham, &state);
         loop_update(&ham, &state, &rng);
 
-        sample(obs_scal, n_scal, obs_eq, n_eq, &ham, &state);
-        sample_transport(obs_transp, n_transp, &ham, &state, &rng);
+        if (n_scal > 0 || n_eq > 0) {
+          sample(obs_scal, n_scal, obs_eq, n_eq, &ham, &state);
+        }
+        if (n_transp > 0) {
+          sample_transport(obs_transp, n_transp, &ham, &state, &rng);
+        }
       }
 
       // Write bin to file
-      #pragma omp critical
-      write_observables(obs_scal, n_scal, obs_eq, n_eq);
-      #pragma omp critical
-      write_transport_obeservables(obs_transp, n_transp);
+      if (n_scal > 0 || n_eq > 0) {
+        #pragma omp critical
+        write_observables(obs_scal, n_scal, obs_eq, n_eq);
+      }
+      if (n_transp > 0) {
+        #pragma omp critical
+        write_transport_obeservables(obs_transp, n_transp);
+      }
     }
 
     free_sse_config(&state);

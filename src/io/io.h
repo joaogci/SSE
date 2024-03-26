@@ -19,7 +19,7 @@ void read_parameters(int* Lx, int* Ly, char* boundary_condition, double* beta, d
 /*
  *  reads vertex information for the simulation 
  */
-void read_vtx_info(Vertices** vtx, int* n_diagrams);
+void read_vtx_info(Vertices** vtx, int* n_diagrams, char* sse_path);
 
 /*
  * writes observables
