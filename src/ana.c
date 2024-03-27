@@ -41,7 +41,8 @@ int main(int argc, char** argv)
 
   // Analysis
   for (i = 1; i < argc; i++) {
-    if (strstr(argv[i], "_info") == NULL && strcmp(argv[i], "vertices_info") != 0 && strcmp(argv[i], "parameters") != 0 && strcmp(argv[i], "info") != 0) {
+    if (strstr(argv[i], "_info") == NULL && (strstr(argv[i], "_scal") != NULL || strstr(argv[i], "_eq") != NULL || strstr(argv[i], "_transp") != NULL)) {
+    // strcmp(argv[i], "vertices_info") != 0 && strcmp(argv[i], "parameters") != 0 && strcmp(argv[i], "info") != 0) {
       if (access(argv[i], F_OK) != 0) {
         printf("%s file does not exist. \n", argv[i]);
         continue;
