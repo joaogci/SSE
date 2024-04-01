@@ -19,6 +19,12 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
     case 3:
       init_obs_scalar("Sz_stag", &(obs_scalar[n]));
       break;
+    case 4:
+      init_obs_scalar("Sz2", &(obs_scalar[n]));
+      break;
+    case 5:
+      init_obs_scalar("Sz2_stag", &(obs_scalar[n]));
+      break;
 
     default:
       printf("Observable not found. \n");
@@ -86,6 +92,8 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
   obs[1].obs_vec += Sz / ham->latt->N;
   obs[2].obs_vec += state->n;
   obs[3].obs_vec += Sz_stag / ham->latt->N;
+  obs[4].obs_vec += (Sz / ham->latt->N) * (Sz / ham->latt->N);
+  obs[5].obs_vec += (Sz_stag / ham->latt->N) * (Sz_stag / ham->latt->N);
 }
 
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)
