@@ -80,7 +80,7 @@ def H(state1, state2):
 
   term4 = 0.0
   if vtx_type == 0:
-    term4 += h * (Sz_op(spin_i) + Sz_op(spin_j)) - D * (Sz_op(spin_i)**2 + Sz_op(spin_j)**2) / z
+    term4 += (h * (Sz_op(spin_i) + Sz_op(spin_j)) - D * (Sz_op(spin_i)**2 + Sz_op(spin_j)**2)) / z
     term4 += C
   
   term += J_perp * (term1 + term2) + term4 - J_par * term3
