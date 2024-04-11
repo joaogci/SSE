@@ -47,19 +47,11 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams, char* sse_path)
   fclose(vtx_file);
 }
 
-void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int p, int q, int nl)
+void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int p, int q, int nl, char* sse_path)
 {
   int i, j;
   char filename[BUFFER_SIZE];
-  char *sse_path;
   FILE* file;
-
-  sse_path = getenv("SSE_DIR");
-  if (sse_path == NULL) {
-    printf("The SSE_DIR enviroment variable is not set. Please run the build.sh script in the SSE directory. \n");
-    printf("source build.sh \n");
-    exit(1);
-  }
 
   sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/hopping_%d_%d_%d.dat", sse_path, p, q, nl);
   file = fopen(filename, "r");

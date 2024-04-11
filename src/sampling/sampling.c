@@ -14,6 +14,9 @@ void set_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n
       init_obs_scalar("Sz", &(obs_scalar[n]));
       break;
     case 2:
+      init_obs_scalar("Sz2", &(obs_scalar[n]));
+      break;
+    case 3:
       init_obs_scalar("n", &(obs_scalar[n]));
       break;
     case 4:

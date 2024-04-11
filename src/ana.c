@@ -34,6 +34,7 @@ int main(int argc, char** argv)
   size_t len;
   char filename[BUFFER];
   char* line;
+  char* sse_path;
   FILE* out;
   FILE* info,* res;
 
@@ -99,7 +100,14 @@ int main(int argc, char** argv)
           fscanf(info, "q: %d\n", &q);
           fscanf(info, "nl: %d\n", &nl);
 
-          read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), p, q, nl);
+          sse_path = getenv("SSE_DIR");
+          if (sse_path == NULL) {
+            printf("The SSE_DIR enviroment variable is not set. Please run the build.sh script in the SSE directory. \n");
+            printf("source build.sh \n");
+            exit(1);
+          }
+
+          read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), p, q, nl, sse_path);
           make_lattice_hyperbolic(p, q, nl, &(adj_mat), &latt);
           
           obs_eq.obs_mean = (double _Complex*) malloc(latt.N * latt.N * sizeof(double _Complex));
@@ -129,31 +137,31 @@ int main(int argc, char** argv)
           write_latt_r(out, &obs_eq, &latt);
           fclose(out);
 
-          for (n = 0; n < latt.N; n++) {
-            obs_eq.obs_mean[n] = 0.0;
-            obs_eq.obs_std[n] = 0.0;
-          }
+          // for (n = 0; n < latt.N; n++) {
+          //   obs_eq.obs_mean[n] = 0.0;
+          //   obs_eq.obs_std[n] = 0.0;
+          // }
 
-          filename[strlen(filename) - 2] = '\0';
-          strcat(filename, "K");
-          res = fopen(filename, "r");
-          len = num_lines(res);
-          n_bins = len / latt.N;
-          fclose(res);
+          // filename[strlen(filename) - 2] = '\0';
+          // strcat(filename, "K");
+          // res = fopen(filename, "r");
+          // len = num_lines(res);
+          // n_bins = len / latt.N;
+          // fclose(res);
 
-          printf("Analysing %s \n", filename);
-          printf("Number of bins: %d \n", n_bins);
+          // printf("Analysing %s \n", filename);
+          // printf("Number of bins: %d \n", n_bins);
 
-          res = fopen(filename, "r");
-          analyse_latt(res, &obs_eq, &latt, n_bins);
-          fclose(res);
+          // res = fopen(filename, "r");
+          // analyse_latt(res, &obs_eq, &latt, n_bins);
+          // fclose(res);
 
 
-          filename[strlen(filename) - 1] = '\0';
-          strcat(filename, "JK");
-          out = fopen(filename, "w");
-          write_latt_k(out, &obs_eq, &latt);
-          fclose(out);
+          // filename[strlen(filename) - 1] = '\0';
+          // strcat(filename, "JK");
+          // out = fopen(filename, "w");
+          // write_latt_k(out, &obs_eq, &latt);
+          // fclose(out);
 
           free(obs_eq.obs_mean);
           free(obs_eq.obs_std);
