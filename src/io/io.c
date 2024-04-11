@@ -1,18 +1,10 @@
 #include "io.h"
 
-void read_vtx_info(Vertices** vtx, int* n_diagrams)
+void read_vtx_info(Vertices** vtx, int* n_diagrams, char* sse_path)
 {
   int status;
-  char* sse_path;
   char command[BUFFER_SIZE];
   FILE* vtx_file;
-
-  sse_path = getenv("SSE_DIR");
-  if (sse_path == NULL) {
-    printf("The SSE_DIR enviroment variable is not set. Please run the build.sh script in the SSE directory. \n");
-    printf("source build.sh \n");
-    exit(1);
-  }
 
   strcpy(command, "");
   strcat(command, "python3 ");

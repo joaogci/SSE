@@ -1,0 +1,21 @@
+&Lattice
+Lx                  = Lx_R   ! Number of unit lattices on the x direction
+Ly                  = Ly_R   ! Number of unit lattices on the x direction
+boundary_condition  = BC_R    ! Boundary condition: P for PBC or O for OBC
+/
+
+&Simulation
+beta          = Beta_R       ! Inverse temperature
+epsilon       = 0.25      ! Constant to make the vertices weight bigger than zero
+therm_cycles  = NT_R      ! Number of thermalization cycles
+n_bins        = NB_R        ! Number of bins 
+mc_sweeps     = NSW_R     ! Number of measurement cycles per bin
+/
+
+&Hamiltonian
+S               = S_R
+J_perp          = J_perp_R
+J_par           = J_par_R
+magnetic_field  = H_R
+crystal_field   = D_R
+/

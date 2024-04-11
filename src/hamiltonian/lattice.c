@@ -77,8 +77,13 @@ void make_lattice(int L1, int L2, double* a_1, double* a_2, char bc, Lattice* la
   C = 2 * M_PI / (a_1[0] * a_2[1] - a_1[1] * a_2[0]);
   lattice->b_1[0] = C * (a_2[1]) / ((double) L1);
   lattice->b_1[1] = C * (- a_2[0]) / ((double) L1);
-  lattice->b_2[0] = C * (- a_1[1]) / ((double) L2);
-  lattice->b_2[1] = C * (a_1[0]) / ((double) L2);
+  if (L2 != 1) {
+    lattice->b_2[0] = C * (- a_1[1]) / ((double) L2);
+    lattice->b_2[1] = C * (a_1[0]) / ((double) L2);
+  } else {
+    lattice->b_2[0] = 0.0;
+    lattice->b_2[1] = 0.0;
+  }
 
   lattice->k = (int**) malloc(lattice->N * sizeof(int*));
   for (i = 0; i < lattice->N; i++) lattice->k[i] = (int*) malloc(2 * sizeof(int));

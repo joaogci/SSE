@@ -24,7 +24,7 @@ void read_parameters_hyperbolic(int* p, int* q, int* nl, double* beta, double* e
 /*
  *  reads vertex information for the simulation 
  */
-void read_vtx_info(Vertices** vtx, int* n_diagrams);
+void read_vtx_info(Vertices** vtx, int* n_diagrams, char* sse_path);
 
 /*
  * reads the adjacency matrix file for hyperbolic lattices
