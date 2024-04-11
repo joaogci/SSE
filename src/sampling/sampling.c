@@ -111,7 +111,7 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
     Sz += state->spin_config[i] * 0.5;
     Sz_stag += ham->latt->sublattice[i] * state->spin_config[i] * 0.5;
     Sz_stag_bulk += ham->latt->bulk[i] * ham->latt->sublattice[i] * state->spin_config[i] * 0.5;
-    Sz_stag_bulk += (1 - ham->latt->bulk[i]) * ham->latt->sublattice[i] * state->spin_config[i] * 0.5;
+    Sz_stag_edge += (1 - ham->latt->bulk[i]) * ham->latt->sublattice[i] * state->spin_config[i] * 0.5;
   }
 
   obs[1].obs_vec += Sz / ham->latt->N;
