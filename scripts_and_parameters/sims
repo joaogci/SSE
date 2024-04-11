@@ -1,4 +1,4 @@
 Y  6  1  "O"  0.5  1.0  1.0  0.0  0.0  1.0  1000  1000  10  1
 stop
-Run Lx_R Ly_R  BC_R S_R J_perp_R J_par_R H_R D_R Beta_R NT_R NSW_R NB_R NCPU_R)
-Name=( Run Lx_R Ly_R  BC_R S_R J_perp_R J_par_R H_R D_R Beta_R NT_R NSW_R NB_R NCPU_R )
+Run P_R Q_R  Nl_R S_R J_perp_R J_par_R Beta_R NT_R NSW_R NB_R NCPU_R)
+Name=( Run P_R Q_R  Nl_R S_R J_perp_R J_par_R Beta_R NT_R NSW_R NB_R NCPU_R )

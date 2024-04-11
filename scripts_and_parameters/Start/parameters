@@ -1,7 +1,7 @@
 &Lattice
-Lx                  = Lx_R   ! Number of unit lattices on the x direction
-Ly                  = Ly_R   ! Number of unit lattices on the x direction
-boundary_condition  = BC_R    ! Boundary condition: P for PBC or O for OBC
+p  = P_R   ! The lattice is made of "p"-gons
+q  = Q_R   ! Coordination number of the lattice
+nl = Nl_R   ! Depth of the lattice, i.e. number of layers
 /
 
 &Simulation
@@ -16,6 +16,4 @@ mc_sweeps     = NSW_R     ! Number of measurement cycles per bin
 S               = S_R
 J_perp          = J_perp_R
 J_par           = J_par_R
-magnetic_field  = H_R
-crystal_field   = D_R
 /
