@@ -37,6 +37,16 @@ void write_transport_obeservables(Obs_transport* obs, int n_transp);
 void write_sim_info(Sim_info sim);
 
 /*
+ * Writes SSE configuration
+ */
+void write_configuration(int t_id, int N, SSE_config* conf);
+
+/*
+ * Reads SSE configuration
+ */
+void read_configuration(int t_id, int N, SSE_config* conf);
+
+/*
  * Returns the number of lines of a file
  */
 int num_lines(FILE* fp);
