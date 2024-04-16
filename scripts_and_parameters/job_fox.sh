@@ -27,5 +27,6 @@ module load Python/3.11.3-GCCcore-12.3.0
 module load SciPy-bundle/2023.07-gfbf-2023a
 module list
 
+bash move_out_to_in.sh
 $SSE_DIR/src/main NCPU_R
 
