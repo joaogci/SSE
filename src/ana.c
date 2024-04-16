@@ -107,7 +107,7 @@ int main(int argc, char** argv)
             exit(1);
           }
 
-          read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), p, q, nl, sse_path);
+          read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), &(latt.N_bulk), p, q, nl, sse_path);
           make_lattice_hyperbolic(p, q, nl, &(adj_mat), &latt);
           
           obs_eq.obs_mean = (double _Complex*) malloc(latt.N * latt.N * sizeof(double _Complex));

@@ -17,6 +17,7 @@ typedef struct Lattice_Hyperbolic
 
   double L;
   int N;
+  int N_bulk;
   int Nb;
 
   double** r;

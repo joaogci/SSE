@@ -124,10 +124,10 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
 
   obs[6].obs_vec += state->beta * Sz * Sz / ham->latt->N;
 
-  obs[7].obs_vec += Sz_stag_bulk / ham->latt->N;
-  obs[8].obs_vec += (Sz_stag_bulk / ham->latt->N) * (Sz_stag_bulk / ham->latt->N);
-  obs[9].obs_vec += Sz_stag_edge / ham->latt->N;
-  obs[10].obs_vec += (Sz_stag_edge / ham->latt->N) * (Sz_stag_edge / ham->latt->N);
+  obs[7].obs_vec += Sz_stag_bulk / ham->latt->N_bulk;
+  obs[8].obs_vec += (Sz_stag_bulk / ham->latt->N_bulk) * (Sz_stag_bulk / ham->latt->N_bulk);
+  obs[9].obs_vec += Sz_stag_edge / (ham->latt->N - ham->latt->N_bulk);
+  obs[10].obs_vec += (Sz_stag_edge / (ham->latt->N - ham->latt->N_bulk)) * (Sz_stag_edge / (ham->latt->N - ham->latt->N_bulk));
 }
 
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)

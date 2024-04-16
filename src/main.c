@@ -75,7 +75,7 @@ int main(int argc, char **argv)
   // a_1[0] = 1.0; a_1[1] = 0.0;
   // a_2[0] = 0.0; a_2[1] = 1.0;
   // make_lattice(Lx, Ly, a_1, a_2, boundary_condition, &latt);
-  read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), p, q, nl, argv[2]);
+  read_hyperbolic_lattice(&(latt.r), &(adj_mat), &(latt.bulk), &(latt.sublattice), &(latt.N), &(latt.N_bulk), p, q, nl, argv[2]);
   make_lattice_hyperbolic(p, q, nl, &(adj_mat), &latt);
 
   // Hamiltonian

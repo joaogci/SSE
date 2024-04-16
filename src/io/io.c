@@ -47,7 +47,7 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams, char* sse_path)
   fclose(vtx_file);
 }
 
-void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int p, int q, int nl, char* sse_path)
+void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int* N_bulk, int p, int q, int nl, char* sse_path)
 {
   int i, j;
   char filename[BUFFER_SIZE];
@@ -96,12 +96,16 @@ void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** su
   
   sprintf(filename, "%s/src/hamiltonian/adjacency_matrices/bulk_%d_%d_%d.dat", sse_path, p, q, nl);
   file = fopen(filename, "r");
-
+  
+  (*N_bulk) = 0;
   if (file != NULL) {
     (*bulk) = (int*) malloc((*N) * sizeof(int));
     
     for (i = 0; i < (*N); i++) {
       fscanf(file, " %d\n", &((*bulk)[i]));
+      if (((*bulk)[i]) != 0) {
+        (*N_bulk)++;
+      }
     }
   } else {
     printf("Error opening the bulk file. \n");

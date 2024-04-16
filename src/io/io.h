@@ -29,7 +29,7 @@ void read_vtx_info(Vertices** vtx, int* n_diagrams, char* sse_path);
 /*
  * reads the adjacency matrix file for hyperbolic lattices
  */
-void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int p, int q, int nl, char* sse_path);
+void read_hyperbolic_lattice(double*** pos, int*** adj_mat, int** bulk, int** sublattice, int* N, int* N_bulk, int p, int q, int nl, char* sse_path);
 
 /*
  * writes observables
