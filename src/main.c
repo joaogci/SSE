@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
+#include <unistd.h>
+#include <stdbool.h>
 
 #include "sse/sse.h"
 #include "rng/pcg_basic.h"
@@ -94,6 +96,7 @@ int main(int argc, char **argv)
     int thread_id, start_bin, end_bin;
     int n;    
     long t;
+    char filename[BUFFER_SIZE];
     pcg32_random_t rng;
 
     thread_id = omp_get_thread_num();
@@ -111,14 +114,20 @@ int main(int argc, char **argv)
     // set_observables_transport(obs_transp, n_transp, beta, &ham);
 
     // Thermalization
-    for (t = 0; t < sim.therm_cycles; t++) {
-      diag_update(&ham, &state, &rng);
+    sprintf(filename, "confin_%d", thread_id);
+    if (access(filename, F_OK) == 0) {
+      read_configuration(thread_id, latt.N, &(state));
+    } else {
+      for (t = 0; t < sim.therm_cycles; t++) {
+        diag_update(&ham, &state, &rng);
 
-      create_vtx_list(&ham, &state);
-      loop_update(&ham, &state, &rng);
+        create_vtx_list(&ham, &state);
+        loop_update(&ham, &state, &rng);
 
-      ajust_cutoff(&state, t);
+        ajust_cutoff(&state, t);
+      }
     }
+    
 
     // Measurement sweeps
     for (n = start_bin; n < end_bin; n++) {
@@ -139,8 +148,8 @@ int main(int argc, char **argv)
       // Write bin to file
       #pragma omp critical
       write_observables(obs_scal, n_scal, obs_eq, n_eq);
-      // #pragma omp critical
-      // write_transport_obeservables(obs_transp, n_transp);
+      #pragma omp critical
+      write_configuration(thread_id, latt.N, &state);
     }
 
     free_sse_config(&state);

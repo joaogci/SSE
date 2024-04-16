@@ -221,6 +221,59 @@ void write_sim_info(Sim_info sim)
   fclose(out);
 }
 
+void write_configuration(int t_id, int N, SSE_config* conf)
+{
+  FILE* out;
+  int n;
+  char filename[BUFFER_SIZE];
+
+  sprintf(filename, "confout_%d", t_id);
+  out = fopen(filename, "w");
+
+  fprintf(out, "%ld %ld \n", conf->M, conf->n);
+  
+  for (n = 0; n < conf->M; n++) {
+    fprintf(out, "%d \n", conf->op_string[n]);
+  }
+  for (n = 0; n < conf->n + 2; n++) {
+    fprintf(out, "%lf \n", conf->op_tau[n]);
+  }
+  for (n = 0; n < N; n++) {
+    fprintf(out, "%d \n", conf->spin_config[n]);
+  }
+
+  fclose(out);
+}
+
+void read_configuration(int t_id, int N, SSE_config* conf)
+{
+  FILE* out;
+  int n;
+  char filename[BUFFER_SIZE];
+
+  sprintf(filename, "confin_%d", t_id);
+  out = fopen(filename, "w");
+
+  if (out != NULL) {
+    fscanf(out, "%ld %ld \n", &(conf->M), &(conf->n));
+  
+    for (n = 0; n < conf->M; n++) {
+      fscanf(out, "%d \n", &(conf->op_string[n]));
+    }
+    for (n = 0; n < conf->n + 2; n++) {
+      fscanf(out, "%lf \n", &(conf->op_tau[n]));
+    }
+    for (n = 0; n < N; n++) {
+      fscanf(out, "%d \n", &(conf->spin_config[n]));
+    }
+  } else {
+    printf("Error opening the %s file. \n", filename);
+    exit(1);
+  } 
+
+  fclose(out);
+}
+
 int num_lines(FILE* fp)
 {
   int ch, lines;

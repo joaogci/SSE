@@ -13,25 +13,8 @@ while [ ! ${Variable[0]} = "stop" ];   do
         
         export Dir="p"${Variable[1]}"_q"${Variable[2]}"_nl"${Variable[3]}"_beta"$B_R_dir
         echo $Dir
-        if [ ! -e $Dir ]; then
-            mkdir $Dir
-            cd  $Dir
-            cp  ../Start/* . 
-            cd ..
-        else
-            cd $Dir
-            cp ../Start/parameters .
-            cp ../Start/job.sh .
-            cd ..
-        fi
         cd $Dir
         
-        let i=1
-        while [  $i -lt 12 ]; do
-            sed s/${Name[$i]}/${Variable[$i]}/    parameters  > tmp
-            mv tmp parameters
-            let i=i+1 
-        done
         $SSE_DIR/src/ana *
 
         cd ..

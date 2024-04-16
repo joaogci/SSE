@@ -9,7 +9,7 @@ beta          = 1.0       ! Inverse temperature
 epsilon       = 0.25      ! Constant to make the vertices weight bigger than zero
 therm_cycles  = 1000      ! Number of thermalization cycles
 n_bins        = 10        ! Number of bins 
-mc_sweeps     = 10000     ! Number of measurement cycles per bin
+mc_sweeps     = 1000     ! Number of measurement cycles per bin
 /
 
 &Hamiltonian
