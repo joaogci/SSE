@@ -18,6 +18,13 @@ void init_sse_config(double beta, int N, SSE_config *state)
 
   state->spin_config = (int*) malloc(N * sizeof(int));
   state->beta = beta;
+
+  state->loop_size_2 = 0;
+  state->n_loops_2 = 0;
+  state->loop_histogram = (long long*) malloc(N * sizeof(long long));
+  for (int i = 0; i < N; i++) {
+    state->loop_histogram[i] = 0;
+  }
 }
 
 void reset_sse_config(int N, double Sz, SSE_config *state) 
@@ -151,7 +158,11 @@ void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng)
       }
 
       if (li != le) { 
-        loop_size++; 
+        loop_size++;
+      }
+      if (state->loop_size == 0) {
+        state->loop_histogram[ham->latt->bond_list[(state->reduced_op_string[p] / N_TYPES) - 1][0]]++;
+        state->loop_histogram[ham->latt->bond_list[(state->reduced_op_string[p] / N_TYPES) - 1][1]]++;
       }
 
       j = N_LEGS * p + le;
@@ -171,8 +182,12 @@ void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng)
       }
     }
 
+    if (state->loop_size == 0) {
+      state->loop_size_2 += loop_size;
+    }
     state->loop_size += loop_size;
   }
+  state->n_loops_2 += state->n_loops;
 
   for (p = 0; p < state->n; p++) {
     state->reduced_op_string[p] = N_TYPES * (state->reduced_op_string[p] / N_TYPES) + ham->vertices[state->vertex_list[p]].type;

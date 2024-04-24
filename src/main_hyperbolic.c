@@ -152,6 +152,9 @@ int main(int argc, char **argv)
       write_configuration(thread_id, latt.N, &state);
     }
 
+    #pragma omp critical
+    write_histogram(thread_id, latt.N, &state);
+
     free_sse_config(&state);
     free(obs_eq);
     free(obs_scal);

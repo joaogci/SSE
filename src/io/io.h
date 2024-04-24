@@ -52,6 +52,11 @@ void write_sim_info(Sim_info sim);
 void write_configuration(int t_id, int N, SSE_config* conf);
 
 /*
+ * Writes SSE configuration
+ */
+void write_histogram(int t_id, int N, SSE_config* conf);
+
+/*
  * Reads SSE configuration
  */
 void read_configuration(int t_id, int N, SSE_config* conf);

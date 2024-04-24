@@ -36,6 +36,11 @@ typedef struct SSE_config
   int* link;
   int* first;
   int* vertex_list;
+
+
+  long long n_loops_2;
+  long long loop_size_2;
+  long long* loop_histogram;
 } SSE_config;
 
 /* 
