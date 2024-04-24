@@ -258,10 +258,10 @@ void write_histogram(int t_id, int N, SSE_config* conf)
   sprintf(filename, "histogram_%d", t_id);
   out = fopen(filename, "w");
 
-  fprintf(out, "%ld %ld \n", conf->n_loops_2, conf->loop_size_2);
+  fprintf(out, "%lld %lld \n", conf->n_loops_2, conf->loop_size_2);
   
   for (n = 0; n < N; n++) {
-    fprintf(out, "%d \n", conf->loop_histogram[n]);
+    fprintf(out, "%lld \n", conf->loop_histogram[n]);
   }
 
   fclose(out);
