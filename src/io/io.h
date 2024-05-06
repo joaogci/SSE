@@ -54,7 +54,7 @@ void write_configuration(int t_id, int N, SSE_config* conf);
 /*
  * Writes SSE configuration
  */
-void write_histogram(int t_id, int N, SSE_config* conf);
+void write_histogram(int t_id, int N, Lattice_Hyperbolic* latt, SSE_config* conf);
 
 /*
  * Reads SSE configuration

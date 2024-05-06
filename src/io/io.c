@@ -249,7 +249,7 @@ void write_configuration(int t_id, int N, SSE_config* conf)
   fclose(out);
 }
 
-void write_histogram(int t_id, int N, SSE_config* conf) 
+void write_histogram(int t_id, int N, Lattice_Hyperbolic* latt, SSE_config* conf) 
 {
   FILE* out;
   int n;
@@ -261,7 +261,7 @@ void write_histogram(int t_id, int N, SSE_config* conf)
   fprintf(out, "%lld %lld \n", conf->n_loops_2, conf->loop_size_2);
   
   for (n = 0; n < N; n++) {
-    fprintf(out, "%lld \n", conf->loop_histogram[n]);
+    fprintf(out, "%d %lld \n", latt->bulk[n], conf->loop_histogram[n]);
   }
 
   fclose(out);
