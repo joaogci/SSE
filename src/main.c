@@ -122,7 +122,7 @@ int main(int argc, char **argv)
         diag_update(&ham, &state, &rng);
 
         create_vtx_list(&ham, &state);
-        loop_update(&ham, &state, &rng);
+        loop_update(&ham, &state, &rng, false);
 
         ajust_cutoff(&state, t);
       }
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 
         state.loop_size = 0;
         create_vtx_list(&ham, &state);
-        loop_update(&ham, &state, &rng);
+        loop_update(&ham, &state, &rng, true);
 
         sample(obs_scal, n_scal, obs_eq, n_eq, &ham, &state);
         // sample_transport(obs_transp, n_transp, &ham, &state, &rng);
@@ -152,6 +152,7 @@ int main(int argc, char **argv)
       write_configuration(thread_id, latt.N, &state);
     }
 
+    // state.n_loops_2 = state.n_loops * sim.mc_sweeps * sim.n_bins;
     #pragma omp critical
     write_histogram(thread_id, latt.N, &latt, &state);
 

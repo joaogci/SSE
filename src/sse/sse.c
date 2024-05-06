@@ -95,7 +95,7 @@ void diag_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng)
   }
 }
 
-void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng) 
+void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng, bool measure) 
 {
   int loop, i, j, j0, p, li, le, l;
   int update, update_idx, old_state, new_state;
@@ -160,7 +160,7 @@ void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng)
       if (li != le) { 
         loop_size++;
       }
-      if (state->loop_size == 0) {
+      if (measure) {
         state->loop_histogram[ham->latt->bond_list[(state->reduced_op_string[p] / N_TYPES) - 1][0]]++;
         state->loop_histogram[ham->latt->bond_list[(state->reduced_op_string[p] / N_TYPES) - 1][1]]++;
       }
@@ -182,12 +182,14 @@ void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng)
       }
     }
 
-    if (state->loop_size == 0) {
+    if (measure) {
       state->loop_size_2 += loop_size;
+      if (loop_size != 0) {
+        state->n_loops_2++;
+      }
     }
     state->loop_size += loop_size;
   }
-  state->n_loops_2 += state->n_loops;
 
   for (p = 0; p < state->n; p++) {
     state->reduced_op_string[p] = N_TYPES * (state->reduced_op_string[p] / N_TYPES) + ham->vertices[state->vertex_list[p]].type;
