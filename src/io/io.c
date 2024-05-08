@@ -162,6 +162,24 @@ void write_configuration(int t_id, int N, SSE_config* conf)
   fclose(out);
 }
 
+void write_histogram(int t_id, int N, Lattice* latt, SSE_config* conf) 
+{
+  FILE* out;
+  int n;
+  char filename[BUFFER_SIZE];
+
+  sprintf(filename, "histogram_%d", t_id);
+  out = fopen(filename, "w");
+
+  fprintf(out, "%lld %lld \n", conf->n_loops_2, conf->loop_size_2);
+  
+  for (n = 0; n < N; n++) {
+    fprintf(out, "%d %lld \n", 0, conf->loop_histogram[n]);
+  }
+
+  fclose(out);
+}
+
 void read_configuration(int t_id, int N, SSE_config* conf)
 {
   FILE* out;

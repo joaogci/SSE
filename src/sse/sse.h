@@ -36,6 +36,11 @@ typedef struct SSE_config
   int* link;
   int* first;
   int* vertex_list;
+
+  
+  long long n_loops_2;
+  long long loop_size_2;
+  long long* loop_histogram;
 } SSE_config;
 
 /* 
@@ -76,7 +81,7 @@ void diag_update(XXZ_ham *system, SSE_config *state, pcg32_random_t* rng);
 /* 
  *  loop update for the SSE MCS
  */
-void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng);
+void loop_update(XXZ_ham* ham, SSE_config* state, pcg32_random_t* rng, bool measure);
 
 /* 
  *  dinamically adjusts the expansion cutoff during the thermalization
