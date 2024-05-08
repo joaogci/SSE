@@ -132,7 +132,7 @@ void sample_obs_scalar(Obs_scalar* obs, int n_scal, XXZ_ham* ham, SSE_config* st
 
 void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)
 {
-  int i, j, a, b, p;
+  int i, j; //, a, b, p;
 
   for (i = 0; i < n_eq; i++) {
     obs[i].N++;
@@ -145,26 +145,26 @@ void sample_obs_eq(Obs_latt* obs, int n_eq, XXZ_ham* ham, SSE_config* state)
     obs[0].obs_latt0[i] += state->spin_config[i] * 0.5;
   }
 
-  for (p = 0; p < state->n; p++) {
-    a = state->reduced_op_string[p] % N_TYPES;
-    b = (state->reduced_op_string[p] / N_TYPES) - 1;
+  // for (p = 0; p < state->n; p++) {
+  //   a = state->reduced_op_string[p] % N_TYPES;
+  //   b = (state->reduced_op_string[p] / N_TYPES) - 1;
     
-    if (a == 1) {
-      state->spin_config[ham->latt->bond_list[b][0]] += 2;
-      state->spin_config[ham->latt->bond_list[b][1]] += -2;
-    } else if (a == 2) {
-      state->spin_config[ham->latt->bond_list[b][0]] += -2;
-      state->spin_config[ham->latt->bond_list[b][1]] += 2;
-    }
+  //   if (a == 1) {
+  //     state->spin_config[ham->latt->bond_list[b][0]] += 2;
+  //     state->spin_config[ham->latt->bond_list[b][1]] += -2;
+  //   } else if (a == 2) {
+  //     state->spin_config[ham->latt->bond_list[b][0]] += -2;
+  //     state->spin_config[ham->latt->bond_list[b][1]] += 2;
+  //   }
 
-    obs[0].N++;
-    for (i = 0; i < ham->latt->N; i++) {
-      for (j = 0; j < ham->latt->N; j++) {
-        obs[0].obs_latt[i][j] += state->spin_config[i] * state->spin_config[j] * 0.25;
-      }
-      obs[0].obs_latt0[i] += state->spin_config[i] * 0.5;
-    }
-  }
+  //   obs[0].N++;
+  //   for (i = 0; i < ham->latt->N; i++) {
+  //     for (j = 0; j < ham->latt->N; j++) {
+  //       obs[0].obs_latt[i][j] += state->spin_config[i] * state->spin_config[j] * 0.25;
+  //     }
+  //     obs[0].obs_latt0[i] += state->spin_config[i] * 0.5;
+  //   }
+  // }
 }
 
 void free_observables(Obs_scalar* obs_scalar, int n_scal, Obs_latt* obs_eq, int n_eq)
