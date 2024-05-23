@@ -169,11 +169,19 @@ void read_configuration(int t_id, int N, SSE_config* conf)
   char filename[BUFFER_SIZE];
 
   sprintf(filename, "confin_%d", t_id);
-  out = fopen(filename, "w");
+  out = fopen(filename, "r");
 
   if (out != NULL) {
     fscanf(out, "%ld %ld \n", &(conf->M), &(conf->n));
-  
+    
+    free(conf->op_string);
+    free(conf->op_tau);
+    free(conf->spin_config);
+
+    conf->op_string = (int*) malloc(conf->M * sizeof(int));
+    conf->op_tau = (double*) malloc((conf->n + 2) * sizeof(double));
+    conf->spin_config = (int*) malloc(N * sizeof(int));
+
     for (n = 0; n < conf->M; n++) {
       fscanf(out, "%d \n", &(conf->op_string[n]));
     }
