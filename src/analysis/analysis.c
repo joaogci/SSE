@@ -1,10 +1,11 @@
 #include "analysis.h"
 
-void analyse_scal(FILE* fp, Ana_scalar* obs, int n_bins)
+void analyse_scal(FILE* fp, Ana_scalar* obs, int n_bins, int n_rebin)
 {
-  int i;
+  int i, j;
   double real, imag;
   double _Complex* measurements;
+  double _Complex* measurements_rebin;
 
   measurements = (double _Complex*) malloc(n_bins * sizeof(double _Complex));
   for (i = 0; i < n_bins; i++) {
@@ -12,24 +13,36 @@ void analyse_scal(FILE* fp, Ana_scalar* obs, int n_bins)
     measurements[i] = real + I * imag;
   }
 
-  for (i = 0; i < n_bins; i++) {
-    obs->obs_mean += measurements[i];
-  }  
-  obs->obs_mean = obs->obs_mean / n_bins;
+  measurements_rebin = (double _Complex*) malloc(n_bins / n_rebin * sizeof(double _Complex));
+  for (i = 0; i < n_bins / n_rebin; i++) {
+    measurements_rebin[i] = 0.0;
 
-  for (i = 0; i < n_bins; i++) {
-    obs->obs_std += cpow(measurements[i] - obs->obs_mean, 2.0);
+    for (j = 0; j < n_rebin; j++) {
+      measurements_rebin[i] += measurements[i * n_rebin + j];
+    }
+    measurements_rebin[i] = measurements_rebin[i] / n_rebin;
   }
-  obs->obs_std = csqrt(obs->obs_std / n_bins);
+
+  for (i = 0; i < n_bins/n_rebin; i++) {
+    obs->obs_mean += measurements_rebin[i];
+  }  
+  obs->obs_mean = obs->obs_mean / (n_bins/n_rebin);
+
+  for (i = 0; i < n_bins/n_rebin; i++) {
+    obs->obs_std += cpow(measurements_rebin[i] - obs->obs_mean, 2.0);
+  }
+  obs->obs_std = csqrt(obs->obs_std / (n_bins/n_rebin));
 
   free(measurements);
+  free(measurements_rebin);
 }
 
-void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins)
+void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins, int n_rebin)
 {
-  int i, n;
+  int i, j, n;
   double real, imag, x, y;
   double _Complex** measurements;
+  double _Complex** measurements_rebin;
 
   measurements = (double _Complex**) malloc(n_bins * sizeof(double _Complex*));
   for (i = 0; i < n_bins; i++) {
@@ -41,31 +54,48 @@ void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins)
     }
   }
 
-  for (n = 0; n < latt->N; n++) {
-    for (i = 0; i < n_bins; i++) {
-      obs->obs_mean[n] += measurements[i][n];
+  measurements_rebin = (double _Complex**) malloc(n_bins / n_rebin * sizeof(double _Complex*));
+  for (i = 0; i < n_bins / n_rebin; i++) {
+    measurements_rebin[i] = (double _Complex*) malloc(latt->N * sizeof(double _Complex));
+    
+    for (n = 0; n < latt->N; n++) {
+      for (j = 0; j < n_rebin; j++) {
+        measurements_rebin[i][n] += measurements[i * n_rebin + j][n];
+      }
+      measurements_rebin[i][n] = measurements_rebin[i][n] / n_rebin;
     }
-    obs->obs_mean[n] = obs->obs_mean[n] / n_bins;
+  }
+
+  for (n = 0; n < latt->N; n++) {
+    for (i = 0; i < n_bins / n_rebin; i++) {
+      obs->obs_mean[n] += measurements_rebin[i][n];
+    }
+    obs->obs_mean[n] = obs->obs_mean[n] / (n_bins / n_rebin);
   }  
 
   for (n = 0; n < latt->N; n++) {
-    for (i = 0; i < n_bins; i++) {
-      obs->obs_std[n] += cpow(measurements[i][n] - obs->obs_mean[n], 2.0);
+    for (i = 0; i < n_bins / n_rebin; i++) {
+      obs->obs_std[n] += cpow(measurements_rebin[i][n] - obs->obs_mean[n], 2.0);
     }
-    obs->obs_std[n] = csqrt(obs->obs_std[n] / n_bins);
+    obs->obs_std[n] = csqrt(obs->obs_std[n] / (n_bins / n_rebin));
   }
 
   for (i = 0; i < n_bins; i++) {
     free(measurements[i]);
   }
   free(measurements);
+  for (i = 0; i < n_bins/n_rebin; i++) {
+    free(measurements_rebin[i]);
+  }
+  free(measurements_rebin);
 }
 
-void analyse_transp(FILE* fp, Ana_transp* obs, int n_max, int n_bins)
+void analyse_transp(FILE* fp, Ana_transp* obs, int n_max, int n_bins, int n_rebin)
 {
-  int i, n;
+  int i, j, n;
   double real, imag, omega_n;
   double _Complex** measurements;
+  double _Complex** measurements_rebin;
 
   measurements = (double _Complex**) malloc(n_bins * sizeof(double _Complex*));
   for (i = 0; i < n_bins; i++) {
@@ -77,24 +107,40 @@ void analyse_transp(FILE* fp, Ana_transp* obs, int n_max, int n_bins)
     }
   }
 
-  for (n = 0; n < n_max; n++) {
-    for (i = 0; i < n_bins; i++) {
-      obs->obs_mean[n] += measurements[i][n];
+  measurements_rebin = (double _Complex**) malloc(n_bins / n_rebin * sizeof(double _Complex*));
+  for (i = 0; i < n_bins / n_rebin; i++) {
+    measurements_rebin[i] = (double _Complex*) malloc(n_max * sizeof(double _Complex));
+    
+    for (n = 0; n < n_max; n++) {
+      for (j = 0; j < n_rebin; j++) {
+        measurements_rebin[i][n] += measurements[i * n_rebin + j][n];
+      }
+      measurements_rebin[i][n] = measurements_rebin[i][n] / n_rebin;
     }
-    obs->obs_mean[n] = obs->obs_mean[n] / n_bins;
+  }
+
+  for (n = 0; n < n_max; n++) {
+    for (i = 0; i < n_bins / n_rebin; i++) {
+      obs->obs_mean[n] += measurements_rebin[i][n];
+    }
+    obs->obs_mean[n] = obs->obs_mean[n] / (n_bins / n_rebin);
   }  
 
   for (n = 0; n < n_max; n++) {
-    for (i = 0; i < n_bins; i++) {
-      obs->obs_std[n] += cpow(measurements[i][n] - obs->obs_mean[n], 2.0);
+    for (i = 0; i < n_bins / n_rebin; i++) {
+      obs->obs_std[n] += cpow(measurements_rebin[i][n] - obs->obs_mean[n], 2.0);
     }
-    obs->obs_std[n] = csqrt(obs->obs_std[n] / n_bins);
+    obs->obs_std[n] = csqrt(obs->obs_std[n] / (n_bins / n_rebin));
   }
 
   for (i = 0; i < n_bins; i++) {
     free(measurements[i]);
   }
   free(measurements);
+  for (i = 0; i < n_bins/n_rebin; i++) {
+    free(measurements_rebin[i]);
+  }
+  free(measurements_rebin);
 }
 
 void write_scal(FILE* fp, Ana_scalar* obs)

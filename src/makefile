@@ -28,15 +28,17 @@ endif
 all: main ana
 
 main: read_parameters $(SOURCES_SSE) $(INCLUDES_SSE)
-	$(CC) -o main $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o $(SOURCES_SSE) $(LIBS)
+	$(CC) -o main $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o io/read_parameters_analysis.o $(SOURCES_SSE) $(LIBS)
 
 ana: read_parameters $(SOURCES_ANA) $(INCLUDES_ANA) 
-	$(CC) -o ana $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o $(SOURCES_ANA) $(LIBS)
+	$(CC) -o ana $(FLAGS) $(DEBUG_FLAGS) io/read_parameters.o io/read_parameters_analysis.o $(SOURCES_ANA) $(LIBS)
 
-read_parameters: io/read_parameters.f90
+read_parameters: io/read_parameters.f90 io/read_parameters_analysis.f90
 	$(FORT) -o io/read_parameters.o -c io/read_parameters.f90
+	$(FORT) -o io/read_parameters_analysis.o -c io/read_parameters_analysis.f90
 
 clean: 
 	rm io/read_parameters.o 
+	rm io/read_parameters_analysis.o 
 	rm main
 	rm ana

@@ -44,17 +44,17 @@ typedef struct Ana_transp
 /*
  * Analyses scalar observable
  */
-void analyse_scal(FILE* fp, Ana_scalar* obs, int n_bins);
+void analyse_scal(FILE* fp, Ana_scalar* obs, int n_bins, int n_rebin);
 
 /*
  * Analyses lattice observable
  */
-void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins);
+void analyse_latt(FILE* fp, Ana_latt* obs, Lattice *latt, int n_bins, int n_rebin);
 
 /*
  * Analyses transport observable
  */
-void analyse_transp(FILE* fp, Ana_transp* obs, int n_max, int n_bins);
+void analyse_transp(FILE* fp, Ana_transp* obs, int n_max, int n_bins, int n_rebin);
 
 /*
  * Writes the results for scalar observable

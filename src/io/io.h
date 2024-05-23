@@ -16,6 +16,11 @@
  */
 void read_parameters(int* Lx, int* Ly, char* boundary_condition, double* beta, double* epsilon, long* therm_cycles, int* n_bins, long* mc_sweeps, double* S, double* J_perp, double* J_par, double* h, double* D);
 
+/* 
+ * reads parameters for analysis
+ */
+void read_parameters_analysis(int* n_rebin);
+
 /*
  *  reads vertex information for the simulation 
  */

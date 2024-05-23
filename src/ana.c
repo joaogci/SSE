@@ -23,6 +23,9 @@ Ana_scalar obs_scal;
 Ana_latt obs_eq;
 Ana_transp obs_transp;
 
+// Rebin
+int n_rebin;
+
 
 int main(int argc, char** argv)
 {
@@ -38,6 +41,8 @@ int main(int argc, char** argv)
     printf("Usage: %s file_1 file_2 ... \n ", argv[0]);
     exit(1);
   }
+
+  read_parameters_analysis(&n_rebin);
 
   // Analysis
   for (i = 1; i < argc; i++) {
@@ -78,9 +83,10 @@ int main(int argc, char** argv)
           
           printf("Analysing %s \n", filename);
           printf("Number of bins: %d \n", n_bins);
+          printf("Number of effective bins: %d \n", n_bins / n_rebin);
 
           res = fopen(filename, "r");
-          analyse_scal(res, &obs_scal, n_bins);
+          analyse_scal(res, &obs_scal, n_bins, n_rebin);
           fclose(res);
 
           strcat(filename, "J");
@@ -115,9 +121,10 @@ int main(int argc, char** argv)
 
           printf("Analysing %s \n", filename);
           printf("Number of bins: %d \n", n_bins);
+          printf("Number of effective bins: %d \n", n_bins / n_rebin);
 
           res = fopen(filename, "r");
-          analyse_latt(res, &obs_eq, &latt, n_bins);
+          analyse_latt(res, &obs_eq, &latt, n_bins, n_rebin);
           fclose(res);
 
           filename[strlen(filename) - 1] = '\0';
@@ -140,9 +147,10 @@ int main(int argc, char** argv)
 
           printf("Analysing %s \n", filename);
           printf("Number of bins: %d \n", n_bins);
+          printf("Number of effective bins: %d \n", n_bins / n_rebin);
 
           res = fopen(filename, "r");
-          analyse_latt(res, &obs_eq, &latt, n_bins);
+          analyse_latt(res, &obs_eq, &latt, n_bins, n_rebin);
           fclose(res);
 
 
@@ -179,9 +187,10 @@ int main(int argc, char** argv)
 
           printf("Analysing %s \n", filename);
           printf("Number of bins: %d \n", n_bins);
+          printf("Number of effective bins: %d \n", n_bins / n_rebin);
 
           res = fopen(filename, "r");
-          analyse_transp(res, &obs_transp, n_max, n_bins);
+          analyse_transp(res, &obs_transp, n_max, n_bins, n_rebin);
           fclose(res);
 
           strcat(filename, "J");

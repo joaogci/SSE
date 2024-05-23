@@ -1,15 +1,15 @@
 &Lattice
-Lx                  = 6   ! Number of unit lattices on the x direction
+Lx                  = 32   ! Number of unit lattices on the x direction
 Ly                  = 1   ! Number of unit lattices on the x direction
-boundary_condition  = "P" ! Boundary condition: P for PBC or O for OBC
+boundary_condition  = "O" ! Boundary condition: P for PBC or O for OBC
 /
 
 &Simulation
-beta          = 1.0       ! Inverse temperature
+beta          = 32.0       ! Inverse temperature
 epsilon       = 0.25      ! Constant to make the vertices weight bigger than zero
-therm_cycles  = 1000      ! Number of thermalization cycles
-n_bins        = 10        ! Number of bins 
-mc_sweeps     = 1000     ! Number of measurement cycles per bin
+therm_cycles  = 500      ! Number of thermalization cycles
+n_bins        = 100        ! Number of bins 
+mc_sweeps     = 100     ! Number of measurement cycles per bin
 /
 
 &Hamiltonian
@@ -19,3 +19,8 @@ J_par           = 1.0
 magnetic_field  = 0.0
 crystal_field   = 0.0
 /
+
+&Analysis
+n_rebin = 25
+/
+
